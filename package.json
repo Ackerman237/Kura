@@ -1,17 +1,52 @@
 {
   "name": "doujin-scraper",
   "version": "1.0.0",
-  "description": "Scraper tanpa dependensi untuk doujin.desu.xxx (API terenkripsi) dan nekopoi.care (WordPress)",
-  "main": "lib/scraper.js",
+  "description": "Raw scraping modules for doujin/hentai/porn content sources — Doujindesu, NekoPoi, Hentai.tv, and Eporner. Framework-agnostic, zero dependencies, works in Node.js, Bun, or any JS runtime with global fetch.",
   "type": "module",
-  "scripts": {
-    "test": "node --test test/*.test.js",
-    "get-secret": "node scripts/get-secret.js",
-    "demo": "node scripts/demo.js"
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./doujindesu": "./src/doujindesu.js",
+    "./nekopoi": "./src/nekopoi.js",
+    "./hentaitv": "./src/hentaitv.js",
+    "./eporner": "./src/eporner.js",
+    "./cache": "./src/cache.js",
+    "./security": "./src/security.js",
+    "./package.json": "./package.json"
   },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
-    "node": ">=18"
+    "node": ">=18.17"
   },
-  "keywords": ["scraper", "doujin", "manga", "nekopoi", "fetch"],
-  "license": "MIT"
+  "scripts": {
+    "test": "node test/import.test.mjs && node test/crypto.test.mjs && node test/smoke.mjs",
+    "example": "node examples/basic.js"
+  },
+  "keywords": [
+    "scraper",
+    "doujin",
+    "hentai",
+    "doujindesu",
+    "nekopoi",
+    "hentaitv",
+    "eporner",
+    "web-scraping",
+    "api-wrapper",
+    "nodejs",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "author": "Hengki <henkii@henkii.dev>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kyy0887/doujin-scraper"
+  },
+  "bugs": {
+    "url": "https://github.com/kyy0887/doujin-scraper/issues"
+  },
+  "homepage": "https://github.com/kyy0887/doujin-scraper#readme"
 }
