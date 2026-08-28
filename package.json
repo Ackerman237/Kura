@@ -1,7 +1,7 @@
 {
   "name": "doujin-scraper",
-  "version": "1.0.0",
-  "description": "Raw scraping modules for doujin/hentai/porn content sources — Doujindesu, NekoPoi, Hentai.tv, and Eporner. Framework-agnostic, zero dependencies, works in Node.js, Bun, or any JS runtime with global fetch.",
+  "version": "1.0.1",
+  "description": "Standalone data-collection modules for manga / video cataloging sources. Zero-dependency ESM, runs on Node.js >= 18.17, Bun, Deno, or any JS runtime with global fetch.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
