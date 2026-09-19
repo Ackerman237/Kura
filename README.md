@@ -1,300 +1,124 @@
-# doujin-scraper
+<div align="center">
 
-Standalone data-collection modules for manga / video cataloging sources.
-Zero-dependency ESM — just `fetch`, JSON, and hardened parsing. Runs on any
-JS runtime with global fetch: Node ≥ 18.17, Bun, Deno, and serverless functions.
+  <img src="docs/assets/kura-logo-horizontal.svg" alt="Kura Logo" width="440" />
 
-## Features
+  <p><strong>Your private, self-hosted storehouse of manga and cinema.</strong></p>
+  <p><em>Khazanah bacaan manga dan tontonan sinema mandiri — cepat, hening, dan bebas iklan.</em></p>
 
-- **Zero dependencies** — pure Node.js `fetch`, no transitive deps, no build step
-- **Modular** — import one source or all of them; every source is self-contained
-- **Security built-in** — SSRF protection, URL scheme filtering (`javascript:`, `data:`, ...), HTML stripping
-- **TTL caching** — in-memory cache with per-source TTLs; pluggable for Redis/DB backends
-- **Hardened parsing** — regex/JSON-LD/RSC parsers that survive markup changes, dedupe, and discard ads/tracking
-- **Configurable** — base URLs, timeouts, user agents, and credentials via env vars or runtime config
-- **Tree-shakeable ESM** — import only what you need
+  <p>
+    <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%E2%89%A518.17-339933?style=flat-square&logo=node.js" alt="Node.js" /></a>
+    <img src="https://img.shields.io/badge/Modules-ESM%20Only-f7df1e?style=flat-square&logo=javascript" alt="ESM" />
+    <img src="https://img.shields.io/badge/Tests-164%20Passing-34D399?style=flat-square&logo=node.js" alt="Tests" />
+    <img src="https://img.shields.io/badge/Security-SSRF%20%26%20DNS%20Guarded-E8613C?style=flat-square" alt="Security" />
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" /></a>
+  </p>
 
-## Supported sources
+</div>
 
-| Codename | Type | Auth | Export path |
-| --- | --- | --- | --- |
-| manga | Manga / doujinshi / manhwa catalog | API secret + salt | `doujin-scraper/doujindesu` |
-| neko | Video posts (subbed, 2D/3D, cosplay) | none | `doujin-scraper/nekopoi` |
-| htv | Streaming 2D animation | none | `doujin-scraper/hentaitv` |
-| tube | Tube videos | none | `doujin-scraper/eporner` |
+---
 
-## Requirements
+## 📖 Tentang Kura (蔵)
 
-- Node.js **≥ 18.17** (global `fetch` required) — or any runtime that provides `fetch`
-- **manga source only**: valid `DOUJIN_APP_SECRET` and `DOUJIN_SALT` credentials
+**Kura** (bahasa Jepang: 蔵, yang berarti gudang penyimpanan pusaka tradisional) adalah platform media mandiri (*self-hosted manga reader & video streaming*) dan scraping engine berkinerja tinggi.
 
-## Installation
+Kura dibangun untuk pembaca dan penonton yang menginginkan privasi mutlak, kecepatan tinggi, dan kenyamanan tanpa gangguan iklan judi, popunder pembajak tab, atau pelacak pihak ketiga. Seluruh preferensi, riwayat, dan metadata tersimpan aman di server milik Anda sendiri (*privacy-first*).
 
+---
+
+## ✨ Pilar Keunggulan Kura
+
+- 🛡️ **Pertahanan Anti-Iklan 3-Tier**: 
+  Sistem isolasi video player berlapis (Tier 1: Ekstraksi Direct MP4 via `curl.exe` tanpa iklan; Tier 2: Reverse-proxy iframe dengan pembersihan domain iklan, injeksi shims `guardShim`/`stealthShim`, dan CSP sandbox tanpa `allow-same-origin`; Tier 3: Direct fallback allowlist).
+- 🔒 **Keamanan Tingkat Enterprise**: 
+  Mitigasi SSRF dan DNS Rebinding pada level socket TCP via Undici custom dispatcher, proteksi DoS body bomb (stream limits), per-hop redirect validation, dan sanitasi URL scheme ketat.
+- ⚡ **Arsitektur Modular Murni (Clean Code & SRP)**: 
+  Pemisahan total antara logika parser murni (*pure DOM/JSON parsing*) dan client jaringan (*transport client*), memungkinkan 100% offline unit-testability tanpa ketergantungan koneksi internet.
+- 🎨 **Sistem Desain Minimalis Jepang**: 
+  Palet warna 60-30-10 berlatar arang *Sumi* (`#17181C`), aksen stempel *Vermilion Shu-iro* (`#E8613C`), dan kertas *Washi* (`#ECE8E1`) dengan standar kontras WCAG AAA (14.5:1) dan sistem spasial 8pt.
+- 🚀 **Zero Runtime Dependencies**: 
+  Hanya menggunakan 1 dependensi eksternal (`undici` untuk socket security), sisanya menggunakan native Node.js runtime.
+
+---
+
+## 🗂️ Sumber Media yang Didukung
+
+| Modul | Tipe Media | Autentikasi | Fitur Utama |
+| :--- | :--- | :--- | :--- |
+| **Doujindesu** | Manga / Doujinshi / Manhwa | App Secret + Salt | Katalog, pencarian, detail chapter, ekstraksi gambar chapter |
+| **NekoPoi** | Video / Animasi Subtitle | Publik (None) | Katalog episode, rekomendasi relasi, stream & sanitized iframe |
+| **Hentai.tv** | Streaming Animasi 2D | Publik (None) | Pencarian RSC payload, serial, episode, trending & views |
+| **Eporner** | Video Tube Web | Publik (None) | Resolusi bertingkat (360p - 1080p direct MP4), kategori, related |
+
+---
+
+## 🚀 Memulai Cepat (Quick Start)
+
+### 1. Prasyarat
+- Node.js **≥ 18.17 LTS** (atau Bun / Deno yang mendukung global `fetch`)
+- Kredensial Doujindesu (opsional jika hanya memakai video/anime)
+
+### 2. Instalasi & Setup Lingkungan
 ```bash
-npm install doujin-scraper
-```
+# Clone repositori
+git clone https://github.com/Ackerman237/self-hosted-manga-and-anime.git
+cd self-hosted-manga-and-anime
 
-Or from GitHub:
+# Salin konfigurasi environment
+cp .env.example .env
 
-```bash
-npm install github:kyy0887/doujin-scraper
-```
-
-## Quick start
-
-```js
-import { scrapeHentaiList, scrapeHentaiDetail } from 'doujin-scraper';
-
-// List latest videos
-const { videos, hasNext, total } = await scrapeHentaiList({ page: 1 });
-console.log(videos[0]); // { id, slug, title, displayTitle, thumb, embedUrl, views, ... }
-
-// Full detail with player embed
-const detail = await scrapeHentaiDetail(videos[0].slug);
-console.log(detail.embedUrl); // https://... player URL
-```
-
-Import one source only:
-
-```js
-import { scrapeMangaList } from 'doujin-scraper/doujindesu';
-import { scrapeNekoDetail } from 'doujin-scraper/nekopoi';
-import { scrapeEpornerList } from 'doujin-scraper/eporner';
-```
-
-## Configuration
-
-### manga source credentials (required)
-
-The manga API rejects requests without credentials. Set them via env vars:
-
-```bash
-DOUJIN_APP_SECRET=your_secret
-DOUJIN_SALT=your_salt
-```
-
-Node ≥ 20.6:
-
-```bash
-node --env-file=.env your-app.js
-```
-
-Or programmatically:
-
-```js
-import { configureDoujin } from 'doujin-scraper';
-
-configureDoujin({
-  appSecret: 'your_secret',
-  salt: 'your_salt',
-  // baseUrl, userAgent, timeoutMs, cacheTtl — all optional
-});
-```
-
-### Environment variables
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DOUJIN_APP_SECRET` | — | manga API app secret (**required**) |
-| `DOUJIN_SALT` | — | key-rotation salt (**required**) |
-| `DOUJIN_BASE_URL` | set in `.env.example` | manga base URL |
-| `DOUJIN_USER_AGENT` | Chrome UA | manga user agent |
-| `DOUJIN_TIMEOUT_MS` | `30000` | request timeout |
-| `NEKO_BASE_URL` | set in `.env.example` | neko base URL |
-| `NEKO_TIMEOUT_MS` | `30000` | request timeout |
-| `HENTAI_BASE_URL` | set in `.env.example` | htv base URL |
-| `HENTAI_TIMEOUT_MS` | `30000` | request timeout |
-| `EPORNER_BASE_URL` | set in `.env.example` | tube HTML base URL |
-| `EPORNER_API_BASE` | set in `.env.example` | tube API base URL |
-| `EPORNER_TIMEOUT_MS` | `30000` | request timeout |
-
-Runtime equivalents: `configureDoujin()`, `configureNeko()`, `configureHentai()`, `configureEporner()` — each accepts the relevant subset (`baseUrl`, `userAgent`, `timeoutMs`, `cacheTtl`, and `appSecret`/`salt` for the manga source).
-
-## API reference
-
-### manga — `doujin-scraper/doujindesu`
-
-| Function | Description |
-| --- | --- |
-| `scrapeMangaList({ page, query, type, genre, sort, limit })` | Paginated list with filters. `type`: `manga` \| `doujinshi` \| `manhwa`. `sort`: `latest_chapter` \| `views` \| `rating`. **Note:** the API ignores `page` — the module translates it to `offset` so pagination actually works |
-| `searchManga(query)` | Search by keyword |
-| `scrapeGenres()` | All genres with manga counts, sorted by count DESC |
-| `scrapeMangaDetail(slug)` | Full detail: synopsis (cleaned HTML), author/artist, genres, chapter list, views |
-| `scrapeChapterImages(id)` | Chapter image URLs + manga/chapter metadata |
-
-List item shape:
-
-```js
-{
-  title: 'string', slug: 'string', thumb: 'https://...',
-  rating: number|null, type: 'string', status: 'string|null',
-  latestChapter: number|null
-}
-```
-
-### neko — `doujin-scraper/nekopoi`
-
-| Function | Description |
-| --- | --- |
-| `scrapeNekoList(page)` | Latest posts `{ videos, hasNext }` |
-| `scrapeNekoCategory(category, page)` | Posts by category `{ videos, hasNext }` |
-| `scrapeNekoCategories()` | Category list |
-| `scrapeNekoGenres()` | Genre list |
-| `scrapeNekoGenre(slug, page)` | Posts by genre `{ videos, hasNext }` |
-| `scrapeNekoDetail(slug)` | Detail: title, thumb, **sanitized player iframe URLs**, synopsis |
-| `scrapeNekoRelated(slug, { limit })` | YouTube-style recommendations (same-series first) |
-| `scrapeNekoRandomSlug()` | Random post slug |
-
-Player URLs are filtered against an allowlist — ad/tracking/embedding iframes are discarded.
-
-### htv — `doujin-scraper/hentaitv`
-
-| Function | Description |
-| --- | --- |
-| `scrapeHentaiList({ page, query })` | Browse/search `{ videos, hasNext, total }` (28/page) |
-| `scrapeHentaiDetail(slug)` | Detail via HTML + JSON-LD: embedUrl, tags, views, duration (ISO→`m:ss`), description. Falls back to API search |
-| `scrapeHentaiGenres()` | Genre list |
-| `scrapeHentaiGenre(slug, page)` | Videos by genre (parsed from RSC payload) `{ videos, total, hasNext }` |
-| `scrapeHentaiSeries()` | Series list |
-| `scrapeHentaiSeriesDetail(slug)` | Episodes of a series `{ videos, totalEpisodes, title }` |
-| `scrapeHentaiTrending()` | Trending videos |
-| `scrapeHentaiMostViewed()` | Most-viewed (aggregates 6 pages, sorts by views) |
-| `scrapeHentaiRelated(slug, { limit })` | Recommendations (same series first) |
-| `scrapeHentaiRandomSlug()` | Random slug (follows the `/random` 307 redirect) |
-
-### tube — `doujin-scraper/eporner`
-
-| Function | Description |
-| --- | --- |
-| `scrapeEpornerList({ page, query, order })` | Browse/search `{ videos, hasNext, total }` (28/page). `order`: `top-rated` |
-| `scrapeEpornerDetail(id)` | Detail: embedUrl, **direct mp4 `src[]` per quality** (falls back to HTML parsing), description |
-| `scrapeEpornerCategories()` | Category list |
-| `scrapeEpornerCategory(slug, page)` | Videos by category `{ videos, hasNext }` |
-| `scrapeEpornerListingPage(kind, page)` | `top-rated` or `most-viewed` listings |
-| `scrapeEpornerRelated(id, { tags, title, limit })` | Recommendations (tag-based search first) |
-| `scrapeEpornerRandomId()` | Random video id |
-
-## Caching
-
-All modules use a shared in-memory TTL cache (`src/cache.js`):
-
-- Lists and details: **10 min** TTL (manga: 1 h)
-- Genres/series/categories: **1 h**
-- Trending / most-viewed: **30 min – 1 h**
-- Related recommendations: **2 min** (stays fresh, like YouTube)
-
-Exports:
-
-```js
-import { getCache, setCache, clearCache, cacheSize } from 'doujin-scraper';
-
-clearCache();          // drop everything
-cacheSize();           // number of entries
-```
-
-> **Multi-instance deployments**: the default cache is per-process. For serverless/edge deployments with many instances, override `getCache`/`setCache` with your own Redis/Upstash-backed store — the modules call these two functions exclusively.
-
-## Security
-
-All data returned by these modules passes through `src/security.js`:
-
-- `safeHttpUrl()` — forces `http(s)://`, rejects `javascript:`, `data:`, `vbscript:`, relative paths
-- `isSafeExternalUrl()` — SSRF protection: rejects localhost, private/loopback/link-local IPs, non-standard ports, and DNS rebinding targets
-- `stripHtml()` — removes tags/scripts/styles from external text
-- neko players are allowlisted by hostname; ad/tracking iframes are dropped
-- manga synopsis HTML is double-decoded and cleaned (the API double-encodes entities)
-
-Use these utilities in your own UI too:
-
-```js
-import { safeHttpUrl, stripHtml, isSafeExternalUrl } from 'doujin-scraper';
-```
-
-## Error handling
-
-All functions throw plain `Error`s with descriptive messages:
-
-- `HTTP 404 for /api/manga/xxx` — upstream returned an error status
-- `Video xxx not found` — no such item on the source
-- `Failed to decrypt server response` — wrong/missing manga credentials
-- Invalid input (bad slug/id/genre) throws `Error('Invalid ...')` immediately
-
-Network timeouts abort after the configured `timeoutMs` (default 30 s) via `AbortSignal.timeout`.
-
-## Examples
-
-### Next.js App Router route handler
-
-```js
-// app/api/hentai/route.js
-import { NextResponse } from 'next/server';
-import { scrapeHentaiList } from 'doujin-scraper';
-
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const page = Number(searchParams.get('page')) || 1;
-  try {
-    const data = await scrapeHentaiList({ page });
-    return NextResponse.json(data, {
-      headers: { 'Cache-Control': 'public, s-maxage=600' },
-    });
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 502 });
-  }
-}
-```
-
-### Express
-
-```js
-import express from 'express';
-import { scrapeNekoDetail } from 'doujin-scraper';
-
-const app = express();
-
-app.get('/neko/:slug', async (req, res) => {
-  try {
-    res.json(await scrapeNekoDetail(req.params.slug));
-  } catch (err) {
-    res.status(502).json({ error: err.message });
-  }
-});
-
-app.listen(3000);
-```
-
-### Plain Node script
-
-```js
-// npm i doujin-scraper && node index.mjs
-import { scrapeEpornerListingPage, clearCache } from 'doujin-scraper';
-
-const { videos } = await scrapeEpornerListingPage('most-viewed');
-for (const v of videos.slice(0, 5)) console.log(v.views, v.title);
-clearCache();
-```
-
-See `examples/basic.js` for a full walkthrough of all four sources.
-
-## Testing
-
-```bash
+# Jalankan seluruh rangkaian pengujian unit (164 tests)
 npm test
 ```
 
-- `test/crypto.test.mjs` — offline round-trip verification of the decryption algorithm (no network needed)
-- `test/smoke.mjs` — live tests against all four sources (requires network; manga section needs credentials)
+### 3. Penggunaan Dasar SDK
 
-## Disclaimer
+```javascript
+import { 
+  scrapeMangaList, 
+  scrapeNekoDetail, 
+  scrapeHentaiDetail, 
+  scrapeEpornerDetail 
+} from './src/index.js';
 
-This library is for **educational and personal-use purposes only**. The referenced sources are third-party websites; this project is not affiliated with, endorsed by, or connected to any of them. You are responsible for:
+// Mengambil daftar manga terbaru
+const mangaList = await scrapeMangaList({ page: 1, type: 'manga' });
+console.log(mangaList);
 
-- Complying with the terms of service of the sites you access
-- Complying with the laws of your jurisdiction regarding the accessed content
-- Respecting rate limits — the built-in caching already reduces request volume significantly
+// Mengambil detail video dengan player iframe yang sudah disanitasi
+const video = await scrapeNekoDetail('slug-episode-contoh');
+console.log(video.stream);
+```
 
-**No liability.** The authors and maintainers of this project shall not be held responsible for any loss, damage, claim, or expense — direct or indirect, including but not limited to data loss, account suspension, legal consequences, or any other harm — arising from the use, misuse, or inability to use this library. Use it entirely at your own risk.
+---
 
-## License
+## 📚 Pusat Dokumentasi Teknis
 
-[MIT](LICENSE) © Hengki
+Seluruh dokumentasi arsitektur, standar keamanan, referensi API, dan rekam keputusan (ADR) tersusun rapi di folder [`docs/`](docs/):
+
+- 📄 [`docs/01-overview/project-charter.md`](docs/01-overview/project-charter.md) — Piagam visi dan sasaran Kura.
+- 📄 [`docs/02-architecture/design-system.md`](docs/02-architecture/design-system.md) — 22 kaidah desain, palet 60-30-10, dan aset logo SVG.
+- 📄 [`docs/02-architecture/video-player-ad-isolation.md`](docs/02-architecture/video-player-ad-isolation.md) — Spesifikasi teknis pertahanan video 3-Tier.
+- 📄 [`docs/02-architecture/system-design.md`](docs/02-architecture/system-design.md) — Blueprint arsitektur modular 3-Layer.
+- 📄 [`docs/03-security/security-policy.md`](docs/03-security/security-policy.md) — Kebijakan keamanan jaringan & mitigasi SSRF.
+- 📄 [`docs/04-api-reference/api-contracts.md`](docs/04-api-reference/api-contracts.md) — Spesifikasi DTO dan kontrak input/output.
+- 📄 [`docs/04-api-reference/sdk-doujin-scraper.md`](docs/04-api-reference/sdk-doujin-scraper.md) — Dokumentasi lengkap SDK engine bawaan.
+- 📄 [`docs/05-decisions/`](docs/05-decisions/) — Architecture Decision Records (ADR-001 & ADR-002).
+- 📄 [`docs/06-roadmap/roadmap-and-backlog.md`](docs/06-roadmap/roadmap-and-backlog.md) — Roadmap pengembangan frontend & fitur lanjutan.
+
+---
+
+## 🤝 Penghargaan & Atribusi (Credits & Acknowledgements)
+
+Proyek **Kura (蔵)** dibangun di atas fondasi solid dari komunitas open-source:
+
+1. **Scraping Engine Asli**:  
+   Modul data-collection inti dikembangkan berdasarkan library `doujin-scraper` yang awalnya dibuat oleh **[Hengki (@kyy0887)](https://github.com/kyy0887/doujin-scraper)** di bawah lisensi MIT. Kami menyampaikan terima kasih dan apresiasi sebesar-besarnya atas karya awal yang menjadi fondasi ekstraksi data project ini.
+2. **Arsitektur & Resiliensi**:  
+   Pola pemisahan *pure parser*, sistem isolasi iklan video player 3-tier, serta manajemen proxy terinspirasi dari arsitektur proyek **WibuDex**.
+
+---
+
+## ⚖️ Lisensi (License)
+
+Proyek ini dilisensikan di bawah lisensi **[MIT](LICENSE)** © 2026 Kura Contributors & Hengki.
+Disediakan untuk kepentingan pembelajaran, riset, dan penggunaan personal mandiri (*educational and personal self-hosted use only*).
