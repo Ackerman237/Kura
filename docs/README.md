@@ -6,18 +6,19 @@ Direktori ini berfungsi sebagai *Single Source of Truth* (SSOT) untuk seluruh as
 
 ---
 
-## 📂 Struktur Dokumentasi
+## 📂 Struktur Dokumentasi (Hierarki Universal → Spesifik)
 
-Folder disusun dengan prefix numerik (`01` hingga `06`) untuk menjaga urutan pembacaan yang logis dan konsisten pada file explorer dan GitHub UI:
+Dokumentasi Kura disusun dengan prinsip *Inverted Pyramid Taxonomy*: nama direktori terluar bersifat universal dan agnostik, lalu semakin ke dalam/banyak sub-direktori menjadi semakin spesifik dan teknis:
 
-| Folder | Dokumen Utama | Deskripsi & Tujuan |
-| :--- | :--- | :--- |
-| [`01-overview/`](01-overview/) | [`project-charter.md`](01-overview/project-charter.md) | Visi project, sasaran fungsional, lingkup (*scope*), dan profil stack teknologi Kura (蔵). |
-| [`02-architecture/`](02-architecture/) | [`system-design.md`](02-architecture/system-design.md)<br>[`video-player-ad-isolation.md`](02-architecture/video-player-ad-isolation.md)<br>[`design-system.md`](02-architecture/design-system.md) | Blueprint arsitektur 3-layer scraper, isolasi iklan video 3-tier, serta sistem desain visual Kura (22 aturan desain, palet 60-30-10, WCAG). |
-| [`03-security/`](03-security/) | [`security-policy.md`](03-security/security-policy.md)<br>[`security-audit-problem-map.md`](03-security/security-audit-problem-map.md) | Standar mitigasi SSRF, DNS Rebinding, proteksi stream limits, rate limiting, serta matriks audit keamanan T0–T7. |
-| [`04-api-reference/`](04-api-reference/) | [`api-contracts.md`](04-api-reference/api-contracts.md)<br>[`sdk-doujin-scraper.md`](04-api-reference/sdk-doujin-scraper.md) | Spesifikasi fungsi publik ekspor, parameter input, validasi bounds, bentuk normalized DTO, dan arsip referensi SDK asli. |
-| [`05-decisions/`](05-decisions/) | [`ADR-001-modular-parsers.md`](05-decisions/ADR-001-modular-parsers.md)<br>[`ADR-002-undici-dispatcher.md`](05-decisions/ADR-002-undici-dispatcher.md) | *Architecture Decision Records* (ADR): catatan historis mengapa suatu keputusan arsitektural dipilih. |
-| [`06-roadmap/`](06-roadmap/) | [`roadmap-and-backlog.md`](06-roadmap/roadmap-and-backlog.md) | Rencana pengembangan selanjutnya (Frontend Web App, UI reader, PWA caching, media aggregator). |
+| Domain (Level 1) | Sub-Domain (Level 2) | Berkas Dokumen (Level 3) | Deskripsi & Fokus Teknis |
+| :--- | :--- | :--- | :--- |
+| **`01-overview/`** | — | [`project-charter.md`](01-overview/project-charter.md) | Visi, sasaran, filosofi lumbung mandiri, dan batasan lingkup Kura. |
+| **`02-design/`** | `brand/`<br>`tokens/` | [`identity-and-logo.md`](02-design/brand/identity-and-logo.md)<br>[`design-system.md`](02-design/tokens/design-system.md) | **Filosofi Brand & Simbol**: Kikkō Mon, spesifikasi logo resmi & simpel.<br>**Design System**: 22 kaidah desain visual, palet 60-30-10, grid 8pt, dan WCAG AAA. |
+| **`03-architecture/`**| `system/`<br>`player/` | [`system-design.md`](03-architecture/system/system-design.md)<br>[`video-ad-isolation.md`](03-architecture/player/video-ad-isolation.md) | **Arsitektur Scraper**: Blueprint 3-layer (Facade $\rightarrow$ Client $\rightarrow$ Pure Parser).<br>**Arsitektur Player**: Pertahanan 3-tier terhadap popunder/iklan agresif. |
+| **`04-security/`** | `policies/`<br>`audits/` | [`security-policy.md`](04-security/policies/security-policy.md)<br>[`security-audit-problem-map.md`](04-security/audits/security-audit-problem-map.md) | **Kebijakan Jaringan**: Mitigasi SSRF socket-level, DNS rebinding, proxy racing.<br>**Hasil Audit**: Matriks temuan audit keamanan T0–T7 lengkap. |
+| **`05-api/`** | `contracts/`<br>`engine/` | [`api-contracts.md`](05-api/contracts/api-contracts.md)<br>[`sdk-doujin-scraper.md`](05-api/engine/sdk-doujin-scraper.md) | **Kontrak API**: Validasi bounds dan bentuk normalized DTO.<br>**Engine SDK**: Arsip lengkap dokumentasi SDK scraping engine asli. |
+| **`06-decisions/`** | — | [`ADR-001-modular-parsers.md`](06-decisions/ADR-001-modular-parsers.md)<br>[`ADR-002-undici-dispatcher.md`](06-decisions/ADR-002-undici-dispatcher.md) | Rekam jejak keputusan arsitektur (*Architecture Decision Records*). |
+| **`07-roadmap/`** | — | [`roadmap-and-backlog.md`](07-roadmap/roadmap-and-backlog.md) | Rencana milestone pengerjaan (Frontend Web App, UI Reader, PWA caching). |
 
 ---
 

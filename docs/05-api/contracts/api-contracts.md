@@ -1,4 +1,4 @@
-# 04. API Contracts & Reference
+# 05. API Contracts & Reference
 
 Dokumen ini mendefinisikan seluruh fungsi publik yang diekspor oleh library `doujin-scraper`, parameter masukan, dan bentuk DTO hasil normalisasi.
 

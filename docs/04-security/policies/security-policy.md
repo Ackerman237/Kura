@@ -1,10 +1,10 @@
-# 03. Security Policy & Hardening Guidelines
+# 04. Security Policy & Hardening Guidelines
 
 ## 1. Ikhtisar Keamanan
 Sebagai engine yang berinteraksi secara aktif dengan jaringan luar (web scraping), security core project ini dirancang dengan prinsip **Zero Trust pada Jaringan Eksternal** dan **Pertahanan Berlapis (*Defense-in-Depth*)**.
 
 Dokumen detail temuan audit lengkap per fase dapat dilihat pada:
-👉 [**Security Audit & Problem Map (T0–T7)**](security-audit-problem-map.md)
+👉 [**Security Audit & Problem Map (T0–T7)**](../audits/security-audit-problem-map.md)
 
 ---
 

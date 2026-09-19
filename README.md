@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="docs/assets/kura-logo-horizontal.svg" alt="Kura Logo" width="440" />
+  <img src="docs/assets/branding/kura-logo-horizontal.svg" alt="Kura Logo" width="440" />
 
   <p><strong>Your private, self-hosted storehouse of manga and cinema.</strong></p>
   <p><em>Khazanah bacaan manga dan tontonan sinema mandiri — cepat, hening, dan bebas iklan.</em></p>
@@ -93,17 +93,24 @@ console.log(video.stream);
 
 ## 📚 Pusat Dokumentasi Teknis
 
-Seluruh dokumentasi arsitektur, standar keamanan, referensi API, dan rekam keputusan (ADR) tersusun rapi di folder [`docs/`](docs/):
+Seluruh dokumentasi arsitektur, standar keamanan, referensi API, dan rekam keputusan (ADR) tersusun rapi dengan hierarki Universal $\rightarrow$ Spesifik di direktori [`docs/`](docs/):
 
-- 📄 [`docs/01-overview/project-charter.md`](docs/01-overview/project-charter.md) — Piagam visi dan sasaran Kura.
-- 📄 [`docs/02-architecture/design-system.md`](docs/02-architecture/design-system.md) — 22 kaidah desain, palet 60-30-10, dan aset logo SVG.
-- 📄 [`docs/02-architecture/video-player-ad-isolation.md`](docs/02-architecture/video-player-ad-isolation.md) — Spesifikasi teknis pertahanan video 3-Tier.
-- 📄 [`docs/02-architecture/system-design.md`](docs/02-architecture/system-design.md) — Blueprint arsitektur modular 3-Layer.
-- 📄 [`docs/03-security/security-policy.md`](docs/03-security/security-policy.md) — Kebijakan keamanan jaringan & mitigasi SSRF.
-- 📄 [`docs/04-api-reference/api-contracts.md`](docs/04-api-reference/api-contracts.md) — Spesifikasi DTO dan kontrak input/output.
-- 📄 [`docs/04-api-reference/sdk-doujin-scraper.md`](docs/04-api-reference/sdk-doujin-scraper.md) — Dokumentasi lengkap SDK engine bawaan.
-- 📄 [`docs/05-decisions/`](docs/05-decisions/) — Architecture Decision Records (ADR-001 & ADR-002).
-- 📄 [`docs/06-roadmap/roadmap-and-backlog.md`](docs/06-roadmap/roadmap-and-backlog.md) — Roadmap pengembangan frontend & fitur lanjutan.
+- 📄 [`docs/01-overview/project-charter.md`](docs/01-overview/project-charter.md) — Visi produk, sasaran, dan lingkup Kura.
+- 🎨 **Design**:
+  - [`docs/02-design/brand/identity-and-logo.md`](docs/02-design/brand/identity-and-logo.md) — Filosofi brand Kura, motif Kikkō Mon, dan spesifikasi logo SVG.
+  - [`docs/02-design/tokens/design-system.md`](docs/02-design/tokens/design-system.md) — 22 kaidah desain, palet 60-30-10, WCAG AAA, dan grid 8pt.
+- 🏛️ **Architecture**:
+  - [`docs/03-architecture/system/system-design.md`](docs/03-architecture/system/system-design.md) — Blueprint arsitektur modular 3-Layer scraper.
+  - [`docs/03-architecture/player/video-ad-isolation.md`](docs/03-architecture/player/video-ad-isolation.md) — Pertahanan 3-Tier pemutar video anti-iklan/popunder.
+- 🔒 **Security**:
+  - [`docs/04-security/policies/security-policy.md`](docs/04-security/policies/security-policy.md) — Standar keamanan socket outbound, rate limiting, dan proxy.
+  - [`docs/04-security/audits/security-audit-problem-map.md`](docs/04-security/audits/security-audit-problem-map.md) — Matriks audit keamanan T0–T7 lengkap.
+- 🔌 **API Reference**:
+  - [`docs/05-api/contracts/api-contracts.md`](docs/05-api/contracts/api-contracts.md) — Spesifikasi input bounds & normalized DTO output.
+  - [`docs/05-api/engine/sdk-doujin-scraper.md`](docs/05-api/engine/sdk-doujin-scraper.md) — Referensi lengkap SDK data collection bawaan.
+- ⚖️ **Decisions & Roadmap**:
+  - [`docs/06-decisions/`](docs/06-decisions/) — Architecture Decision Records (ADR-001 & ADR-002).
+  - [`docs/07-roadmap/roadmap-and-backlog.md`](docs/07-roadmap/roadmap-and-backlog.md) — Rencana milestone pengembangan frontend & PWA.
 
 ---
 
