@@ -13,7 +13,13 @@
 
 import { fetchThroughProxy, validators } from './proxy.js';
 import { getCache, setCache } from './cache.js';
-import { safeHttpUrl } from './security.js';
+import { safeHttpUrl, assertSlug, assertInt, assertQuery, InvalidInputError } from './security.js';
+import {
+  readJsonLimited,
+  readTextLimited,
+  MAX_RESPONSE_BYTES_JSON,
+  MAX_RESPONSE_BYTES_HTML,
+} from './http.js';
 
 const DEFAULT_API_BASE = 'https://api.eporner.com/api/v2';
 const DEFAULT_HTML_BASE = 'https://www.eporner.com';
@@ -57,7 +63,7 @@ async function getJson(url) {
     { validate: validators.json } // tolak response 200 yang isinya bukan JSON
   );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return res.json();
+  return readJsonLimited(res, MAX_RESPONSE_BYTES_JSON);
 }
 
 async function getHtmlText(url) {
@@ -75,7 +81,7 @@ async function getHtmlText(url) {
     { validate: validators.html('eporner') } // tolak halaman iklan/captcha dari proxy
   );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return res.text();
+  return readTextLimited(res, MAX_RESPONSE_BYTES_HTML);
 }
 
 // ── Map API video → consistent card shape ────────────────────────────────
@@ -109,24 +115,27 @@ function mapVideo(v) {
  * @returns {Promise<{videos: Array, hasNext: boolean, total: number}>}
  */
 export async function scrapeEpornerList({ page = 1, query = '', order = '' } = {}) {
-  const cacheKey = `eporner-list-${page}-${query.trim().toLowerCase()}-${order}`;
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const safeQuery = query ? assertQuery(query, { maxLength: 100, name: 'query' }) : '';
+  const safeOrder = order ? assertSlug(order, 'order') : '';
+  const cacheKey = `eporner-list-${safePage}-${safeQuery.toLowerCase()}-${safeOrder}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
   const params = new URLSearchParams({
     per_page: '28',
-    page: String(Math.max(1, page)),
+    page: String(safePage),
     format: 'json',
     thumbsize: 'medium',
   });
-  if (query) params.set('query', query);
-  if (order) params.set('order', order);
+  if (safeQuery) params.set('query', safeQuery);
+  if (safeOrder) params.set('order', safeOrder);
 
   const data = await getJson(`${state.apiBase}/video/search/?${params}`);
   const videos = (data.videos || []).map(mapVideo);
   const pages = data.total_pages || 1;
 
-  const result = { videos, hasNext: page < pages, total: data.total_count || 0 };
+  const result = { videos, hasNext: safePage < pages, total: data.total_count || 0 };
   setCache(cacheKey, result, state.cacheTtl);
   return result;
 }
@@ -137,16 +146,16 @@ export async function scrapeEpornerList({ page = 1, query = '', order = '' } = {
  * @returns {Promise<object>} normalized video detail (includes src[], embedUrl)
  */
 export async function scrapeEpornerDetail(id) {
-  if (!/^[A-Za-z0-9_-]{3,40}$/.test(id || '')) throw new Error('Invalid id');
+  const safeId = assertSlug(id, 'id');
 
-  const cacheKey = `eporner-detail-${id}`;
+  const cacheKey = `eporner-detail-${safeId}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const data = await getJson(`${state.apiBase}/video/id?id=${encodeURIComponent(id)}&format=json`);
+  const data = await getJson(`${state.apiBase}/video/id?id=${encodeURIComponent(safeId)}&format=json`);
   // Detail response = video object at top level (not {video: {...}})
   const v = data.video || data;
-  if (!v || !v.id) throw new Error(`Video ${id} not found`);
+  if (!v || !v.id) throw new Error(`Video ${safeId} not found`);
 
   // src is not always present in the API response — fallback to scraping
   // /dload/<id>/<quality>/ links from the video HTML page.
@@ -235,13 +244,14 @@ export async function scrapeEpornerCategories() {
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
 export async function scrapeEpornerCategory(slug, page = 1) {
-  if (!/^[A-Za-z0-9_-]{1,60}$/.test(slug || '')) throw new Error('Invalid category');
+  const safeSlug = assertSlug(slug, 'category');
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
 
-  const cacheKey = `eporner-cat-${slug}-${page}`;
+  const cacheKey = `eporner-cat-${safeSlug}-${safePage}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const path = page <= 1 ? `/cat/${slug}/` : `/cat/${slug}/${page}/`;
+  const path = safePage <= 1 ? `/cat/${encodeURIComponent(safeSlug)}/` : `/cat/${encodeURIComponent(safeSlug)}/${safePage}/`;
   const html = await getHtmlText(`${state.htmlBase}${path}`);
   const result = parseEpornerListing(html);
   setCache(cacheKey, result, state.cacheTtl);
@@ -255,12 +265,13 @@ export async function scrapeEpornerCategory(slug, page = 1) {
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
 export async function scrapeEpornerListingPage(kind, page = 1) {
-  if (!['top-rated', 'most-viewed'].includes(kind)) throw new Error('Invalid kind');
-  const cacheKey = `eporner-listing-${kind}-${page}`;
+  if (!['top-rated', 'most-viewed'].includes(kind)) throw new InvalidInputError('Invalid kind');
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const cacheKey = `eporner-listing-${kind}-${safePage}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const path = page <= 1 ? `/${kind}/` : `/${kind}/${page}/`;
+  const path = safePage <= 1 ? `/${kind}/` : `/${kind}/${safePage}/`;
   const html = await getHtmlText(`${state.htmlBase}${path}`);
   const result = parseEpornerListing(html);
   setCache(cacheKey, result, state.cacheTtl);
@@ -322,11 +333,13 @@ function parseEpornerListing(html) {
  * @returns {Promise<Array<{id: string, title: string, thumb: string, duration: string, url: string, views: number, meta: string}>>}
  */
 export async function scrapeEpornerRelated(id, { tags = [], title = '', limit = 12 } = {}) {
-  const cacheKey = `eporner-related-${id}`;
+  const safeId = assertSlug(id, 'id');
+  const safeLimit = assertInt(limit, { min: 1, max: 100, name: 'limit', defaultValue: 12 });
+  const cacheKey = `eporner-related-${safeId}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const seen = new Set([id]);
+  const seen = new Set([safeId]);
   const items = [];
 
   // 1. Search per tag (max 2) — most relevant

@@ -15,6 +15,7 @@ export {
   scrapeChapterImages,
   searchManga,
   configureDoujin,
+  buildSourceUrl,
 } from './doujindesu.js';
 
 export {
@@ -54,5 +55,50 @@ export {
   configureEporner,
 } from './eporner.js';
 
-export { getCache, setCache, clearCache, cacheSize } from './cache.js';
-export { safeHttpUrl, stripHtml, sanitizeUrl, isSafeExternalUrl } from './security.js';
+export {
+  getCache,
+  setCache,
+  clearCache,
+  cacheSize,
+  MAX_CACHE_ENTRIES,
+  MAX_KEY_LENGTH,
+} from './cache.js';
+export {
+  safeHttpUrl,
+  stripHtml,
+  sanitizeUrl,
+  isSafeExternalUrl,
+  InvalidInputError,
+  assertSlug,
+  assertInt,
+  assertQuery,
+} from './security.js';
+export {
+  safeFetch,
+  createSafeDispatcher,
+  UnsafeUrlError,
+  readTextLimited,
+  readJsonLimited,
+  ResponseTooLargeError,
+  MAX_RESPONSE_BYTES_HTML,
+  MAX_RESPONSE_BYTES_JSON,
+} from './http.js';
+export {
+  isSafeProxyUrl,
+  fetchThroughProxy,
+  warmUpProxies,
+  getProxyStats,
+} from './proxy.js';
+export {
+  RateLimiter,
+  UpstreamThrottler,
+  getClientIp,
+  generalLimiter,
+  searchLimiter,
+  imageProxyLimiter,
+  upstreamThrottler,
+} from './rate-limiter.js';
+
+
+
+

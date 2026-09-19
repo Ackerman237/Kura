@@ -9,19 +9,60 @@
 // configureDoujin()). Without them the API rejects the requests.
 
 import { getCache, setCache } from './cache.js';
-import { safeHttpUrl, stripHtml } from './security.js';
+import { safeHttpUrl, stripHtml, assertSlug, assertInt, assertQuery } from './security.js';
+import { safeFetch, readTextLimited, MAX_RESPONSE_BYTES_JSON } from './http.js';
 
 const DEFAULT_BASE_URL = 'https://doujin.desu.xxx';
+const DEFAULT_TRUSTED_HOSTS = new Set(['doujin.desu.xxx']);
 const DEFAULT_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
+function validateBaseUrl(rawUrl, trustedHosts = DEFAULT_TRUSTED_HOSTS) {
+  if (typeof rawUrl !== 'string' || !rawUrl.trim()) {
+    throw new Error('baseUrl tidak valid: URL tidak boleh kosong');
+  }
+  let parsed;
+  try {
+    parsed = new URL(rawUrl.trim());
+  } catch {
+    throw new Error(`baseUrl tidak valid: "${rawUrl}"`);
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new Error(`baseUrl harus menggunakan protokol https: (diterima: "${parsed.protocol}")`);
+  }
+  if (parsed.username || parsed.password) {
+    throw new Error('baseUrl tidak boleh memuat kredensial (user:pass@)');
+  }
+  if (parsed.port && parsed.port !== '443') {
+    throw new Error(`baseUrl menggunakan port non-standar: "${parsed.port}"`);
+  }
+  const hostname = parsed.hostname.toLowerCase();
+  if (!trustedHosts.has(hostname)) {
+    throw new Error(`baseUrl tidak terpercaya: "${hostname}"`);
+  }
+  return parsed.origin;
+}
+
+function getInitialBaseUrl() {
+  const envUrl = process.env.DOUJIN_BASE_URL;
+  if (!envUrl) return DEFAULT_BASE_URL;
+  try {
+    return validateBaseUrl(envUrl);
+  } catch (err) {
+    console.warn(`[doujin-scraper] Peringatan: DOUJIN_BASE_URL tidak valid (${err.message}). Menggunakan default: ${DEFAULT_BASE_URL}`);
+    return DEFAULT_BASE_URL;
+  }
+}
 
 const state = {
   appSecret: process.env.DOUJIN_APP_SECRET || '',
   salt: process.env.DOUJIN_SALT || '',
-  baseUrl: process.env.DOUJIN_BASE_URL || DEFAULT_BASE_URL,
+  baseUrl: getInitialBaseUrl(),
   userAgent: process.env.DOUJIN_USER_AGENT || DEFAULT_USER_AGENT,
   timeoutMs: Number(process.env.DOUJIN_TIMEOUT_MS) || 30000,
   cacheTtl: 3600,
+  trustedHosts: new Set(DEFAULT_TRUSTED_HOSTS),
+  fetchImpl: globalThis.fetch,
 };
 
 if (!state.appSecret || !state.salt) {
@@ -32,16 +73,74 @@ if (!state.appSecret || !state.salt) {
 }
 
 /**
+ * Guard pembangunan URL sumber Doujindesu.
+ * Memastikan path tidak membajak host (misalnya '//evil.com', '\\evil.com', atau URL absolut).
+ * @param {string} baseUrl
+ * @param {string} path
+ * @returns {URL}
+ */
+export function buildSourceUrl(baseUrl, path) {
+  if (typeof path !== 'string' || !path.trim()) {
+    throw new Error('Path tidak boleh kosong');
+  }
+  const trimmed = path.trim();
+  if (trimmed.startsWith('//') || trimmed.startsWith('\\\\') || /^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    throw new Error('Path tidak valid atau mencoba mengubah origin');
+  }
+  const base = new URL(baseUrl);
+  const normalizedPath = trimmed.startsWith('/api')
+    ? trimmed
+    : `/api${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+  const url = new URL(normalizedPath, base);
+  if (url.origin !== base.origin) {
+    throw new Error('Path mengubah origin');
+  }
+  return url;
+}
+
+/**
+ * Membentuk header autentikasi secara terisolasi.
+ * Secret HANYA dikirimkan jika URL target mengarah ke origin terpercaya.
+ * @param {string} targetUrl
+ * @returns {Record<string, string>}
+ */
+function buildAuthHeaders(targetUrl) {
+  const targetParsed = new URL(targetUrl);
+  const baseParsed = new URL(state.baseUrl);
+  const headers = {
+    'x-device-id': deviceId(),
+    'x-device-name': 'Desktop',
+  };
+  if (
+    targetParsed.origin === baseParsed.origin &&
+    state.trustedHosts.has(targetParsed.hostname.toLowerCase())
+  ) {
+    if (state.appSecret) {
+      headers['X-App-Secret'] = state.appSecret;
+      headers['x-app-secret'] = state.appSecret;
+    }
+  }
+  return headers;
+}
+
+/**
  * Override runtime configuration for the Doujindesu source.
- * @param {{appSecret?: string, salt?: string, baseUrl?: string, userAgent?: string, timeoutMs?: number, cacheTtl?: number}} opts
+ * @param {{appSecret?: string, salt?: string, baseUrl?: string, userAgent?: string, timeoutMs?: number, cacheTtl?: number, trustedHosts?: string|string[], fetchImpl?: Function}} opts
  */
 export function configureDoujin(opts = {}) {
+  if (opts.trustedHosts !== undefined) {
+    const hosts = Array.isArray(opts.trustedHosts) ? opts.trustedHosts : [opts.trustedHosts];
+    state.trustedHosts = new Set(hosts.map((h) => String(h).toLowerCase()));
+  }
+  if (opts.baseUrl !== undefined) {
+    state.baseUrl = validateBaseUrl(opts.baseUrl, state.trustedHosts);
+  }
   if (opts.appSecret !== undefined) state.appSecret = opts.appSecret;
   if (opts.salt !== undefined) state.salt = opts.salt;
-  if (opts.baseUrl !== undefined) state.baseUrl = opts.baseUrl.replace(/\/+$/, '');
   if (opts.userAgent !== undefined) state.userAgent = opts.userAgent;
   if (opts.timeoutMs !== undefined) state.timeoutMs = opts.timeoutMs;
   if (opts.cacheTtl !== undefined) state.cacheTtl = opts.cacheTtl;
+  if (opts.fetchImpl !== undefined) state.fetchImpl = opts.fetchImpl;
 }
 
 // ── Decryption (exact port of the site's bundle) ─────────────────────────
@@ -112,23 +211,27 @@ async function apiGet(path) {
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const res = await fetch(`${state.baseUrl}/api${path}`, {
-    headers: {
-      'User-Agent': state.userAgent,
-      Accept: 'application/json',
-      'X-App-Secret': state.appSecret,
-      'x-app-secret': state.appSecret,
-      'x-device-id': deviceId(),
-      'x-device-name': 'Desktop',
+  const targetUrl = buildSourceUrl(state.baseUrl, path);
+  const authHeaders = buildAuthHeaders(targetUrl.href);
+
+  const res = await safeFetch(
+    targetUrl.href,
+    {
+      headers: {
+        'User-Agent': state.userAgent,
+        Accept: 'application/json',
+        ...authHeaders,
+      },
+      signal: AbortSignal.timeout(state.timeoutMs),
     },
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+    { fetchImpl: state.fetchImpl }
+  );
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} for ${path}`);
   }
 
-  const text = await res.text();
+  const text = await readTextLimited(res, MAX_RESPONSE_BYTES_JSON);
   let data;
   if (text.includes('_enc_resp_')) {
     data = decryptResponse(JSON.parse(text)._enc_resp_);
@@ -256,13 +359,19 @@ export async function scrapeMangaList({
   sort = 'latest_chapter',
   limit = 24,
 } = {}) {
-  const safePage = Math.max(1, parseInt(page) || 1);
-  const params = new URLSearchParams({ limit: String(limit), sort });
-  if (query) params.set('q', query);
-  if (type) params.set('type', type);
-  if (genre) params.set('genre', genre);
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const safeLimit = assertInt(limit, { min: 1, max: 100, name: 'limit', defaultValue: 24 });
+  const safeSort = sort ? assertSlug(sort, 'sort') : 'latest_chapter';
+
+  const params = new URLSearchParams({ limit: String(safeLimit), sort: safeSort });
+  if (query) {
+    const safeQuery = assertQuery(query, { maxLength: 100, name: 'query' });
+    params.set('q', safeQuery);
+  }
+  if (type) params.set('type', assertSlug(type, 'type'));
+  if (genre) params.set('genre', assertSlug(genre, 'genre'));
   // The API does not support `page` — use `offset` so pagination actually works.
-  if (safePage > 1) params.set('offset', String((safePage - 1) * limit));
+  if (safePage > 1) params.set('offset', String((safePage - 1) * safeLimit));
 
   const data = await apiGet(`/manga?${params.toString()}`);
   const list = Array.isArray(data) ? data : data.data || data.results || [];
@@ -291,7 +400,8 @@ export async function scrapeGenres() {
  * @returns {Promise<object|null>} normalized detail (title, synopsis, genres, chapters, views, ...)
  */
 export async function scrapeMangaDetail(slug) {
-  const detail = await apiGet(`/manga/${slug}`);
+  const safeSlug = assertSlug(slug, 'slug');
+  const detail = await apiGet(`/manga/${encodeURIComponent(safeSlug)}`);
   return mapDetail(detail);
 }
 
@@ -301,7 +411,8 @@ export async function scrapeMangaDetail(slug) {
  * @returns {Promise<{images: string[], mangaSlug: string, mangaTitle: string, title: string, number: number|null}>}
  */
 export async function scrapeChapterImages(id) {
-  const chapter = await apiGet(`/chapters/${id}`);
+  const safeId = assertSlug(String(id), 'id');
+  const chapter = await apiGet(`/chapters/${encodeURIComponent(safeId)}`);
   if (!chapter.content_urls || chapter.content_urls.length === 0) {
     throw new Error('This chapter has no images yet');
   }
@@ -329,7 +440,8 @@ export async function scrapeChapterImages(id) {
  * @returns {Promise<Array>} same shape as scrapeMangaList
  */
 export async function searchManga(query) {
-  const params = new URLSearchParams({ q: query, limit: '24' });
+  const safeQuery = assertQuery(query, { maxLength: 100, name: 'query' });
+  const params = new URLSearchParams({ q: safeQuery, limit: '24' });
   const data = await apiGet(`/manga?${params.toString()}`);
   const list = Array.isArray(data) ? data : data.data || data.results || [];
   return list.map(mapListItem).filter(Boolean);

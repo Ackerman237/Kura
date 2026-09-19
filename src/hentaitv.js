@@ -12,7 +12,14 @@
 //   - Random    : GET /random                        (307 redirect → /hentai/<slug>)
 
 import { getCache, setCache } from './cache.js';
-import { safeHttpUrl, stripHtml } from './security.js';
+import { safeHttpUrl, stripHtml, assertSlug, assertInt, assertQuery } from './security.js';
+import {
+  safeFetch,
+  readTextLimited,
+  readJsonLimited,
+  MAX_RESPONSE_BYTES_HTML,
+  MAX_RESPONSE_BYTES_JSON,
+} from './http.js';
 
 const DEFAULT_BASE_URL = 'https://hentai.tv';
 const DEFAULT_USER_AGENT =
@@ -23,42 +30,52 @@ const state = {
   userAgent: process.env.HENTAI_USER_AGENT || DEFAULT_USER_AGENT,
   timeoutMs: Number(process.env.HENTAI_TIMEOUT_MS) || 30000,
   cacheTtl: 600,
+  fetchImpl: globalThis.fetch,
 };
 
 /**
  * Override runtime configuration for the Hentai.tv source.
- * @param {{baseUrl?: string, userAgent?: string, timeoutMs?: number}} opts
+ * @param {{baseUrl?: string, userAgent?: string, timeoutMs?: number, cacheTtl?: number, fetchImpl?: Function}} opts
  */
 export function configureHentai(opts = {}) {
   if (opts.baseUrl !== undefined) state.baseUrl = opts.baseUrl.replace(/\/+$/, '');
   if (opts.userAgent !== undefined) state.userAgent = opts.userAgent;
   if (opts.timeoutMs !== undefined) state.timeoutMs = opts.timeoutMs;
   if (opts.cacheTtl !== undefined) state.cacheTtl = opts.cacheTtl;
+  if (opts.fetchImpl !== undefined) state.fetchImpl = opts.fetchImpl;
 }
 
 async function getJson(path) {
-  const res = await fetch(`${state.baseUrl}${path}`, {
-    headers: {
-      'User-Agent': state.userAgent,
-      Accept: 'application/json',
+  const res = await safeFetch(
+    `${state.baseUrl}${path}`,
+    {
+      headers: {
+        'User-Agent': state.userAgent,
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(state.timeoutMs),
     },
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+    { fetchImpl: state.fetchImpl }
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
-  return res.json();
+  return readJsonLimited(res, MAX_RESPONSE_BYTES_JSON);
 }
 
 async function getHtml(path) {
-  const res = await fetch(`${state.baseUrl}${path}`, {
-    headers: {
-      'User-Agent': state.userAgent,
-      Accept: 'text/html,application/xhtml+xml',
-      'Accept-Language': 'en-US,en;q=0.9',
+  const res = await safeFetch(
+    `${state.baseUrl}${path}`,
+    {
+      headers: {
+        'User-Agent': state.userAgent,
+        Accept: 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      signal: AbortSignal.timeout(state.timeoutMs),
     },
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+    { fetchImpl: state.fetchImpl }
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
-  return res.text();
+  return readTextLimited(res, MAX_RESPONSE_BYTES_HTML);
 }
 
 // ── Map API video → consistent card shape ─────────────────────────────────
@@ -102,18 +119,20 @@ function mapVideo(v) {
  * @returns {Promise<{videos: Array, hasNext: boolean, total: number}>}
  */
 export async function scrapeHentaiList({ page = 1, query = '' } = {}) {
-  const cacheKey = `hentai-list-${page}-${query.trim().toLowerCase()}`;
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const safeQuery = query ? assertQuery(query, { maxLength: 100, name: 'query' }) : '';
+  const cacheKey = `hentai-list-${safePage}-${safeQuery.toLowerCase()}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const params = new URLSearchParams({ page: String(Math.max(1, page)) });
-  if (query) params.set('search', query);
+  const params = new URLSearchParams({ page: String(safePage) });
+  if (safeQuery) params.set('search', safeQuery);
 
   const data = await getJson(`/api/browse?${params}`);
   const videos = (data.videos || []).map(mapVideo);
   const pages = data.pages || 1;
 
-  const result = { videos, hasNext: page < pages, total: data.total || 0 };
+  const result = { videos, hasNext: safePage < pages, total: data.total || 0 };
   setCache(cacheKey, result, state.cacheTtl);
   return result;
 }
@@ -133,27 +152,27 @@ export async function scrapeHentaiList({ page = 1, query = '' } = {}) {
  * @returns {Promise<object>} normalized video detail
  */
 export async function scrapeHentaiDetail(slug) {
-  if (!/^[a-z0-9-]{2,}$/.test(slug || '')) throw new Error('Invalid slug');
+  const safeSlug = assertSlug(slug, 'slug');
 
-  const cacheKey = `hentai-detail-${slug}`;
+  const cacheKey = `hentai-detail-${safeSlug}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
   let html;
   try {
-    html = await getHtml(`/hentai/${slug}`);
+    html = await getHtml(`/hentai/${encodeURIComponent(safeSlug)}`);
   } catch {
     // Fallback: API search (full-text) — only works if slug == title
-    const data = await getJson(`/api/browse?search=${encodeURIComponent(slug)}`);
-    const v = (data.videos || []).find((item) => item.slug === slug);
-    if (!v) throw new Error(`Video ${slug} not found`);
+    const data = await getJson(`/api/browse?search=${encodeURIComponent(safeSlug)}`);
+    const v = (data.videos || []).find((item) => item.slug === safeSlug);
+    if (!v) throw new Error(`Video ${safeSlug} not found`);
     const detail = mapVideo(v);
     setCache(cacheKey, detail, state.cacheTtl);
     return detail;
   }
 
-  const detail = parseHentaiDetailHtml(html, slug);
-  if (!detail.embedUrl) throw new Error(`Video ${slug} has no player`);
+  const detail = parseHentaiDetailHtml(html, safeSlug);
+  if (!detail.embedUrl) throw new Error(`Video ${safeSlug} has no player`);
   setCache(cacheKey, detail, state.cacheTtl);
   return detail;
 }
@@ -382,12 +401,16 @@ function parseRscVideos(html) {
  * @returns {Promise<{videos: Array, total: number, hasNext: boolean}>}
  */
 export async function scrapeHentaiGenre(slug, page = 1) {
-  if (!/^[a-z0-9-]{2,40}$/.test(slug || '')) throw new Error('Invalid genre');
-  const cacheKey = `hentai-genre-${slug}-${page}`;
+  const safeSlug = assertSlug(slug, 'genre');
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const cacheKey = `hentai-genre-${safeSlug}-${safePage}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const path = page <= 1 ? `/genre/${slug}/` : `/genre/${slug}/?page=${page}`;
+  const path =
+    safePage <= 1
+      ? `/genre/${encodeURIComponent(safeSlug)}/`
+      : `/genre/${encodeURIComponent(safeSlug)}/?page=${safePage}`;
   const html = await getHtml(path);
 
   // Deduplicate — RSC may contain prefetched next-page videos
@@ -405,7 +428,7 @@ export async function scrapeHentaiGenre(slug, page = 1) {
   const total = totalMatch ? parseInt(totalMatch[1].replace(/,/g, ''), 10) || 0 : videos.length;
 
   // 28 videos/page (same as /api/browse) — hasNext from total
-  const hasNext = page < Math.ceil(total / 28);
+  const hasNext = safePage < Math.ceil(total / 28);
 
   const result = { videos, total, hasNext };
   setCache(cacheKey, result, state.cacheTtl);
@@ -466,18 +489,18 @@ export async function scrapeHentaiSeries() {
  * @returns {Promise<{videos: Array, totalEpisodes: number, title: string}>}
  */
 export async function scrapeHentaiSeriesDetail(slug) {
-  if (!/^[a-z0-9-]{2,}$/.test(slug || '')) throw new Error('Invalid series');
-  const cacheKey = `hentai-series-detail-${slug}`;
+  const safeSlug = assertSlug(slug, 'series');
+  const cacheKey = `hentai-series-detail-${safeSlug}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const html = await getHtml(`/series/${slug}/`);
+  const html = await getHtml(`/series/${encodeURIComponent(safeSlug)}/`);
   const videos = parseRscVideos(html).map(mapVideo);
 
   const epMatch = html.match(/([0-9][0-9,]*)(?:<!-- -->)?\s*episodes/i);
   const totalEpisodes = epMatch ? parseInt(epMatch[1].replace(/,/g, ''), 10) || videos.length : videos.length;
 
-  const result = { videos, totalEpisodes, title: slug.replace(/-/g, ' ') };
+  const result = { videos, totalEpisodes, title: safeSlug.replace(/-/g, ' ') };
   setCache(cacheKey, result, state.cacheTtl);
   return result;
 }
@@ -487,11 +510,14 @@ export async function scrapeHentaiSeriesDetail(slug) {
  * @returns {Promise<string>} slug or empty string
  */
 export async function scrapeHentaiRandomSlug() {
-  const res = await fetch(`${state.baseUrl}/random`, {
-    headers: { 'User-Agent': state.userAgent, Accept: 'text/html' },
-    redirect: 'manual',
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+  const res = await safeFetch(
+    `${state.baseUrl}/random`,
+    {
+      headers: { 'User-Agent': state.userAgent, Accept: 'text/html' },
+      signal: AbortSignal.timeout(state.timeoutMs),
+    },
+    { fetchImpl: state.fetchImpl, followRedirects: false }
+  );
   const location = res.headers.get('location') || '';
   const m = location.match(/\/hentai\/([a-z0-9-]+)/);
   return m ? m[1] : '';
@@ -565,12 +591,14 @@ export async function scrapeHentaiMostViewed() {
  * @returns {Promise<Array<{slug: string, title: string, displayTitle: string, thumb: string, duration: string, url: string, views: number, meta: string}>>}
  */
 export async function scrapeHentaiRelated(slug, { limit = 12 } = {}) {
-  const cacheKey = `hentai-related-${slug}`;
+  const safeSlug = assertSlug(slug, 'slug');
+  const safeLimit = assertInt(limit, { min: 1, max: 100, name: 'limit', defaultValue: 12 });
+  const cacheKey = `hentai-related-${safeSlug}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const current = await scrapeHentaiDetail(slug);
-  const titleSlug = current.titleSlug || slug.replace(/-episode-\d+$/, '');
+  const current = await scrapeHentaiDetail(safeSlug);
+  const titleSlug = current.titleSlug || safeSlug.replace(/-episode-\d+$/, '');
 
   const pages = [1, 2, 3];
   pages.push(Math.floor(Math.random() * 39) + 2);

@@ -12,6 +12,8 @@
     "./eporner": "./src/eporner.js",
     "./cache": "./src/cache.js",
     "./security": "./src/security.js",
+    "./proxy": "./src/proxy.js",
+    "./rate-limiter": "./src/rate-limiter.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -23,7 +25,8 @@
     "node": ">=18.17"
   },
   "scripts": {
-    "test": "node test/import.test.mjs && node test/crypto.test.mjs && node test/smoke.mjs",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.mjs",
     "example": "node examples/basic.js"
   },
   "keywords": [

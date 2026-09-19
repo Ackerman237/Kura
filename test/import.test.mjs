@@ -8,6 +8,8 @@ import * as doujindesu from 'doujin-scraper/doujindesu';
 import * as nekopoi from 'doujin-scraper/nekopoi';
 import * as hentaitv from 'doujin-scraper/hentaitv';
 import * as eporner from 'doujin-scraper/eporner';
+import * as proxy from 'doujin-scraper/proxy';
+import * as rateLimiter from 'doujin-scraper/rate-limiter';
 import { clearCache, getCache, setCache, safeHttpUrl, stripHtml } from 'doujin-scraper';
 
 const required = [
@@ -15,12 +17,13 @@ const required = [
   'scrapeNekoList', 'scrapeNekoDetail', 'scrapeNekoRelated',
   'scrapeHentaiList', 'scrapeHentaiDetail', 'scrapeHentaiMostViewed',
   'scrapeEpornerList', 'scrapeEpornerDetail', 'scrapeEpornerRelated',
-  'clearCache', 'safeHttpUrl', 'stripHtml',
+  'clearCache', 'safeHttpUrl', 'stripHtml', 'safeFetch', 'createSafeDispatcher',
+  'isSafeProxyUrl', 'fetchThroughProxy', 'RateLimiter', 'UpstreamThrottler', 'getClientIp',
 ];
 
 let failed = 0;
 for (const name of required) {
-  if (typeof main[name] !== 'function') {
+  if (typeof main[name] !== 'function' && typeof main[name] !== 'object') {
     console.error(`  ✘ missing export: ${name}`);
     failed++;
   }
@@ -31,6 +34,8 @@ console.log('  ✔ doujindesu subpath:', typeof doujindesu.scrapeMangaList === '
 console.log('  ✔ nekopoi subpath:', typeof nekopoi.scrapeNekoList === 'function');
 console.log('  ✔ hentaitv subpath:', typeof hentaitv.scrapeHentaiList === 'function');
 console.log('  ✔ eporner subpath:', typeof eporner.scrapeEpornerList === 'function');
+console.log('  ✔ proxy subpath:', typeof proxy.isSafeProxyUrl === 'function');
+console.log('  ✔ rate-limiter subpath:', typeof rateLimiter.RateLimiter === 'function');
 
 // sanity: utilities behave
 console.log('  ✔ safeHttpUrl:', safeHttpUrl('javascript:alert(1)') === '' && safeHttpUrl('https://example.com') === 'https://example.com/');

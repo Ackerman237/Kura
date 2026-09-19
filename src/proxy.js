@@ -1,7 +1,13 @@
 import fs from 'node:fs';
 import { ProxyAgent, fetch as undiciFetch } from 'undici';
+import { safeFetch, readTextLimited } from './http.js';
+import { looksLikeIp, LOCAL_HOSTNAMES } from './security.js';
 
 /* ───────────── Konfigurasi ───────────── */
+
+const MAX_PROVIDER_BYTES = 2 * 1024 * 1024; // 2 MB batas download daftar proxy provider
+const MAX_PROXY_RESPONSE_BYTES = 5 * 1024 * 1024; // 5 MB batas body response via proxy
+const MAX_BAD_ENTRIES = 5000; // batas kapasitas memori untuk proxy bermasalah
 
 const num = (value, fallback) => {
   const n = Number(value);
@@ -41,6 +47,38 @@ const CACHE_FILE =
 const PROXY_RE = /^https?:\/\/[^\s/:]+:\d{2,5}$/;
 const PASSTHROUGH_STATUS = new Set([404, 410]); // bukan salah proxy
 
+/**
+ * Validasi ketat format dan alamat IP proxy untuk mencegah SSRF via Proxy.
+ * Menolak alamat loopback, private, link-local, dan nama host lokal/internal.
+ * @param {string} proxyUrl
+ * @returns {boolean}
+ */
+export function isSafeProxyUrl(proxyUrl) {
+  if (typeof proxyUrl !== 'string' || !PROXY_RE.test(proxyUrl)) {
+    return false;
+  }
+  try {
+    const parsed = new URL(proxyUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+    if (parsed.username || parsed.password) return false;
+    const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
+    if (!host || LOCAL_HOSTNAMES.has(host) || host.endsWith('.localhost') || host.endsWith('.local')) {
+      return false;
+    }
+    if (looksLikeIp(host)) {
+      return false;
+    }
+    const portStr = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+    const port = Number(portStr);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const debug = (...args) => {
   if (process.env.PROXY_DEBUG === '1') console.log('[proxy]', ...args);
 };
@@ -77,7 +115,7 @@ function loadSaved() {
     const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
     return (data.good || [])
       .map((g) => g.proxy)
-      .filter((p) => typeof p === 'string' && PROXY_RE.test(p))
+      .filter((p) => typeof p === 'string' && isSafeProxyUrl(p))
       .slice(0, 30);
   } catch {
     return []; // file belum ada atau rusak: abaikan
@@ -129,16 +167,16 @@ function parseList(text) {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((p) => (p.includes('://') ? p : `http://${p}`))
-    .filter((p) => PROXY_RE.test(p));
+    .filter((p) => isSafeProxyUrl(p));
 }
 
 async function fetchList(url) {
-  const res = await fetch(url, {
+  const res = await safeFetch(url, {
     signal: AbortSignal.timeout(CONFIG.providerTimeout),
     headers: { Accept: 'text/plain', 'User-Agent': 'doujin-scraper/1.0' },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return parseList(await res.text());
+  return parseList(await readTextLimited(res, MAX_PROVIDER_BYTES));
 }
 
 const providers = {
@@ -195,6 +233,10 @@ function closeAgent(proxy) {
 
 function markBad(proxy) {
   if (state.good.delete(proxy)) scheduleSave(); // hanya jika memang ada di daftar bagus
+  if (state.bad.size >= MAX_BAD_ENTRIES) {
+    const oldestKey = state.bad.keys().next().value;
+    if (oldestKey) state.bad.delete(oldestKey);
+  }
   state.bad.set(proxy, Date.now() + CONFIG.badCooldown);
   closeAgent(proxy);
 }
@@ -399,6 +441,43 @@ async function waitForGood(tried, signal) {
 
 /* ───────────── Eksekusi request ───────────── */
 
+async function readResponseBufferLimited(res, maxBytes = MAX_PROXY_RESPONSE_BYTES) {
+  const contentLength = Number(res.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    await res.body?.cancel().catch(() => {});
+    throw new Error(`Response proxy melebihi batas ${maxBytes} byte`);
+  }
+
+  if (!res.body) {
+    const ab = await res.arrayBuffer();
+    if (ab.byteLength > maxBytes) {
+      throw new Error(`Response proxy melebihi batas ${maxBytes} byte`);
+    }
+    return Buffer.from(ab);
+  }
+
+  const reader = res.body.getReader();
+  const chunks = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => {});
+        throw new Error(`Response proxy melebihi batas ${maxBytes} byte`);
+      }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks);
+  } catch (err) {
+    await reader.cancel().catch(() => {});
+    throw err;
+  }
+}
+
 async function attempt(proxy, url, init, validate, raceSignal) {
   const signal = buildSignal(
     raceSignal,
@@ -419,8 +498,8 @@ async function attempt(proxy, url, init, validate, raceSignal) {
     throw new Error(`HTTP ${res.status}`);
   }
 
-  // Baca body penuh di sini: proxy yang macet di tengah body ikut gagal.
-  const buffer = Buffer.from(await res.arrayBuffer());
+  // Baca body dengan batas ukuran: proxy yang macet atau mengirim response terlalu besar ikut gagal.
+  const buffer = await readResponseBufferLimited(res, MAX_PROXY_RESPONSE_BYTES);
 
   const headers = new Headers(res.headers);
   headers.delete('content-encoding'); // undici sudah men-decode
@@ -495,7 +574,7 @@ async function fetchViaPool(url, init, validate) {
   if (process.env.EPORNER_PROXY_FALLBACK === 'direct') {
     console.warn('[proxy] tidak ada proxy yang bekerja, fallback ke koneksi langsung');
     try {
-      return await fetch(url, init);
+      return await safeFetch(url, init);
     } catch (error) {
       throw new Error(`fallback direct gagal: ${describe(error)}`);
     }
@@ -536,8 +615,8 @@ export function getProxyStats() {
 }
 
 /**
- * mode direct : fetch biasa
- * mode manual : pakai EPORNER_PROXY
+ * mode direct : fetch aman lewat safeFetch
+ * mode manual : pakai EPORNER_PROXY terverifikasi
  * mode auto   : pool proxy publik (warm-up, sticky, cooldown, cache file)
  *
  * options.validate(res): async, true jika isi response valid (menerima clone Response).
@@ -545,12 +624,15 @@ export function getProxyStats() {
 export async function fetchThroughProxy(url, init = {}, options = {}) {
   const mode = (process.env.EPORNER_PROXY_MODE || 'direct').toLowerCase();
 
-  if (mode === 'direct') return fetch(url, init);
+  if (mode === 'direct') return safeFetch(url, init);
 
   if (mode === 'manual') {
     const proxy = process.env.EPORNER_PROXY;
     if (!proxy) {
       throw new Error('EPORNER_PROXY_MODE=manual tapi EPORNER_PROXY kosong');
+    }
+    if (!isSafeProxyUrl(proxy)) {
+      throw new Error(`EPORNER_PROXY tidak aman atau tidak valid: ${proxy}`);
     }
     return undiciFetch(url, {
       ...init,

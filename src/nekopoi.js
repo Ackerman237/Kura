@@ -3,7 +3,8 @@
 // Parses raw HTML. No auth required.
 
 import { getCache, setCache } from './cache.js';
-import { safeHttpUrl, stripHtml } from './security.js';
+import { safeHttpUrl, stripHtml, assertSlug, assertInt } from './security.js';
+import { safeFetch, readTextLimited, MAX_RESPONSE_BYTES_HTML } from './http.js';
 
 const DEFAULT_BASE_URL = 'https://nekopoi.care';
 const DEFAULT_USER_AGENT =
@@ -14,17 +15,19 @@ const state = {
   userAgent: process.env.NEKO_USER_AGENT || DEFAULT_USER_AGENT,
   timeoutMs: Number(process.env.NEKO_TIMEOUT_MS) || 30000,
   cacheTtl: 600,
+  fetchImpl: globalThis.fetch,
 };
 
 /**
  * Override runtime configuration for the NekoPoi source.
- * @param {{baseUrl?: string, userAgent?: string, timeoutMs?: number}} opts
+ * @param {{baseUrl?: string, userAgent?: string, timeoutMs?: number, cacheTtl?: number, fetchImpl?: Function}} opts
  */
 export function configureNeko(opts = {}) {
   if (opts.baseUrl !== undefined) state.baseUrl = opts.baseUrl.replace(/\/+$/, '');
   if (opts.userAgent !== undefined) state.userAgent = opts.userAgent;
   if (opts.timeoutMs !== undefined) state.timeoutMs = opts.timeoutMs;
   if (opts.cacheTtl !== undefined) state.cacheTtl = opts.cacheTtl;
+  if (opts.fetchImpl !== undefined) state.fetchImpl = opts.fetchImpl;
 }
 
 // Only embed players from these hosts are allowed in <iframe>.
@@ -40,16 +43,20 @@ const ALLOWED_PLAYER_HOSTS = [
 ];
 
 async function getHtml(path) {
-  const res = await fetch(`${state.baseUrl}${path}`, {
-    headers: {
-      'User-Agent': state.userAgent,
-      Accept: 'text/html,application/xhtml+xml',
-      'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
+  const res = await safeFetch(
+    `${state.baseUrl}${path}`,
+    {
+      headers: {
+        'User-Agent': state.userAgent,
+        Accept: 'text/html,application/xhtml+xml',
+        'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
+      },
+      signal: AbortSignal.timeout(state.timeoutMs),
     },
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+    { fetchImpl: state.fetchImpl }
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
-  return res.text();
+  return readTextLimited(res, MAX_RESPONSE_BYTES_HTML);
 }
 
 // Decode basic HTML entities
@@ -126,10 +133,11 @@ function parseCards(html) {
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
 export async function scrapeNekoList(page = 1) {
-  const path = page <= 1 ? '/' : `/page/${page}/`;
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const path = safePage <= 1 ? '/' : `/page/${safePage}/`;
   const html = await getHtml(path);
   const videos = parseCards(html);
-  const hasNext = html.includes(`/page/${page + 1}/`);
+  const hasNext = html.includes(`/page/${safePage + 1}/`);
   return { videos, hasNext };
 }
 
@@ -140,9 +148,14 @@ export async function scrapeNekoList(page = 1) {
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
 export async function scrapeNekoCategory(category, page = 1) {
-  const path = page <= 1 ? `/category/${category}/` : `/category/${category}/page/${page}/`;
+  const safeCategory = assertSlug(category, 'category');
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const path =
+    safePage <= 1
+      ? `/category/${encodeURIComponent(safeCategory)}/`
+      : `/category/${encodeURIComponent(safeCategory)}/page/${safePage}/`;
   const html = await getHtml(path);
-  return { videos: parseCards(html), hasNext: html.includes(`/page/${page + 1}/`) };
+  return { videos: parseCards(html), hasNext: html.includes(`/page/${safePage + 1}/`) };
 }
 
 /**
@@ -170,15 +183,16 @@ export async function scrapeNekoCategories() {
  * @returns {Promise<{title: string, slug: string, thumb: string, players: string[], synopsis: string}>}
  */
 export async function scrapeNekoDetail(slug) {
-  const cacheKey = `neko-detail-${slug}`;
+  const safeSlug = assertSlug(slug, 'slug');
+  const cacheKey = `neko-detail-${safeSlug}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const html = await getHtml(`/${slug}/`);
+  const html = await getHtml(`/${encodeURIComponent(safeSlug)}/`);
   const titleMatch = html.match(/<title>([^<]*)<\/title>/);
   const title = titleMatch
     ? decodeEntities(stripHtml(titleMatch[1].replace(/&#8211;.*$/, '')))
-    : slug;
+    : safeSlug;
 
   // Thumbnail: og:image or featured image
   const ogMatch = html.match(/property="og:image"\s+content="([^"]+)"/);
@@ -209,7 +223,7 @@ export async function scrapeNekoDetail(slug) {
   const synopsisMatch = html.match(/<p>([\s\S]{40,600}?)<\/p>/);
   const synopsis = synopsisMatch ? decodeEntities(stripHtml(synopsisMatch[1])) : '';
 
-  const detail = { title, slug, thumb, players, synopsis };
+  const detail = { title, slug: safeSlug, thumb, players, synopsis };
   setCache(cacheKey, detail, state.cacheTtl);
   return detail;
 }
@@ -242,10 +256,15 @@ export async function scrapeNekoGenres() {
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
 export async function scrapeNekoGenre(slug, page = 1) {
-  const path = page <= 1 ? `/genres/${slug}/` : `/genres/${slug}/page/${page}/`;
+  const safeSlug = assertSlug(slug, 'slug');
+  const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
+  const path =
+    safePage <= 1
+      ? `/genres/${encodeURIComponent(safeSlug)}/`
+      : `/genres/${encodeURIComponent(safeSlug)}/page/${safePage}/`;
   const html = await getHtml(path);
   const videos = parseCards(html);
-  const hasNext = html.includes(`/genres/${slug}/page/${page + 1}/`);
+  const hasNext = html.includes(`/genres/${encodeURIComponent(safeSlug)}/page/${safePage + 1}/`);
   return { videos, hasNext };
 }
 
@@ -259,12 +278,14 @@ export async function scrapeNekoGenre(slug, page = 1) {
  * @returns {Promise<Array<{slug: string, title: string, thumb: string, url: string, synopsis: string, sameSeries: boolean}>>}
  */
 export async function scrapeNekoRelated(slug, { limit = 12 } = {}) {
-  const cacheKey = `neko-related-${slug}`;
+  const safeSlug = assertSlug(slug, 'slug');
+  const safeLimit = assertInt(limit, { min: 1, max: 100, name: 'limit', defaultValue: 12 });
+  const cacheKey = `neko-related-${safeSlug}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
   // Root title: strip episode/varian markers from slug
-  const stem = slug
+  const stem = safeSlug
     .replace(/-episode-\d+.*$/i, '')
     .replace(/-subtitle-indonesia$/i, '')
     .replace(/-(sub|indonesia|uncensored|censored)$/i, '');
