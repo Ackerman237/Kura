@@ -13,6 +13,16 @@ Sistem desain ini dibangun berdasarkan sintesis **Arah 1: Japanese Minimalist (P
 - **Metafora Tambahan (Indonesia)**: Tempurung kura-kura (*shell*) yang mandiri, tahan banting, dan dibawa ke mana-mana. Pola heksagonal tradisional Jepang **Kikkō (亀甲)** menjadi inspirasi geometris logo dan grid.
 - **Tagline**: *"Your private storehouse of manga and cinema."* / *"Khazanah bacaan dan tontonan pribadimu."*
 
+### 1.1 Aset Logo Resmi (Format SVG Vector)
+
+Kura mengadopsi sistem hierarki logo ganda (*Dual-Logo System*) yang fleksibel untuk berbagai resolusi:
+
+| Varian Logo | Lokasi Berkas | Karakter & Kegunaan |
+| :--- | :--- | :--- |
+| **Official Crest**<br>*(Logo Resmi)* | [`docs/assets/kura-logo-crest.svg`](../assets/kura-logo-crest.svg) | Emblem heksagon *Kikkō* lengkap dengan partisi panel manga (*koma*), lingkaran konsentris, dan tombol *play*. Digunakan pada Splash screen, halaman Tentang (*About Modal*), poster promosi, dan header GitHub README. |
+| **Minimal Glyph**<br>*(Logo Simpel)* | [`docs/assets/kura-logo-simple.svg`](../assets/kura-logo-simple.svg) | Siluet heksagon solid dengan *negative-space* segitiga play. Dioptimalkan untuk ukuran kecil: Favicon browser ($16\times16\text{px}$ / $32\times32\text{px}$), App Icon PWA/Android/iOS ($192\text{px}$ / $512\text{px}$), dan pojok watermark video player. |
+| **Horizontal Lockup**<br>*(Header & Navbar)* | [`docs/assets/kura-logo-horizontal.svg`](../assets/kura-logo-horizontal.svg) | Kombinasi ikon simpel + tipografi `KURA` (*Washi*) + kanji `蔵` (*Vermilion*) + deskriptor kategori. Digunakan pada navbar utama aplikasi web desktop dan header dokumen. |
+
 ---
 
 ## 2. Palet Warna (Aturan 60–30–10 & WCAG Compliance)
