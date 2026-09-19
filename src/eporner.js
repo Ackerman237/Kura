@@ -7,7 +7,11 @@
 //   - List/search : GET https://api.eporner.com/api/v2/video/search/?query=...&per_page=28&page=N&format=json&thumbsize=medium
 //   - Detail      : GET https://api.eporner.com/api/v2/video/id?id=<id>&format=json
 //                   (REQUIRES Referer: https://www.eporner.com/ — without it the API returns [])
+//
+// Semua request HTTP lewat fetchThroughProxy (lihat proxy.js).
+// Mode diatur lewat EPORNER_PROXY_MODE = direct | manual | auto.
 
+import { fetchThroughProxy, validators } from './proxy.js';
 import { getCache, setCache } from './cache.js';
 import { safeHttpUrl } from './security.js';
 
@@ -37,29 +41,39 @@ export function configureEporner(opts = {}) {
   if (opts.cacheTtl !== undefined) state.cacheTtl = opts.cacheTtl;
 }
 
+// ── HTTP helpers (lewat proxy manager) ────────────────────────────────────
+
 async function getJson(url) {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': state.userAgent,
-      Accept: 'application/json',
-      Referer: REFERER,
+  const res = await fetchThroughProxy(
+    url,
+    {
+      headers: {
+        'User-Agent': state.userAgent,
+        Accept: 'application/json',
+        Referer: REFERER,
+      },
+      signal: AbortSignal.timeout(state.timeoutMs),
     },
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+    { validate: validators.json } // tolak response 200 yang isinya bukan JSON
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
 }
 
 async function getHtmlText(url) {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': state.userAgent,
-      Accept: 'text/html',
-      'Accept-Language': 'en-US,en;q=0.9',
-      Referer: REFERER,
+  const res = await fetchThroughProxy(
+    url,
+    {
+      headers: {
+        'User-Agent': state.userAgent,
+        Accept: 'text/html',
+        'Accept-Language': 'en-US,en;q=0.9',
+        Referer: REFERER,
+      },
+      signal: AbortSignal.timeout(state.timeoutMs),
     },
-    signal: AbortSignal.timeout(state.timeoutMs),
-  });
+    { validate: validators.html('eporner') } // tolak halaman iklan/captcha dari proxy
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.text();
 }
@@ -187,9 +201,14 @@ async function scrapeEpornerSources(id) {
 
 /**
  * Fetch available categories from /cats/.
+ * Di-cache 1 jam (kategori jarang berubah). Hasil kosong tidak di-cache.
  * @returns {Promise<Array<{slug: string, name: string}>>}
  */
 export async function scrapeEpornerCategories() {
+  const cacheKey = 'eporner-categories';
+  const cached = getCache(cacheKey);
+  if (cached) return cached;
+
   try {
     const html = await getHtmlText(`${state.htmlBase}/cats/`);
     const cats = [];
@@ -202,6 +221,7 @@ export async function scrapeEpornerCategories() {
         cats.push({ slug, name: m[2] || slug.replace(/-/g, ' ') });
       }
     }
+    if (cats.length > 0) setCache(cacheKey, cats, 3600);
     return cats;
   } catch {
     return [];
@@ -215,9 +235,17 @@ export async function scrapeEpornerCategories() {
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
 export async function scrapeEpornerCategory(slug, page = 1) {
+  if (!/^[A-Za-z0-9_-]{1,60}$/.test(slug || '')) throw new Error('Invalid category');
+
+  const cacheKey = `eporner-cat-${slug}-${page}`;
+  const cached = getCache(cacheKey);
+  if (cached) return cached;
+
   const path = page <= 1 ? `/cat/${slug}/` : `/cat/${slug}/${page}/`;
   const html = await getHtmlText(`${state.htmlBase}${path}`);
-  return parseEpornerListing(html);
+  const result = parseEpornerListing(html);
+  setCache(cacheKey, result, state.cacheTtl);
+  return result;
 }
 
 /**

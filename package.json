@@ -48,5 +48,8 @@
   "bugs": {
     "url": "https://github.com/kyy0887/doujin-scraper/issues"
   },
-  "homepage": "https://github.com/kyy0887/doujin-scraper#readme"
+  "homepage": "https://github.com/kyy0887/doujin-scraper#readme",
+  "dependencies": {
+    "undici": "^8.10.2"
+  }
 }
