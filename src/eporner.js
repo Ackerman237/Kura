@@ -1,31 +1,23 @@
-// Eporner scraper (https://www.eporner.com/) — tube video site.
-// Uses the official public JSON API (https://www.eporner.com/api/) — no login,
-// no API key, no Cloudflare challenge. HTML parsing used for categories,
-// top-rated/most-viewed listings, and mp4 source fallback.
-//
-// Endpoints:
-//   - List/search : GET https://api.eporner.com/api/v2/video/search/?query=...&per_page=28&page=N&format=json&thumbsize=medium
-//   - Detail      : GET https://api.eporner.com/api/v2/video/id?id=<id>&format=json
-//                   (REQUIRES Referer: https://www.eporner.com/ — without it the API returns [])
-//
-// Semua request HTTP lewat fetchThroughProxy (lihat proxy.js).
-// Mode diatur lewat EPORNER_PROXY_MODE = direct | manual | auto.
+// Eporner Facade / Orchestrator
+// Coordinates input validation, caching, network client via proxy, and pure DTO parsers.
+// Preserves 100% backward compatibility for exports and configuration.
 
-import { fetchThroughProxy, validators } from './proxy.js';
 import { getCache, setCache } from './cache.js';
 import { safeHttpUrl, assertSlug, assertInt, assertQuery, InvalidInputError } from './security.js';
 import {
-  readJsonLimited,
-  readTextLimited,
-  MAX_RESPONSE_BYTES_JSON,
-  MAX_RESPONSE_BYTES_HTML,
-} from './http.js';
-
-const DEFAULT_API_BASE = 'https://api.eporner.com/api/v2';
-const DEFAULT_HTML_BASE = 'https://www.eporner.com';
-const REFERER = 'https://www.eporner.com/';
-const DEFAULT_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+  DEFAULT_API_BASE,
+  DEFAULT_HTML_BASE,
+  DEFAULT_USER_AGENT,
+  fetchEpornerJson,
+  fetchEpornerHtml,
+} from './sources/eporner/client.js';
+import {
+  mapVideo,
+  parseEpornerSources,
+  parseCategories,
+  parseEpornerListing,
+  fmtViews,
+} from './sources/eporner/parser.js';
 
 const state = {
   apiBase: process.env.EPORNER_API_BASE || DEFAULT_API_BASE,
@@ -37,7 +29,7 @@ const state = {
 
 /**
  * Override runtime configuration for the Eporner source.
- * @param {{apiBase?: string, htmlBase?: string, userAgent?: string, timeoutMs?: number}} opts
+ * @param {{apiBase?: string, htmlBase?: string, userAgent?: string, timeoutMs?: number, cacheTtl?: number}} opts
  */
 export function configureEporner(opts = {}) {
   if (opts.apiBase !== undefined) state.apiBase = opts.apiBase.replace(/\/+$/, '');
@@ -47,71 +39,23 @@ export function configureEporner(opts = {}) {
   if (opts.cacheTtl !== undefined) state.cacheTtl = opts.cacheTtl;
 }
 
-// ── HTTP helpers (lewat proxy manager) ────────────────────────────────────
-
-async function getJson(url) {
-  const res = await fetchThroughProxy(
-    url,
-    {
-      headers: {
-        'User-Agent': state.userAgent,
-        Accept: 'application/json',
-        Referer: REFERER,
-      },
-      signal: AbortSignal.timeout(state.timeoutMs),
-    },
-    { validate: validators.json } // tolak response 200 yang isinya bukan JSON
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return readJsonLimited(res, MAX_RESPONSE_BYTES_JSON);
+/**
+ * Helper to fetch mp4 source files from the video HTML page.
+ * @param {string} id
+ * @returns {Promise<Array<{label: string, url: string}>>}
+ */
+async function scrapeEpornerSources(id) {
+  try {
+    const html = await fetchEpornerHtml(`${state.htmlBase}/video-${id}/`, state);
+    return parseEpornerSources(html, state.htmlBase);
+  } catch {
+    return [];
+  }
 }
-
-async function getHtmlText(url) {
-  const res = await fetchThroughProxy(
-    url,
-    {
-      headers: {
-        'User-Agent': state.userAgent,
-        Accept: 'text/html',
-        'Accept-Language': 'en-US,en;q=0.9',
-        Referer: REFERER,
-      },
-      signal: AbortSignal.timeout(state.timeoutMs),
-    },
-    { validate: validators.html('eporner') } // tolak halaman iklan/captcha dari proxy
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return readTextLimited(res, MAX_RESPONSE_BYTES_HTML);
-}
-
-// ── Map API video → consistent card shape ────────────────────────────────
-
-function mapVideo(v) {
-  const thumb = v.default_thumb?.src || (Array.isArray(v.thumbs) && v.thumbs[0]?.src) || '';
-  const tags = typeof v.keywords === 'string'
-    ? v.keywords.split(',').map((s) => s.trim()).filter(Boolean)
-    : [];
-  return {
-    id: v.id,
-    slug: v.id,
-    title: v.title || 'Untitled',
-    thumb: safeHttpUrl(thumb),
-    duration: v.length_min || '',
-    durationSec: v.length_sec || 0,
-    views: v.views ?? 0,
-    rate: v.rate || '',
-    added: v.added || '',
-    tags,
-    url: safeHttpUrl(v.url),
-    source: 'eporner',
-  };
-}
-
-// ── List / Search / Detail ────────────────────────────────────────────────
 
 /**
  * Fetch latest videos or search results. Empty query = latest.
- * @param {{page?: number, query?: string, order?: string}} [opts] - order: 'top-rated' (most-viewed is NOT supported by the API)
+ * @param {{page?: number, query?: string, order?: string}} [opts]
  * @returns {Promise<{videos: Array, hasNext: boolean, total: number}>}
  */
 export async function scrapeEpornerList({ page = 1, query = '', order = '' } = {}) {
@@ -131,8 +75,8 @@ export async function scrapeEpornerList({ page = 1, query = '', order = '' } = {
   if (safeQuery) params.set('query', safeQuery);
   if (safeOrder) params.set('order', safeOrder);
 
-  const data = await getJson(`${state.apiBase}/video/search/?${params}`);
-  const videos = (data.videos || []).map(mapVideo);
+  const data = await fetchEpornerJson(`${state.apiBase}/video/search/?${params}`, state);
+  const videos = (data.videos || []).map(mapVideo).filter(Boolean);
   const pages = data.total_pages || 1;
 
   const result = { videos, hasNext: safePage < pages, total: data.total_count || 0 };
@@ -152,13 +96,13 @@ export async function scrapeEpornerDetail(id) {
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const data = await getJson(`${state.apiBase}/video/id?id=${encodeURIComponent(safeId)}&format=json`);
-  // Detail response = video object at top level (not {video: {...}})
+  const data = await fetchEpornerJson(
+    `${state.apiBase}/video/id?id=${encodeURIComponent(safeId)}&format=json`,
+    state
+  );
   const v = data.video || data;
   if (!v || !v.id) throw new Error(`Video ${safeId} not found`);
 
-  // src is not always present in the API response — fallback to scraping
-  // /dload/<id>/<quality>/ links from the video HTML page.
   let src = [];
   if (v.src && typeof v.src === 'object') {
     src = Object.entries(v.src)
@@ -181,36 +125,7 @@ export async function scrapeEpornerDetail(id) {
 }
 
 /**
- * Fetch the mp4 file list per quality from the video page.
- * The page has a #downloaddiv with /dload/<id>/<quality>/<imgid>-<quality>p.mp4
- * links (240/360/480/720/1080p). These links 302 → a signed CDN that supports
- * range requests, so they can be used directly in <video src>.
- * @returns {Promise<Array<{label: string, url: string}>>} sorted by quality DESC
- */
-async function scrapeEpornerSources(id) {
-  try {
-    const html = await getHtmlText(`${state.htmlBase}/video-${id}/`);
-    const found = [];
-    const re = /\/dload\/[A-Za-z0-9_-]+\/(\d{3,4})\/[^"]+\.mp4/g;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const label = `${m[1]}p`;
-      const url = `${state.htmlBase}${m[0]}`;
-      if (!found.some((s) => s.label === label)) found.push({ label, url });
-    }
-    const num = (label) => parseInt(label, 10) || 0;
-    found.sort((a, b) => num(b.label) - num(a.label));
-    return found;
-  } catch {
-    return [];
-  }
-}
-
-// ── Categories & listings (HTML) ──────────────────────────────────────────
-
-/**
  * Fetch available categories from /cats/.
- * Di-cache 1 jam (kategori jarang berubah). Hasil kosong tidak di-cache.
  * @returns {Promise<Array<{slug: string, name: string}>>}
  */
 export async function scrapeEpornerCategories() {
@@ -219,17 +134,8 @@ export async function scrapeEpornerCategories() {
   if (cached) return cached;
 
   try {
-    const html = await getHtmlText(`${state.htmlBase}/cats/`);
-    const cats = [];
-    const re = /href="\/cat\/([^"/]+)\/"\s*title="([^"]*)"/g;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const slug = m[1];
-      if (slug === 'all') continue; // 'all' is not a real category
-      if (!cats.some((c) => c.slug === slug)) {
-        cats.push({ slug, name: m[2] || slug.replace(/-/g, ' ') });
-      }
-    }
+    const html = await fetchEpornerHtml(`${state.htmlBase}/cats/`, state);
+    const cats = parseCategories(html);
     if (cats.length > 0) setCache(cacheKey, cats, 3600);
     return cats;
   } catch {
@@ -251,16 +157,19 @@ export async function scrapeEpornerCategory(slug, page = 1) {
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const path = safePage <= 1 ? `/cat/${encodeURIComponent(safeSlug)}/` : `/cat/${encodeURIComponent(safeSlug)}/${safePage}/`;
-  const html = await getHtmlText(`${state.htmlBase}${path}`);
+  const path =
+    safePage <= 1
+      ? `/cat/${encodeURIComponent(safeSlug)}/`
+      : `/cat/${encodeURIComponent(safeSlug)}/${safePage}/`;
+  const html = await fetchEpornerHtml(`${state.htmlBase}${path}`, state);
   const result = parseEpornerListing(html);
   setCache(cacheKey, result, state.cacheTtl);
   return result;
 }
 
 /**
- * Fetch videos from a special listing page.
- * @param {string} kind - 'top-rated' (popular) or 'most-viewed'
+ * Fetch videos from a special listing page ('top-rated' or 'most-viewed').
+ * @param {string} kind
  * @param {number} [page=1]
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
@@ -272,62 +181,14 @@ export async function scrapeEpornerListingPage(kind, page = 1) {
   if (cached) return cached;
 
   const path = safePage <= 1 ? `/${kind}/` : `/${kind}/${safePage}/`;
-  const html = await getHtmlText(`${state.htmlBase}${path}`);
+  const html = await fetchEpornerHtml(`${state.htmlBase}${path}`, state);
   const result = parseEpornerListing(html);
   setCache(cacheKey, result, state.cacheTtl);
   return result;
 }
 
-/** Parse 'mb hdy' video blocks from an eporner listing HTML page. */
-function parseEpornerListing(html) {
-  const videos = [];
-  const parts = html.split('class="mb hdy"');
-  for (let i = 1; i < parts.length; i++) {
-    const blk = parts[i];
-    // ID from URL: /video-<id>/<slug-title>/
-    const hrefMatch = blk.match(/href="\/(video-[^"/]+)\//);
-    if (!hrefMatch) continue;
-    const id = hrefMatch[1].replace(/^video-/, '');
-    if (!id) continue;
-
-    // Title from .mbtit block
-    const titleMatch = blk.match(/<p class="mbtit">\s*<a[^>]*>([\s\S]*?)<\/a>/);
-    const title = titleMatch
-      ? titleMatch[1].replace(/<[^>]+>/g, '').replace(/&#0?39;/g, "'").replace(/&amp;/g, '&').trim()
-      : id;
-
-    // Thumbnail: data-src (lazy) or src; discard data: placeholders
-    const imgMatch = blk.match(/<img[^>]*>/);
-    let thumb = '';
-    if (imgMatch) {
-      const imgTag = imgMatch[0];
-      const dataSrc = imgTag.match(/data-src="([^"]+)"/);
-      const src = imgTag.match(/src="([^"]+)"/);
-      const raw = dataSrc ? dataSrc[1] : src ? src[1] : '';
-      if (raw && !raw.startsWith('data:')) thumb = safeHttpUrl(raw);
-    }
-
-    const durMatch = blk.match(/<span class="mbtim"[^>]*>([^<]+)<\/span>/);
-    const duration = durMatch ? durMatch[1].trim() : '';
-
-    const viewsMatch = blk.match(/<span class="mbvie"[^>]*>([^<]+)<\/span>/);
-    const views = viewsMatch ? parseFloat(viewsMatch[1].replace(/,/g, '')) || 0 : 0;
-
-    videos.push({ id, slug: id, title, thumb, duration, source: 'eporner', views });
-  }
-
-  // Eporner puts rel="next" in <head> when a next page exists
-  const hasNext = /rel="next"/.test(html);
-  return { videos, hasNext };
-}
-
-// ── Related / Random ──────────────────────────────────────────────────────
-
 /**
  * Related/recommended videos (YouTube-style) for a watch page.
- *  1. Search results per tag/keyword from the title — priority
- *  2. Remaining shuffled from recent + random pages
- *  Excludes the current id. TTL short (120s) for freshness.
  * @param {string} id
  * @param {{tags?: string[], title?: string, limit?: number}} [opts]
  * @returns {Promise<Array<{id: string, title: string, thumb: string, duration: string, url: string, views: number, meta: string}>>}
@@ -342,7 +203,6 @@ export async function scrapeEpornerRelated(id, { tags = [], title = '', limit = 
   const seen = new Set([safeId]);
   const items = [];
 
-  // 1. Search per tag (max 2) — most relevant
   const queryTags = tags.filter(Boolean).slice(0, 2);
   for (const tag of queryTags) {
     try {
@@ -358,7 +218,6 @@ export async function scrapeEpornerRelated(id, { tags = [], title = '', limit = 
     if (items.length >= limit) break;
   }
 
-  // 2. Keyword from title + recent/random pages
   if (items.length < limit) {
     const kw = (title || '').split(/\s+/).find((w) => w.length > 4) || '';
     const extraQueries = [kw].filter(Boolean);
@@ -411,11 +270,4 @@ export async function scrapeEpornerRandomId() {
   } catch {
     return '';
   }
-}
-
-function fmtViews(n) {
-  if (!n) return '';
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
-  return String(n);
 }
