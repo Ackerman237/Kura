@@ -25,6 +25,9 @@
     "node": ">=18.17"
   },
   "scripts": {
+    "dev:web": "vite src/web",
+    "build:web": "vite build",
+    "start": "node server.js",
     "test": "node --test",
     "smoke": "node scripts/smoke.mjs",
     "example": "node examples/basic.js"
@@ -53,6 +56,14 @@
   },
   "homepage": "https://github.com/kyy0887/doujin-scraper#readme",
   "dependencies": {
-    "undici": "^8.10.2"
+    "@vueuse/core": "^15.0.0",
+    "express": "^5.2.1",
+    "lucide-vue-next": "^1.0.0",
+    "undici": "^8.10.2",
+    "vue": "^3.5.43"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.9",
+    "vite": "^8.3.0"
   }
 }

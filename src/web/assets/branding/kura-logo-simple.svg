@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <!-- Kura (蔵) Minimal Glyph / Secondary Mark -->
+  <!-- Designed with pure geometric negative space on 8pt grid -->
+  <defs>
+    <linearGradient id="kuraVermilionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F0714E" />
+      <stop offset="100%" stop-color="#E8613C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Hexagonal Kikkō Shell with Cutout Play Triangle -->
+  <path
+    fill="url(#kuraVermilionGrad)"
+    fill-rule="evenodd"
+    stroke="#E8613C"
+    stroke-width="2"
+    stroke-linejoin="round"
+    d="
+      M 100,16
+      L 172.75,58
+      L 172.75,142
+      L 100,184
+      L 27.25,142
+      L 27.25,58
+      Z
+      M 86,68
+      C 86,64.5 89.8,62.3 92.8,64.1
+      L 138.2,96.1
+      C 141.1,97.8 141.1,102.2 138.2,103.9
+      L 92.8,135.9
+      C 89.8,137.7 86,135.5 86,132
+      Z
+    "
+  />
+</svg>

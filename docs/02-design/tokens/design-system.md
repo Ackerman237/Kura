@@ -57,12 +57,22 @@ Warna status fungsional yang dikalibrasi untuk latar gelap:
 
 ---
 
-## 3. Tipografi & Hierarki Teks
+## 3. Tipografi & Hierarki Teks (Pan-CJK Superfamily)
 
-### Font Stack
-1. **Heading / Brand**: `Zen Kaku Gothic New`, `Shippori Mincho`, sans-serif (mendukung glyph Kanji/Kana dan alfabet Latin dengan anggun).
-2. **Body & UI**: `Inter`, `system-ui`, sans-serif (tingkat keterbacaan tinggi pada layar mobile).
-3. **Metadata & Status**: `JetBrains Mono`, monospace (untuk chapter number, ukuran berkas, bitrate stream, IP status).
+Untuk memastikan keharmonisan visual sempurna lintas bahasa (Latin, Jepang, Korea, dan China) tanpa perbedaan ketebalan (*weight balance*) dan tanpa glitch karakter kotak (*tofu*), Kura mengadopsi **Google Noto Sans Superfamily**:
+
+### Font Stack Terpadu
+```css
+/* Superfamily Terpadu Kura: Latin + Japanese + Korean + Chinese */
+--kura-font-sans: 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+--kura-font-mono: 'JetBrains Mono', monospace;
+```
+
+- **Latin (Indonesia & Inggris)**: Dilayani oleh `Noto Sans` (judul umum, angka chapter, label UI).
+- **Jepang (Kanji, Hiragana, Katakana)**: Dilayani oleh `Noto Sans JP` (contoh: *呪術廻戦*).
+- **Korea (Hangul)**: Dilayani oleh `Noto Sans KR` (contoh: *나 혼자만 레벨업*).
+- **China (Hanzi)**: Dilayani oleh `Noto Sans SC` (contoh: *斗破苍穹*).
+- **Metadata & Angka Teknis**: Dilayani oleh `JetBrains Mono` (durasi video, bitrate, nomor bab).
 
 ### Skala Tipografi & Line Height
 - **Hero Title**: `2.25rem` (36px) — `line-height: 1.2`
