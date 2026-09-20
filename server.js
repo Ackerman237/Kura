@@ -60,6 +60,19 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`[Kura] Server aktif berjalan di http://localhost:${PORT}`);
   });
 
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n[Kura ERROR] Port ${PORT} sudah digunakan!`);
+      console.error(`Server Kura kemungkinan SUDAH BERJALAN di latar belakang.`);
+      console.error(`- Untuk langsung memakai: buka browser ke http://localhost:${PORT}`);
+      console.error(`- Untuk restart: matikan proses lama terlebih dahulu, atau gunakan port lain (contoh: PORT=4001 npm start)\n`);
+      process.exit(1);
+    } else {
+      console.error('[Kura ERROR] Gagal memulai server:', err);
+      process.exit(1);
+    }
+  });
+
   const handleShutdown = (signal) => {
     console.log(`\n[Kura] Menerima sinyal ${signal}. Menutup server secara graceful...`);
     if (server) {
