@@ -15,6 +15,8 @@ import VideoWatchView from './views/VideoWatchView.vue';
 import CinemaHomeView from './views/CinemaHomeView.vue';
 import AboutView from './views/AboutView.vue';
 import DownloadQueueDrawer from './components/common/DownloadQueueDrawer.vue';
+import KuraToast from './components/common/KuraToast.vue';
+import { useToast } from './composables/useToast.js';
 import {
   fetchMangaList,
   fetchMangaDetail,
@@ -28,7 +30,7 @@ import {
   isDevModeActive,
   setDevModeActive,
 } from './services/api.js';
-import { getAllOfflineChapters, clearOfflineStorage } from './services/offline.js';
+import { getAllOfflineChapters, getOfflineChapter, clearOfflineStorage } from './services/offline.js';
 import { useDownloadQueue } from './services/download.js';
 import {
   ChevronLeft,
@@ -124,31 +126,37 @@ function navigateHistory(screen, payload = {}) {
       url.searchParams.set('view', 'reader');
       if (payload.mangaSlug) url.searchParams.set('slug', payload.mangaSlug);
       if (payload.chapterId) url.searchParams.set('chapter', payload.chapterId);
+      url.searchParams.delete('provider');
     } else if (screen === 'video-home') {
       url.searchParams.set('tab', 'video');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
+      if (payload.provider) url.searchParams.set('provider', payload.provider);
     } else if (screen === 'video-watch') {
       url.searchParams.set('tab', 'video');
       url.searchParams.set('view', 'video-watch');
       if (payload.slug) url.searchParams.set('slug', payload.slug);
+      if (payload.provider) url.searchParams.set('provider', payload.provider);
       url.searchParams.delete('chapter');
     } else if (screen === 'library') {
       url.searchParams.set('tab', 'library');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
+      url.searchParams.delete('provider');
     } else if (screen === 'settings') {
       url.searchParams.set('tab', 'settings');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
+      url.searchParams.delete('provider');
     } else if (screen === 'about') {
       url.searchParams.set('tab', 'about');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
+      url.searchParams.delete('provider');
     }
     history.pushState({ screen, ...payload }, '', url.toString());
   } catch (_) {}
@@ -168,7 +176,7 @@ const loadManga = async (page = 1) => {
       type: mangaTypeFilter.value === 'all' ? undefined : mangaTypeFilter.value,
       q: searchQuery.value.trim() || undefined,
     });
-    const items = data.results || data.data || data.mangaList || (Array.isArray(data) ? data : []);
+    const items = data.items || data.results || data.data || data.mangaList || (Array.isArray(data) ? data : []);
     mangaList.value = items;
   } catch (err) {
     mangaError.value = err.message || 'Gagal memuat katalog komik.';
@@ -357,14 +365,26 @@ const closeMangaDetail = () => {
   navigateHistory('manga-home');
 };
 
+const toast = useToast();
+
 const openChapterReader = async ({ chapter, manga }) => {
   readerChapterLoading.value = true;
-  const chapterId = chapter.id || chapter.slug;
-  const mSlug = manga.slug || manga.id;
+  const chapterId = chapter.id || chapter.slug || chapter.chapterId || '';
+  const mSlug = manga?.slug || manga?.id || chapter.mangaSlug || '';
 
   try {
     let images = [];
-    if (!chapterId.startsWith('kura-')) {
+
+    // 1. Prioritize offline chapter if saved in IndexedDB
+    try {
+      const offline = await getOfflineChapter(chapterId);
+      if (offline && Array.isArray(offline.images) && offline.images.length) {
+        images = offline.images;
+      }
+    } catch (_) {}
+
+    // 2. Fetch from upstream API if not available offline
+    if (!images.length && typeof chapterId === 'string' && chapterId && !chapterId.startsWith('kura-')) {
       const data = await fetchChapterImages(chapterId);
       if (data.images && Array.isArray(data.images)) {
         images = data.images.map((img) => (typeof img === 'string' ? img : img.url || img.thumb));
@@ -376,7 +396,7 @@ const openChapterReader = async ({ chapter, manga }) => {
     }
 
     if (!images.length) {
-      // High-resolution authentic demo manga pages
+      // High-resolution authentic demo manga pages fallback
       images = [
         'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1200&auto=format&fit=crop&q=85',
         'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=85',
@@ -386,17 +406,21 @@ const openChapterReader = async ({ chapter, manga }) => {
       ];
     }
 
+    const mangaCover = manga?.thumb || manga?.cover || manga?.image || chapter.thumb || '';
     activeReading.value = {
       mangaSlug: mSlug,
-      title: manga.title,
+      title: manga?.title || chapter.mangaTitle || chapter.title || 'Manga',
+      thumb: mangaCover,
+      cover: mangaCover,
       chapterId,
-      chapterNumber: chapter.chapterNumber || chapter.title || '1',
+      chapterNumber: chapter.chapterNumber || chapter.number || chapter.chapterTitle || chapter.title || '1',
       images,
     };
     activeScreen.value = 'manga-reader';
     navigateHistory('manga-reader', { mangaSlug: mSlug, chapterId });
   } catch (err) {
-    alert(`Gagal memuat chapter: ${err.message}`);
+    console.error('Failed to open chapter:', err);
+    toast.error(`Gagal memuat chapter: ${err.message}`);
   } finally {
     readerChapterLoading.value = false;
   }
@@ -435,19 +459,21 @@ const closeReader = () => {
 // 5. Dedicated Video Watch Screen Actions
 // ---------------------------------------------------------------------------
 const openVideoPlayer = async (video) => {
-  selectedVideo.value = video;
+  const prov = video.provider || videoProvider.value || 'htv';
+  videoProvider.value = prov;
+  selectedVideo.value = { ...video, provider: prov };
   videoDetailData.value = null;
   activeScreen.value = 'video-watch';
   const slug = video.slug || video.id;
-  navigateHistory('video-watch', { slug });
+  navigateHistory('video-watch', { slug, provider: prov });
 
   videoDetailLoading.value = true;
   try {
-    if (videoProvider.value === 'neko') {
+    if (prov === 'neko') {
       videoDetailData.value = await fetchNekoDetail(slug);
-    } else if (videoProvider.value === 'htv') {
+    } else if (prov === 'htv') {
       videoDetailData.value = await fetchHtvDetail(slug);
-    } else if (videoProvider.value === 'tube') {
+    } else if (prov === 'tube') {
       videoDetailData.value = await fetchTubeDetail(slug);
     }
   } catch (err) {
@@ -456,6 +482,19 @@ const openVideoPlayer = async (video) => {
     videoDetailLoading.value = false;
   }
 };
+
+const activeRelatedVideos = computed(() => {
+  if (videoDetailData.value?.related && Array.isArray(videoDetailData.value.related) && videoDetailData.value.related.length > 0) {
+    return videoDetailData.value.related;
+  }
+  const curSlug = selectedVideo.value?.slug || selectedVideo.value?.id;
+  const curProv = selectedVideo.value?.provider || videoProvider.value || 'htv';
+  return videoList.value.filter((v) => {
+    const slug = v.slug || v.id;
+    const prov = v.provider || curProv;
+    return slug !== curSlug && (!v.provider || prov === curProv);
+  });
+});
 
 const closeVideoPlayer = () => {
   activeScreen.value = 'video-home';
@@ -530,6 +569,11 @@ onMounted(async () => {
   const urlView = params.get('view');
   const urlSlug = params.get('slug');
   const urlChapter = params.get('chapter');
+  const urlProvider = params.get('provider');
+
+  if (urlProvider) {
+    videoProvider.value = urlProvider;
+  }
 
   if (urlTab === 'video' || urlView === 'video-watch') {
     currentTab.value = 'video';
@@ -538,6 +582,7 @@ onMounted(async () => {
         slug: urlSlug,
         id: urlSlug,
         title: urlSlug.replace(/-/g, ' ').toUpperCase(),
+        provider: urlProvider || videoProvider.value,
       });
     } else {
       activeScreen.value = 'video-home';
@@ -705,6 +750,8 @@ onMounted(async () => {
         v-else-if="activeScreen === 'manga-reader' && activeReading"
         :manga-slug="activeReading.mangaSlug"
         :title="activeReading.title"
+        :thumb="activeReading.thumb"
+        :cover="activeReading.cover"
         :chapter-id="activeReading.chapterId"
         :chapter-number="activeReading.chapterNumber"
         :images="activeReading.images"
@@ -729,7 +776,7 @@ onMounted(async () => {
         :detail="videoDetailData"
         :loading="videoDetailLoading"
         :provider="selectedVideo.provider || videoProvider"
-        :related-videos="videoList.filter((v) => (v.slug || v.id) !== (selectedVideo.slug || selectedVideo.id))"
+        :related-videos="activeRelatedVideos"
         :is-privacy-mode="isPrivacyMode"
         @back="closeVideoPlayer"
         @select-video="openVideoPlayer"
@@ -773,6 +820,9 @@ onMounted(async () => {
       :offline-count="offlineCount"
       @navigate="handleNavigate"
     />
+
+    <!-- Global Toast Notification System -->
+    <KuraToast />
   </div>
 </template>
 

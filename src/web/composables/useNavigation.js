@@ -28,31 +28,37 @@ export function useNavigation(callbacks = {}) {
         url.searchParams.set('view', 'reader');
         if (payload.mangaSlug) url.searchParams.set('slug', payload.mangaSlug);
         if (payload.chapterId) url.searchParams.set('chapter', payload.chapterId);
+        url.searchParams.delete('provider');
       } else if (screen === 'video-home') {
         url.searchParams.set('tab', 'video');
         url.searchParams.delete('view');
         url.searchParams.delete('slug');
         url.searchParams.delete('chapter');
+        if (payload.provider) url.searchParams.set('provider', payload.provider);
       } else if (screen === 'video-watch') {
         url.searchParams.set('tab', 'video');
         url.searchParams.set('view', 'video-watch');
         if (payload.slug) url.searchParams.set('slug', payload.slug);
+        if (payload.provider) url.searchParams.set('provider', payload.provider);
         url.searchParams.delete('chapter');
       } else if (screen === 'library') {
         url.searchParams.set('tab', 'library');
         url.searchParams.delete('view');
         url.searchParams.delete('slug');
         url.searchParams.delete('chapter');
+        url.searchParams.delete('provider');
       } else if (screen === 'settings') {
         url.searchParams.set('tab', 'settings');
         url.searchParams.delete('view');
         url.searchParams.delete('slug');
         url.searchParams.delete('chapter');
+        url.searchParams.delete('provider');
       } else if (screen === 'about') {
         url.searchParams.set('tab', 'about');
         url.searchParams.delete('view');
         url.searchParams.delete('slug');
         url.searchParams.delete('chapter');
+        url.searchParams.delete('provider');
       }
       history.pushState({ screen, ...payload }, '', url.toString());
     } catch (_) {}

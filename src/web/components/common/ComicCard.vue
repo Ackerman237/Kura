@@ -1,8 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Star, Clock, EyeOff, Bookmark, Palette } from 'lucide-vue-next';
 import Badge from './Badge.vue';
 import CountryFlag from './CountryFlag.vue';
+import { getComicCover } from '../../utils/media.js';
+import { getComicTypeMeta } from '../../utils/comicType.js';
+import { useImageFallback } from '../../composables/useImageFallback.js';
+import { usePrivacyPeek } from '../../composables/usePrivacyPeek.js';
 
 const props = defineProps({
   comic: {
@@ -25,17 +29,16 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'toggle-bookmark']);
 
-const isPeeking = ref(false);
-let peekTimer = null;
+const { isPeeking, triggerPeek } = usePrivacyPeek();
+const { handleImageError } = useImageFallback();
+
+const coverImage = computed(() => getComicCover(props.comic));
+const typeMeta = computed(() => getComicTypeMeta(props.comic.type));
 
 const handleCoverClick = (e) => {
   if (props.isPrivacyMode) {
     e.stopPropagation();
-    isPeeking.value = true;
-    if (peekTimer) clearTimeout(peekTimer);
-    peekTimer = setTimeout(() => {
-      isPeeking.value = false;
-    }, 2000);
+    triggerPeek();
     return;
   }
   emit('select', props.comic);
@@ -44,53 +47,6 @@ const handleCoverClick = (e) => {
 const handleCardClick = () => {
   emit('select', props.comic);
 };
-
-// Image resolution & source resolution
-const coverImage = computed(() => {
-  return (
-    props.comic.thumb ||
-    props.comic.cover ||
-    props.comic.cover_url ||
-    props.comic.image ||
-    ''
-  );
-});
-
-// Format type label
-const typeLabel = computed(() => {
-  const t = (props.comic.type || 'manga').toLowerCase();
-  if (t === 'manhwa') return 'MANHWA';
-  if (t === 'manhua') return 'MANHUA';
-  if (t === 'doujinshi') return 'DOUJIN';
-  return 'MANGA';
-});
-
-// Format type badge variant
-const typeVariant = computed(() => {
-  const t = (props.comic.type || 'manga').toLowerCase();
-  if (t === 'manhwa') return 'info';
-  if (t === 'manhua') return 'warning';
-  if (t === 'doujinshi') return 'warning';
-  return 'accent';
-});
-
-// Flag indicator
-const flagSrc = computed(() => {
-  const t = (props.comic.type || '').toLowerCase();
-  if (t === 'manhwa') return '/assets/flags/kr.svg';
-  if (t === 'manhua') return '/assets/flags/cn.svg';
-  if (t === 'manga' || t === 'doujinshi') return '/assets/flags/jp.svg';
-  return null;
-});
-
-function onImgError(e) {
-  const currentSrc = e.target.src || '';
-  if (currentSrc.startsWith('http') && !currentSrc.includes('/api/image-proxy')) {
-    e.target.src = `/api/image-proxy?url=${encodeURIComponent(currentSrc)}`;
-  } else {
-    e.target.style.opacity = '0';
-  }
-}
 </script>
 
 <template>
@@ -114,7 +70,7 @@ function onImgError(e) {
         }"
         loading="lazy"
         decoding="async"
-        @error="onImgError"
+        @error="handleImageError($event, 'cover')"
       />
 
       <!-- Ambient Scrim Gradient -->
@@ -125,8 +81,8 @@ function onImgError(e) {
         <div class="overlay-top">
           <div class="top-badges">
             <CountryFlag :type="comic.type" size="xs" />
-            <Badge :variant="typeVariant" size="xs" pill>
-              {{ typeLabel }}
+            <Badge :variant="typeMeta.variant" size="xs" pill>
+              {{ typeMeta.label }}
             </Badge>
           </div>
           <div v-if="comic.rating || comic.score" class="rating-chip">

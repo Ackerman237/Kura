@@ -1,4 +1,7 @@
 @import './tokens.css';
+@import './components.css';
+@import './responsive.css';
+@import './animations.css';
 
 /* Universal Reset & Hardware Acceleration Box Sizing */
 *, *::before, *::after {

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { AlertTriangle, RefreshCw, Maximize2, Minimize2, Tv } from 'lucide-vue-next';
+import { ref, computed, watch } from 'vue';
+import { RefreshCw, Maximize2, Minimize2, Tv, Server } from 'lucide-vue-next';
 
 const props = defineProps({
   video: {
@@ -23,15 +23,74 @@ const props = defineProps({
 
 const isTheaterMode = ref(false);
 const frameKey = ref(0);
+const selectedServerIdx = ref(0);
+
+// Reset server index on video change
+watch(
+  () => props.video?.slug || props.video?.id,
+  () => {
+    selectedServerIdx.value = 0;
+    frameKey.value++;
+  }
+);
+
+// Available server streams (especially for NekoPoi which provides detail.players)
+const availableServers = computed(() => {
+  if (!props.detail) return [];
+
+  // NekoPoi players array
+  if (Array.isArray(props.detail.players) && props.detail.players.length > 0) {
+    return props.detail.players.map((url, idx) => ({
+      name: `Server ${idx + 1}`,
+      url,
+    }));
+  }
+
+  // HentaiTV or generic embed URL
+  if (props.detail.embedUrl || props.detail.playerUrl || props.detail.iframe) {
+    const singleUrl = props.detail.embedUrl || props.detail.playerUrl || props.detail.iframe;
+    return [{ name: 'Server 1', url: singleUrl }];
+  }
+
+  return [];
+});
+
+// Check if direct MP4 stream is available (e.g. Eporner detail.src)
+const directMp4Sources = computed(() => {
+  if (props.detail?.src && Array.isArray(props.detail.src) && props.detail.src.length > 0) {
+    return props.detail.src;
+  }
+  return null;
+});
+
+const playerAllowedHosts = ['nhplayer.com', 'playmogo.com', 'streampoi.com', 'yandex.ru'];
+
+const isDirectPlayer = computed(() => {
+  if (availableServers.value.length > 0) {
+    const activeServer = availableServers.value[selectedServerIdx.value] || availableServers.value[0];
+    const targetUrl = activeServer?.url || '';
+    try {
+      const u = new URL(targetUrl);
+      return playerAllowedHosts.some((h) => u.hostname === h || u.hostname.endsWith('.' + h));
+    } catch (_) {
+      return false;
+    }
+  }
+  return false;
+});
 
 const iframeSrc = computed(() => {
-  if (props.detail && props.detail.playerUrl) {
-    return props.detail.playerUrl;
+  if (availableServers.value.length > 0) {
+    const activeServer = availableServers.value[selectedServerIdx.value] || availableServers.value[0];
+    const targetUrl = activeServer.url;
+    if (isDirectPlayer.value) {
+      return targetUrl;
+    }
+    const slug = props.video.slug || props.video.id || '';
+    return `/api/video/player-frame?url=${encodeURIComponent(targetUrl)}&slug=${encodeURIComponent(slug)}`;
   }
-  if (props.detail && props.detail.iframe) {
-    return props.detail.iframe;
-  }
-  const slug = props.video.slug || props.video.id;
+
+  const slug = props.video.slug || props.video.id || '';
   return `/api/video/player-frame?provider=${props.provider}&slug=${encodeURIComponent(slug)}`;
 });
 
@@ -62,10 +121,38 @@ const toggleTheater = () => {
         class="player-iframe local-video-element"
       ></video>
 
-      <!-- Live Sandbox Iframe -->
+      <!-- Direct HTML5 MP4 Player (e.g. Eporner) -->
+      <video
+        v-else-if="directMp4Sources"
+        :key="`mp4-${frameKey}`"
+        controls
+        autoplay
+        class="player-iframe direct-mp4-element"
+      >
+        <source
+          v-for="(source, idx) in directMp4Sources"
+          :key="idx"
+          :src="source.url"
+          :type="source.type || 'video/mp4'"
+        />
+        Browser Anda tidak mendukung pemutar video HTML5.
+      </video>
+
+      <!-- Direct Trusted Frame (nhplayer, playmogo, streampoi - no strict sandbox cookie blockage) -->
+      <iframe
+        v-else-if="isDirectPlayer"
+        :key="`direct-iframe-${frameKey}-${selectedServerIdx}`"
+        :src="iframeSrc"
+        class="player-iframe"
+        title="Kura Direct Video Player"
+        allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      ></iframe>
+
+      <!-- Live Sandbox Iframe with Stealth & Ad-Shield -->
       <iframe
         v-else
-        :key="frameKey"
+        :key="`iframe-${frameKey}-${selectedServerIdx}`"
         :src="iframeSrc"
         class="player-iframe"
         title="Kura Video Player"
@@ -76,9 +163,26 @@ const toggleTheater = () => {
 
       <!-- Player Controls Ribbon Overlay -->
       <div class="player-top-controls">
-        <div class="provider-pill">
-          <Tv :size="12" />
-          <span>{{ video.isLocal ? 'Berkas Lokal' : provider === 'neko' ? 'NekoPoi' : provider === 'htv' ? 'HentaiTV' : 'Tube' }}</span>
+        <div class="provider-group">
+          <div class="provider-pill">
+            <Tv :size="12" />
+            <span>{{ video.isLocal ? 'Berkas Lokal' : provider === 'neko' ? 'NekoPoi' : provider === 'htv' ? 'HentaiTV' : 'Tube' }}</span>
+          </div>
+
+          <!-- Server Selector (e.g. NekoPoi Server 1, Server 2) -->
+          <div v-if="availableServers.length > 1" class="server-selector-group">
+            <button
+              v-for="(srv, idx) in availableServers"
+              :key="idx"
+              type="button"
+              class="server-btn"
+              :class="{ active: selectedServerIdx === idx }"
+              @click="selectedServerIdx = idx"
+            >
+              <Server :size="10" />
+              <span>{{ srv.name }}</span>
+            </button>
+          </div>
         </div>
 
         <div class="top-buttons">
@@ -108,7 +212,7 @@ const toggleTheater = () => {
   background: #000000;
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
   box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.85);
-  transition: all var(--duration-normal, 0.25s) ease;
+  transition: all 0.25s ease;
 }
 
 .player-aspect-frame {
@@ -120,10 +224,17 @@ const toggleTheater = () => {
 }
 
 .player-iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: none;
-  display: block;
+  background: #000000;
+}
+
+.local-video-element,
+.direct-mp4-element {
+  object-fit: contain;
 }
 
 .player-loading-skeleton {
@@ -133,15 +244,15 @@ const toggleTheater = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  background: #090a0f;
-  color: var(--kura-text-muted, #94a3b8);
+  gap: 16px;
+  background: #0d0f14;
+  z-index: 5;
 }
 
 .spinner-ring {
-  width: 38px;
-  height: 38px;
-  border: 3px solid rgba(229, 169, 60, 0.2);
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
   border-top-color: var(--kura-accent, #e5a93c);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -152,16 +263,16 @@ const toggleTheater = () => {
 }
 
 .loading-label {
-  font-family: var(--kura-font-mono, monospace);
-  font-size: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--kura-text-muted, #aaaaaa);
   letter-spacing: 0.04em;
 }
 
 .player-top-controls {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -169,27 +280,67 @@ const toggleTheater = () => {
   z-index: 10;
 }
 
-.provider-pill {
-  pointer-events: auto;
-  display: inline-flex;
+.provider-group {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  color: #ffffff;
-  font-family: var(--kura-font-mono, monospace);
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  gap: 8px;
+  pointer-events: auto;
 }
 
-.top-buttons {
-  pointer-events: auto;
+.provider-pill {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+.server-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.server-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill, 9999px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--kura-text-muted, #cccccc);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.server-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.server-btn.active {
+  background: var(--kura-accent, #e5a93c);
+  color: #000000;
+  border-color: var(--kura-accent, #e5a93c);
+  font-weight: 700;
+}
+
+.top-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
 }
 
 .ctrl-icon-btn {
@@ -198,18 +349,17 @@ const toggleTheater = () => {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 4px;
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .ctrl-icon-btn:hover {
-  background: var(--kura-accent, #e5a93c);
-  color: #000000;
+  background: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
 }
 </style>

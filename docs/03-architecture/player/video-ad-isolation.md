@@ -27,22 +27,24 @@ Untuk menjamin pemutaran video selalu bersih tanpa merusak kompatibilitas, siste
 │ - Diputar di tag <video> native buatan kita sendiri         │
 │ - Keuntungan: 0% IKLAN, 0% SKRIP ASING, KONTROL UI PENUH    │
 └───────────────┬─────────────────────────────────────────────┘
-                │ (Jika ekstraksi gagal / provider belum didukung)
+                │ (Jika bukan direct stream / berupa iframe embed)
                 ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ TIER 2: Filtered Player Frame (Reverse-Proxy Sanitized)     │
+│ TIER 2: Direct Mount Trusted Hosts (WibuDex Pattern ⭐)     │
+│ - Berlaku untuk: nhplayer.com, playmogo.com, streampoi.com  │
+│ - Iframe langsung tanpa sandbox opaque origin                │
+│ - Menjaga keutuhan cookie session (PHPSESSID) & anti-tamper │
+│ - Dilengkapi allowfullscreen & standard media permissions   │
+└───────────────┬─────────────────────────────────────────────┘
+                │ (Jika host di luar allowlist / mencurigakan)
+                ▼
+┌─────────────────────────────────────────────────────────────┐
+│ TIER 3: Filtered Player Frame (Reverse-Proxy Sanitized)     │
 │ - Endpoint: GET /api/video/player-frame?url=...             │
 │ - Server mem-fetch HTML embed & membuang skrip iklan        │
 │ - Menyuntikkan guardShim & stealthShim                      │
-│ - Mengirimkan CSP Sandbox Opaque Origin                     │
-│ - Keuntungan: Iklan mati total, video tetap berputar        │
-└───────────────┬─────────────────────────────────────────────┘
-                │ (Jika proteksi server penyedia berubah drastis)
-                ▼
-┌─────────────────────────────────────────────────────────────┐
-│ TIER 3: Direct Iframe (Emergency Fallback)                  │
-│ - Pemutar langsung ke penyedia dengan host allowlist ketat  │
-│ - Disediakan tombol toggle manual bagi pengguna             │
+│ - Mengirimkan CSP Sandbox dengan allow-same-origin          │
+│ - Tanpa monkeypatching prototype XMLHttpRequest bawaan      │
 └─────────────────────────────────────────────────────────────┘
 ```
 

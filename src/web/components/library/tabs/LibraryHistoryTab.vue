@@ -24,10 +24,10 @@ const emit = defineEmits(['select-comic', 'clear-item']);
         v-for="item in items"
         :key="item.mangaSlug || item.id"
         class="history-card"
-        @click="emit('select-comic', { slug: item.mangaSlug || item.id, title: item.title, thumb: item.thumb })"
+        @click="emit('select-comic', { slug: item.mangaSlug || item.id, title: item.title, thumb: item.thumb || item.cover })"
       >
         <div class="thumb-box">
-          <img :src="item.thumb || ''" :alt="item.title" class="thumb-img" loading="lazy" />
+          <img :src="item.thumb || item.cover || ''" :alt="item.title" class="thumb-img" loading="lazy" referrerpolicy="no-referrer" />
         </div>
 
         <div class="info-box">

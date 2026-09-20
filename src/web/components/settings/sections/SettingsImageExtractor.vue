@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from 'vue';
 import { Image as ImageIcon, CheckCircle2, Info } from 'lucide-vue-next';
+import { useToast } from '../../../composables/useToast.js';
 
 const emit = defineEmits(['apply-extracted']);
 
+const toast = useToast();
 const fileInputRef = ref(null);
 const canvasRef = ref(null);
 const extractedPreview = ref('');
@@ -18,7 +20,7 @@ function handleFileChange(event) {
   if (!file) return;
 
   if (file.size > 10 * 1024 * 1024) {
-    alert('Ukuran gambar maksimal adalah 10MB.');
+    toast.warning('Ukuran gambar maksimal adalah 10MB.');
     return;
   }
 

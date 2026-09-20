@@ -9,6 +9,7 @@ const props = defineProps({
   providers: {
     type: Array,
     default: () => [
+      { id: 'all', label: 'Semua Studio', desc: 'Gabungan Lintas Provider' },
       { id: 'htv', label: 'HentaiTV Studio', desc: 'Sub Indo & Raw Full HD' },
       { id: 'neko', label: 'NekoPoi Studio', desc: 'Arsip Populer Indonesia' },
       { id: 'tube', label: 'Eporner Tube', desc: 'Tube Global 1080p 60FPS' },
@@ -47,7 +48,14 @@ const emit = defineEmits(['select-provider']);
 
 @media (min-width: 640px) {
   .studio-switcher-bar {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (min-width: 960px) {
+  .studio-switcher-bar {
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
   }
 }

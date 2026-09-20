@@ -121,3 +121,49 @@ Dokumen ini mendefinisikan seluruh fungsi publik yang diekspor oleh library `dou
     ]
   }
   ```
+
+---
+
+## 5. Web Video Endpoints (`src/server/routes/video.js`)
+
+### `GET /api/video/trending?provider=:provider`
+- **Parameter**: `provider` *(string, optional, default: 'htv')*: `'htv'` | `'neko'` | `'tube'`.
+- **Return Type**: `Promise<Array<VideoItem>|{ videos: Array<VideoItem> }>`
+- **Deskripsi**: Mengembalikan daftar video trending populer harian sesuai provider yang diminta.
+
+### `GET /api/video/player-frame?url=:url`
+- **Parameter**: `url` *(string, required)*: URL embed pemutar target.
+- **Header Keamanan**: `Content-Security-Policy: sandbox allow-scripts allow-forms allow-presentation allow-same-origin`.
+- **Deskripsi**: Reverse-proxy pemutar video pihak ketiga dengan injeksi penghapus skrip iklan dan penjinak popunder.
+
+---
+
+## 6. Client Services & Utilities
+
+### `mergeUnifiedFeed(providerFetchers, timeoutMs)` (`src/web/services/unifiedFeed.js`)
+- **Parameter**:
+  - `providerFetchers` *(Array<{ provider: string, fetcher: () => Promise<any> }>)*
+  - `timeoutMs` *(number, default: 8000)*
+- **Return Type**: `Promise<Array<UnifiedVideoItem>>`
+- **Fitur**: Menjalankan fetch lintas-provider secara paralel via `Promise.allSettled`, toleran terhadap kegagalan provider individual, serta menduplikasi item berdasarkan `title + type`.
+- **Contoh DTO**:
+  ```json
+  {
+    "title": "Judul Video",
+    "type": "anime",
+    "thumb": "https://cdn.example.com/cover.jpg",
+    "slug": "judul-video-htv",
+    "provider": "htv",
+    "sources": [
+      { "provider": "htv", "slug": "judul-video-htv", "thumb": "..." },
+      { "provider": "neko", "slug": "judul-video-neko", "thumb": "..." }
+    ]
+  }
+  ```
+
+### `saveReadingProgress(mangaSlug, data)` (`src/web/services/storage.js`)
+- **Parameter**:
+  - `mangaSlug` *(string)*: Slug manga
+  - `data` *(object)*: `{ chapterId, chapterNumber, pageIndex, title, thumb, cover }`
+- **Deskripsi**: Menyimpan posisi baca dan gambar cover komik ke LocalStorage (`kura_reading_progress`) agar siap ditampilkan pada rail "Lanjutkan Membaca" dan "Pustaka".
+

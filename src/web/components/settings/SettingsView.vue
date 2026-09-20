@@ -16,6 +16,7 @@ import SettingsStorage from './sections/SettingsStorage.vue';
 import SettingsTutorial from './sections/SettingsTutorial.vue';
 import SettingsAboutPortal from './sections/SettingsAboutPortal.vue';
 import SettingsDownload from './sections/SettingsDownload.vue';
+import { useToast } from '../../composables/useToast.js';
 
 const props = defineProps({
   currentTheme: { type: String, default: 'default' },
@@ -76,10 +77,12 @@ function applyPalette(p) {
   saveAndApplyCustomTheme();
 }
 
+const toast = useToast();
+
 function applyExtracted(palette) {
   customTheme.value = { ...palette };
   saveAndApplyCustomTheme();
-  alert('Palet hasil ekstraksi gambar berhasil diterapkan sebagai Tema Kustom!');
+  toast.success('Palet hasil ekstraksi gambar berhasil diterapkan sebagai Tema Kustom!');
 }
 
 // --- Backup Restore Handler ---
@@ -92,10 +95,13 @@ function handleRestoreBackup(data) {
       customTheme.value = data.customTheme;
     }
     if (data.theme) emit('set-theme', data.theme);
-    alert('Data berhasil dipulihkan! Halaman akan memuat ulang data baru.');
-    window.location.reload();
+    toast.success('Data berhasil dipulihkan! Halaman akan memuat ulang data baru.');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   } catch (err) {
     console.error('Restore failed:', err);
+    toast.error('Gagal memulihkan cadangan data.');
   }
 }
 

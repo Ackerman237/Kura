@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { getComicTypeMeta } from '../../utils/comicType.js';
 
 const props = defineProps({
   type: {
@@ -21,32 +22,13 @@ const props = defineProps({
 });
 
 const flagMeta = computed(() => {
-  const t = (props.country || props.type || '').toLowerCase();
-  if (t === 'manhwa' || t === 'kr' || t === 'korea') {
-    return {
-      src: '/assets/flags/kr.svg',
-      country: 'Korea Selatan',
-      typeLabel: 'Manhwa',
-      tooltip: 'Manhwa (Korea Selatan)',
-    };
-  }
-  if (t === 'manhua' || t === 'cn' || t === 'china') {
-    return {
-      src: '/assets/flags/cn.svg',
-      country: 'China',
-      typeLabel: 'Manhua',
-      tooltip: 'Manhua (China)',
-    };
-  }
-  if (t === 'manga' || t === 'doujin' || t === 'doujinshi' || t === 'jp' || t === 'japan') {
-    return {
-      src: '/assets/flags/jp.svg',
-      country: 'Jepang',
-      typeLabel: t.includes('doujin') ? 'Doujin' : 'Manga',
-      tooltip: `${t.includes('doujin') ? 'Doujin' : 'Manga'} (Jepang)`,
-    };
-  }
-  return null;
+  const meta = getComicTypeMeta(props.country || props.type);
+  return {
+    src: meta.flagSrc,
+    country: meta.country,
+    typeLabel: meta.label,
+    tooltip: meta.tooltip,
+  };
 });
 </script>
 

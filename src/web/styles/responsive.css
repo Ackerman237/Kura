@@ -1,0 +1,47 @@
+/**
+ * Kura Responsive Layout System & Mobile Navigation Rules
+ */
+
+:root {
+  --mobile-dock-height: 64px;
+  --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Page container safe dock padding on mobile */
+@media (max-width: 768px) {
+  .page-bottom-dock-pad {
+    padding-bottom: calc(var(--mobile-dock-height) + var(--mobile-safe-bottom) + 16px) !important;
+  }
+
+  /* Grid adaptations */
+  .kura-responsive-grid {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
+
+/* 2-Row Layout for Mobile Header (< 768px) */
+@media (max-width: 768px) {
+  .kura-topbar.topbar-mobile-2row {
+    height: auto !important;
+    padding: 8px 12px 10px !important;
+  }
+
+  .kura-topbar.topbar-mobile-2row .topbar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: auto;
+  }
+
+  .kura-topbar.topbar-mobile-2row .topbar-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .kura-topbar.topbar-mobile-2row .topbar-row-search {
+    width: 100%;
+  }
+}

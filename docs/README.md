@@ -19,6 +19,7 @@ Dokumentasi Kura disusun dengan prinsip *Inverted Pyramid Taxonomy*: nama direkt
 | **`05-api/`** | `contracts/`<br>`engine/` | [`api-contracts.md`](05-api/contracts/api-contracts.md)<br>[`sdk-doujin-scraper.md`](05-api/engine/sdk-doujin-scraper.md) | **Kontrak API**: Validasi bounds dan bentuk normalized DTO.<br>**Engine SDK**: Arsip lengkap dokumentasi SDK scraping engine asli. |
 | **`06-decisions/`** | — | [`ADR-001-modular-parsers.md`](06-decisions/ADR-001-modular-parsers.md)<br>[`ADR-002-undici-dispatcher.md`](06-decisions/ADR-002-undici-dispatcher.md) | Rekam jejak keputusan arsitektur (*Architecture Decision Records*). |
 | **`07-roadmap/`** | — | [`roadmap-and-backlog.md`](07-roadmap/roadmap-and-backlog.md) | Rencana milestone pengerjaan (Frontend Web App, UI Reader, PWA caching). |
+| **Audit & Parity** | — | [`fix-report.md`](fix-report.md)<br>[`js-parity-map.md`](js-parity-map.md) | **Laporan Audit & Matriks Diagnosis**: Hasil audit komprehensif, akar masalah, dan matriks sebelum-sesudah.<br>**Peta Padanan JS**: Analisis komparatif client-side WibuDex vs Kura. |
 
 ---
 

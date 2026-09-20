@@ -8,7 +8,7 @@
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge" alt="GPL-3.0 License" /></a>
     <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%E2%89%A518.17-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" /></a>
-    <img src="https://img.shields.io/badge/Tests-164%20Passing-34D399?style=for-the-badge&logo=node.js&logoColor=white" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-178%20Passing-34D399?style=for-the-badge&logo=node.js&logoColor=white" alt="Tests" />
     <img src="https://img.shields.io/badge/PWA-Ready-9333EA?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
     <img src="https://img.shields.io/badge/Security-SSRF%20%26%20CSP%20Guarded-E8613C?style=for-the-badge" alt="Security" />
   </p>
@@ -45,14 +45,17 @@ Engineered from the ground up with a **privacy-first and zero-annoyance philosop
 
 ### 📖 Immersive Manga & Comic Reader
 - **Multi-Layout Reading**: Seamlessly switch between **Webtoon / Long-Strip Vertical Scroll**, **Single Page**, and **Double Page** spread modes.
-- **Smart Reading State**: Automatically persists your reading progress down to the exact pixel and chapter offset.
+- **Smart Reading State & History Covers**: Automatically persists your reading progress and manga cover art to local storage with anti-hotlink headers (`no-referrer`), ensuring clean display on "Lanjutkan Membaca" and "Pustaka".
 - **Predictive Background Pre-fetching**: Silently preloads upcoming chapter pages for instantaneous, zero-wait transitions.
 - **Zero Distraction HUD**: Floating controls that auto-hide while reading, leaving only pure art.
 
 ### 🎬 Cinema & Video Streaming
-- **Responsive Adaptive Player**: Native HLS (`.m3u8`) and MP4 video player with resolution switcher (*1080p, 720p, 480p, 360p*).
-- **Cinema Theater & 70/30 Layout**: Dedicated watch view pairing the main theater screen with a quick-access episode queue.
-- **Alternative Server Switching**: Instant failover between video sources when an upstream stream is congested.
+- **Multi-Provider Unified Feed (Semua Studio)**: Concurrently queries HentaiTV, NekoPoi, and Eporner with `Promise.allSettled`, deduplicating identical titles (`title + type`) with an intuitive source switcher.
+- **Direct Mount & Sandbox Shield**: Direct mounting for verified trusted hosts (`nhplayer.com`, `playmogo.com`, `streampoi.com`, `yandex.ru`) preventing PHP session loss, paired with automated ad-shielding for untrusted embeds.
+- **DNS over HTTPS (DoH) Built-in**: Cloudflare DoH integration in `src/http.js` that effortlessly bypasses local ISP DNS poisoning (`internetpositif.id`) while enforcing strict SSRF and DNS Rebinding security.
+- **Full Refresh Persistence**: Complete URL state management (`?tab=video&view=video-watch&slug=...&provider=...`) with Service Worker `ignoreSearch: true` support.
+- **Provider-Isolated Recommendations**: Video recommendations stay strictly isolated to the currently active provider.
+- **Full CJK Multi-Language Typography**: Complete native font fallback stack supporting Japanese (日本語), Chinese (中文), and Korean (한국어) without missing glyph boxes (□).
 
 ### 🛡️ 3-Tier Anti-Ad & Sandbox Shield
 - **Tier 1 (Direct Stream Resolution)**: Resolves direct MP4 streams via curl TLS fallback, bypassing browser popunders entirely.

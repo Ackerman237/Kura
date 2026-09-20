@@ -103,7 +103,7 @@ onMounted(() => {
     <LibraryOfflineTab
       v-else-if="activeTab === 'offline'"
       :chapters="offlineChapters"
-      @read-chapter="(ch) => emit('readOfflineChapter', { chapter: ch, manga: { slug: ch.mangaSlug, title: ch.title } })"
+      @read-chapter="(ch) => emit('readOfflineChapter', { chapter: { ...ch, id: ch.chapterId, slug: ch.chapterId, title: ch.chapterTitle || `Bab ${ch.chapterNumber}` }, manga: { slug: ch.mangaSlug, title: ch.mangaTitle || ch.title, cover: ch.mangaCover } })"
       @delete-chapter="handleDeleteOffline"
       @open-local-manga="(payload) => emit('openLocalManga', payload)"
       @open-local-video="(payload) => emit('openLocalVideo', payload)"

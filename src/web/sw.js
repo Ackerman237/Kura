@@ -99,8 +99,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 3. Static / SPA App Shell: Stale-While-Revalidate
+  const isHtmlNav = event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html');
+  const matchOptions = isHtmlNav ? { ignoreSearch: true } : undefined;
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, matchOptions).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
@@ -111,8 +114,8 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           // If offline and request is an HTML navigation, return cached index.html
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/index.html') || caches.match('/');
+          if (isHtmlNav) {
+            return caches.match('/index.html', { ignoreSearch: true }) || caches.match('/');
           }
         });
 

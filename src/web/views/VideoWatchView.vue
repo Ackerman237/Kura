@@ -1,5 +1,7 @@
 <script setup>
+import { ref, computed } from 'vue';
 import { ArrowLeft } from 'lucide-vue-next';
+import { useToast } from '../composables/useToast.js';
 import WatchPlayerContainer from '../components/video-watch/WatchPlayerContainer.vue';
 import WatchVideoMeta from '../components/video-watch/WatchVideoMeta.vue';
 import WatchEpisodeRail from '../components/video-watch/WatchEpisodeRail.vue';
@@ -14,6 +16,10 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  relatedVideos: {
+    type: Array,
+    default: () => [],
+  },
   loading: {
     type: Boolean,
     default: false,
@@ -21,10 +27,6 @@ const props = defineProps({
   provider: {
     type: String,
     default: 'htv',
-  },
-  relatedVideos: {
-    type: Array,
-    default: () => [],
   },
   isPrivacyMode: {
     type: Boolean,
@@ -36,7 +38,9 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['back', 'select-video', 'toggle-bookmark', 'share']);
+const emit = defineEmits(['back', 'select-video', 'toggle-bookmark']);
+
+const toast = useToast();
 
 const handleShare = () => {
   if (navigator.share) {
@@ -46,7 +50,7 @@ const handleShare = () => {
     }).catch(() => {});
   } else {
     navigator.clipboard?.writeText(window.location.href);
-    alert('Tautan video berhasil disalin ke clipboard!');
+    toast.success('Tautan video berhasil disalin ke clipboard!');
   }
 };
 </script>
@@ -152,9 +156,8 @@ const handleShare = () => {
   }
 
   .sticky-player-anchor {
-    position: sticky;
-    top: 76px;
-    z-index: 30;
+    position: relative;
+    width: 100%;
   }
 
   .watch-sidebar-column {
@@ -165,9 +168,8 @@ const handleShare = () => {
 
 @media (max-width: 1023px) {
   .sticky-player-anchor {
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    position: relative;
+    width: 100%;
   }
 }
 

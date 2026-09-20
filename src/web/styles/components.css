@@ -1,0 +1,84 @@
+/**
+ * Kura Shared Component Styles & Utilities
+ */
+
+/* Frosted glass container */
+.kura-glass-panel {
+  background: var(--kura-surface, rgba(18, 20, 26, 0.75));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.kura-glass-card {
+  background: var(--kura-surface, rgba(22, 24, 30, 0.7));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 8px);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease;
+}
+
+.kura-glass-card:hover {
+  border-color: var(--kura-border-strong, rgba(255, 255, 255, 0.2));
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+}
+
+/* Text Truncation Utilities */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Badge Pill Utility */
+.kura-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Icon Button Standard */
+.kura-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--kura-surface, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--kura-text-muted, #aaaaaa);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kura-icon-btn:hover {
+  color: var(--kura-accent, #e5a93c);
+  border-color: var(--kura-border-strong, rgba(255, 255, 255, 0.25));
+  transform: translateY(-1px);
+}

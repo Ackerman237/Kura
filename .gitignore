@@ -9,3 +9,5 @@ npm-debug.log*
 .proxy-cache.json.tmp
 dist/
 downloads/
+cookie.txt
+scripts/test-video-investigation.mjs

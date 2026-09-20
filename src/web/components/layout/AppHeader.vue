@@ -1,134 +1,8 @@
-<template>
-  <header class="kura-topbar" :class="{ 'with-sidebar': !isMobile }">
-    <div class="topbar-inner">
-      <!-- Left: Mobile Brand & Desktop Nav Links -->
-      <div class="header-brand-group">
-        <div class="brand-item" @click="$emit('navigate', 'manga')">
-          <div class="brand-kanji">蔵</div>
-          <div class="brand-title-wrap">
-            <span class="brand-name">KURA</span>
-            <span class="brand-sub">READER</span>
-          </div>
-        </div>
-
-        <!-- Navigation Links (Desktop) -->
-        <nav v-if="!isMobile" class="header-nav-links">
-          <button
-            type="button"
-            class="header-link"
-            :class="{ active: currentTab === 'manga' }"
-            @click="$emit('navigate', 'manga')"
-          >
-            Beranda
-          </button>
-          <button
-            type="button"
-            class="header-link"
-            :class="{ active: currentTab === 'catalog' }"
-            @click="$emit('navigate', 'catalog')"
-          >
-            Daftar
-          </button>
-          <button
-            type="button"
-            class="header-link"
-            :class="{ active: currentTab === 'video' }"
-            @click="$emit('navigate', 'video')"
-          >
-            Sinema
-          </button>
-          <button
-            type="button"
-            class="header-link"
-            :class="{ active: currentTab === 'library' }"
-            @click="$emit('navigate', 'library')"
-          >
-            Bookmark
-          </button>
-        </nav>
-      </div>
-
-      <!-- Center: Omnisearch Pill -->
-      <div class="search-box">
-        <Search :size="16" class="search-icon" />
-        <input
-          ref="searchInputRef"
-          type="text"
-          :value="searchQuery"
-          @input="$emit('update:searchQuery', $event.target.value)"
-          @keyup.enter="$emit('search')"
-          placeholder="Cari komik, manhwa, genre (tekan Ctrl+K)..."
-          aria-label="Pencarian Komik"
-        />
-        <button
-          v-if="searchQuery"
-          type="button"
-          class="clear-btn"
-          title="Hapus pencarian"
-          @click="$emit('clear-search')"
-        >
-          <X :size="14" />
-        </button>
-        <span class="search-shortcut" v-else>Ctrl K</span>
-      </div>
-
-      <!-- Right Action Items -->
-      <div class="topbar-actions">
-        <!-- SFW / Privacy Mode Toggle -->
-        <button
-          type="button"
-          class="action-pill"
-          :class="{ 'is-active': isPrivacyMode }"
-          :title="isPrivacyMode ? 'Mode Sensor SFW Aktif (Cover & Judul Buram)' : 'Aktifkan Mode Sensor SFW'"
-          @click="$emit('toggle-privacy-mode')"
-        >
-          <component :is="isPrivacyMode ? EyeOff : Eye" :size="15" />
-          <span class="action-label">{{ isPrivacyMode ? 'SFW AKTIF' : 'SFW' }}</span>
-        </button>
-
-        <!-- Theme Switcher Button -->
-        <button
-          type="button"
-          class="icon-action-btn"
-          :title="`Ganti Tema (Saat ini: ${currentTheme})`"
-          @click="$emit('cycle-theme')"
-        >
-          <Palette :size="16" />
-        </button>
-
-        <!-- Download Queue Button -->
-        <button
-          type="button"
-          class="icon-action-btn dl-queue-btn"
-          :class="{ 'has-active': downloadBadge > 0 }"
-          title="Antrian Unduhan"
-          @click="$emit('toggle-download-queue')"
-        >
-          <Download :size="16" />
-          <span v-if="downloadBadge > 0" class="dl-badge">{{ downloadBadge }}</span>
-        </button>
-
-        <!-- User Profile Avatar Placeholder -->
-        <button
-          type="button"
-          class="user-avatar-btn"
-          title="Profil Pengguna / Masuk"
-          @click="$emit('navigate', 'settings')"
-        >
-          <User :size="16" />
-        </button>
-      </div>
-    </div>
-  </header>
-</template>
-
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { Search, X, Eye, EyeOff, Palette, User, Download } from 'lucide-vue-next';
+import { Eye, EyeOff, Palette, Download, User } from 'lucide-vue-next';
 import { useDownloadQueue } from '../../services/download.js';
-
-const { activeCount, queuedCount } = useDownloadQueue();
-const downloadBadge = computed(() => activeCount.value + queuedCount.value);
+import SearchBar from '../common/SearchBar.vue';
 
 const props = defineProps({
   isMobile: {
@@ -164,16 +38,22 @@ const emit = defineEmits([
   'clear-search',
   'toggle-privacy-mode',
   'cycle-theme',
+  'toggle-download-queue',
 ]);
 
-const searchInputRef = ref(null);
+const searchBarRef = ref(null);
+const { activeDownloads, queuedDownloads } = useDownloadQueue();
+
+const downloadBadge = computed(() => {
+  return (activeDownloads.value ? activeDownloads.value.length : 0) +
+         (queuedDownloads.value ? queuedDownloads.value.length : 0);
+});
 
 // Shortcut handler (Ctrl+K or Command+K)
 function handleGlobalKeyDown(e) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
-    searchInputRef.value?.focus();
-    searchInputRef.value?.select();
+    searchBarRef.value?.focus();
   }
 }
 
@@ -186,33 +66,167 @@ onUnmounted(() => {
 });
 </script>
 
+<template>
+  <header
+    class="kura-topbar"
+    :class="{ 'with-sidebar': !isMobile, 'topbar-mobile-2row': isMobile }"
+  >
+    <div class="topbar-inner">
+      <!-- Top Row (or Desktop Full Row) -->
+      <div class="topbar-row-top">
+        <!-- Left: Brand & Desktop Nav Links -->
+        <div class="header-brand-group">
+          <div class="brand-item" @click="$emit('navigate', 'manga')">
+            <div class="brand-kanji">蔵</div>
+            <div class="brand-title-wrap">
+              <span class="brand-name">KURA</span>
+              <span v-if="!isMobile" class="brand-sub">READER</span>
+            </div>
+          </div>
+
+          <!-- Navigation Links (Desktop Only) -->
+          <nav v-if="!isMobile" class="header-nav-links">
+            <button
+              type="button"
+              class="header-link"
+              :class="{ active: currentTab === 'manga' }"
+              @click="$emit('navigate', 'manga')"
+            >
+              Beranda
+            </button>
+            <button
+              type="button"
+              class="header-link"
+              :class="{ active: currentTab === 'catalog' }"
+              @click="$emit('navigate', 'catalog')"
+            >
+              Daftar
+            </button>
+            <button
+              type="button"
+              class="header-link"
+              :class="{ active: currentTab === 'video' }"
+              @click="$emit('navigate', 'video')"
+            >
+              Sinema
+            </button>
+            <button
+              type="button"
+              class="header-link"
+              :class="{ active: currentTab === 'library' }"
+              @click="$emit('navigate', 'library')"
+            >
+              Bookmark
+            </button>
+          </nav>
+        </div>
+
+        <!-- Desktop Omnisearch Pill (Hidden on Mobile) -->
+        <div v-if="!isMobile" class="desktop-search-wrap">
+          <SearchBar
+            ref="searchBarRef"
+            :model-value="searchQuery"
+            @update:model-value="$emit('update:searchQuery', $event)"
+            @search="$emit('search')"
+            @clear="$emit('clear-search')"
+          />
+        </div>
+
+        <!-- Right Action Items -->
+        <div class="topbar-actions">
+          <!-- SFW / Privacy Mode Toggle -->
+          <button
+            type="button"
+            class="action-pill"
+            :class="{ 'is-active': isPrivacyMode }"
+            :title="isPrivacyMode ? 'Mode Sensor SFW Aktif' : 'Aktifkan Mode Sensor SFW'"
+            @click="$emit('toggle-privacy-mode')"
+          >
+            <component :is="isPrivacyMode ? EyeOff : Eye" :size="15" />
+            <span class="action-label">{{ isPrivacyMode ? 'SFW' : 'SFW' }}</span>
+          </button>
+
+          <!-- Theme Switcher Button -->
+          <button
+            type="button"
+            class="icon-action-btn"
+            :title="`Ganti Tema (${currentTheme})`"
+            @click="$emit('cycle-theme')"
+          >
+            <Palette :size="16" />
+          </button>
+
+          <!-- Download Queue Button -->
+          <button
+            type="button"
+            class="icon-action-btn dl-queue-btn"
+            :class="{ 'has-active': downloadBadge > 0 }"
+            title="Antrean Unduhan"
+            @click="$emit('toggle-download-queue')"
+          >
+            <Download :size="16" />
+            <span v-if="downloadBadge > 0" class="dl-badge">{{ downloadBadge }}</span>
+          </button>
+
+          <!-- Profile / Settings Navigation -->
+          <button
+            type="button"
+            class="user-avatar-btn"
+            title="Pengaturan Kura"
+            @click="$emit('navigate', 'settings')"
+          >
+            <User :size="16" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Row 2: Full-Width SearchBar with explicit submit button -->
+      <div v-if="isMobile" class="topbar-row-search">
+        <SearchBar
+          ref="searchBarRef"
+          :model-value="searchQuery"
+          :show-shortcut="false"
+          placeholder="Cari komik, manhwa, sinema..."
+          @update:model-value="$emit('update:searchQuery', $event)"
+          @search="$emit('search')"
+          @clear="$emit('clear-search')"
+        />
+      </div>
+    </div>
+  </header>
+</template>
+
 <style scoped>
 .kura-topbar {
-  height: var(--header-height);
   position: sticky;
   top: 0;
-  background-color: var(--kura-surface-glass);
+  background-color: var(--kura-surface-glass, rgba(14, 15, 18, 0.85));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--kura-border-subtle);
+  border-bottom: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   z-index: 90;
   display: flex;
   align-items: center;
-  padding: 0 var(--space-4);
-  transition: background-color var(--duration-normal);
+  padding: 0 16px;
+  height: var(--header-height, 64px);
+  transition: all 0.2s ease;
 }
 
 .topbar-inner {
   width: 100%;
-  max-width: var(--max-content-width);
+  max-width: var(--max-content-width, 1400px);
   margin: 0 auto;
+}
+
+.topbar-row-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: 16px;
+  width: 100%;
 }
 
-/* Brand Group & Nav Links */
+/* Brand Group */
 .header-brand-group {
   display: flex;
   align-items: center;
@@ -223,47 +237,49 @@ onUnmounted(() => {
 .brand-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
+  user-select: none;
 }
 
 .brand-kanji {
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, var(--kura-accent) 0%, #d45431 100%);
-  color: #ffffff;
-  font-family: serif;
-  font-weight: 700;
-  font-size: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(135deg, var(--kura-accent, #e5a93c) 0%, #b87a1b 100%);
+  color: #000000;
+  font-family: var(--kura-font-serif, serif);
+  font-size: 1.15rem;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-xs);
-  box-shadow: 0 2px 8px var(--kura-accent-glow);
+  box-shadow: 0 0 12px var(--kura-accent-glow, rgba(229, 169, 60, 0.3));
 }
 
 .brand-title-wrap {
   display: flex;
   flex-direction: column;
-}
-
-.brand-name {
-  font-family: var(--kura-font-heading);
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--kura-text-primary);
   line-height: 1;
 }
 
-.brand-sub {
-  font-family: var(--kura-font-mono);
-  font-size: 8px;
-  letter-spacing: 0.2em;
-  color: var(--kura-accent);
-  font-weight: 700;
+.brand-name {
+  font-family: var(--kura-font-sans, system-ui, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #ffffff;
 }
 
+.brand-sub {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--kura-accent, #e5a93c);
+  margin-top: 2px;
+}
+
+/* Nav Links */
 .header-nav-links {
   display: flex;
   align-items: center;
@@ -271,108 +287,35 @@ onUnmounted(() => {
 }
 
 .header-link {
-  border: none;
-  background: transparent;
-  color: var(--kura-text-muted);
-  font-family: var(--kura-font-sans);
-  font-size: var(--text-sm);
-  font-weight: 600;
   padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: all var(--duration-fast);
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--kura-text-muted, #aaaaaa);
+  transition: all 0.15s ease;
 }
 
 .header-link:hover {
-  color: var(--kura-text-primary);
-  background: var(--kura-surface);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .header-link.active {
-  color: var(--kura-accent);
+  color: var(--kura-accent, #e5a93c);
   background: rgba(229, 169, 60, 0.12);
 }
 
-/* Omnisearch Box */
-.search-box {
+/* Desktop Search */
+.desktop-search-wrap {
   flex: 1;
-  max-width: 480px;
-  height: 38px;
-  background-color: var(--kura-bg);
-  border: 1px solid var(--kura-border-subtle);
-  border-radius: var(--radius-pill);
-  display: flex;
-  align-items: center;
-  padding: 0 var(--space-3);
-  gap: var(--space-2);
-  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  max-width: 440px;
 }
 
-.search-box:focus-within {
-  border-color: var(--kura-accent);
-  box-shadow: 0 0 0 2px var(--kura-accent-glow);
-}
-
-.search-icon {
-  color: var(--kura-text-muted);
-  flex-shrink: 0;
-}
-
-.search-box input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--kura-text-primary);
-  font-family: var(--kura-font-sans);
-  font-size: var(--text-sm);
-}
-
-.search-box input::placeholder {
-  color: var(--kura-text-dim);
-}
-
-.clear-btn {
-  border: none;
-  background: transparent;
-  color: var(--kura-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  border-radius: var(--radius-pill);
-  transition: color var(--duration-fast);
-}
-
-.clear-btn:hover {
-  color: var(--kura-text-primary);
-}
-
-.search-shortcut {
-  font-size: 10px;
-  font-family: var(--kura-font-mono);
-  color: var(--kura-text-dim);
-  background-color: var(--kura-surface);
-  border: 1px solid var(--kura-border-subtle);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  line-height: 1;
-  user-select: none;
-}
-
-@media (max-width: 640px) {
-  .search-shortcut {
-    display: none;
-  }
-}
-
-/* Actions */
+/* Actions Group */
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -381,21 +324,20 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  background-color: var(--kura-surface);
-  border: 1px solid var(--kura-border-subtle);
-  color: var(--kura-text-muted);
-  font-family: var(--kura-font-sans);
-  font-size: var(--text-2xs);
+  border-radius: var(--radius-pill, 9999px);
+  background-color: var(--kura-surface, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--kura-text-muted, #aaaaaa);
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all 0.15s ease;
 }
 
 .action-pill:hover {
-  border-color: var(--kura-border-strong);
-  color: var(--kura-text-primary);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 .action-pill.is-active {
@@ -411,17 +353,17 @@ onUnmounted(() => {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-pill);
-  background: var(--kura-surface);
-  border: 1px solid var(--kura-border-subtle);
-  color: var(--kura-text-muted);
+  border-radius: var(--radius-pill, 9999px);
+  background: var(--kura-surface, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--kura-text-muted, #aaaaaa);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all 0.15s ease;
 }
 
 .icon-action-btn:hover {
-  color: var(--kura-accent);
-  border-color: var(--kura-border-strong);
+  color: var(--kura-accent, #e5a93c);
+  border-color: var(--kura-border-strong, rgba(255, 255, 255, 0.25));
   transform: translateY(-1px);
 }
 
@@ -431,17 +373,17 @@ onUnmounted(() => {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--kura-surface) 0%, var(--kura-surface-hover) 100%);
-  border: 1px solid var(--kura-border-strong);
-  color: var(--kura-text-primary);
+  border-radius: var(--radius-pill, 9999px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--kura-border-strong, rgba(255, 255, 255, 0.15));
+  color: #ffffff;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all 0.15s ease;
 }
 
 .user-avatar-btn:hover {
-  border-color: var(--kura-accent);
-  box-shadow: 0 0 8px var(--kura-accent-glow);
+  border-color: var(--kura-accent, #e5a93c);
+  box-shadow: 0 0 8px var(--kura-accent-glow, rgba(229, 169, 60, 0.3));
 }
 
 .dl-queue-btn {
@@ -449,9 +391,8 @@ onUnmounted(() => {
 }
 
 .dl-queue-btn.has-active {
-  color: var(--kura-accent);
-  border-color: var(--kura-accent);
-  background: rgba(230, 81, 0, 0.08);
+  color: var(--kura-accent, #e5a93c);
+  border-color: var(--kura-accent, #e5a93c);
 }
 
 .dl-badge {
@@ -462,30 +403,42 @@ onUnmounted(() => {
   height: 16px;
   padding: 0 4px;
   border-radius: 999px;
-  background: var(--kura-accent, #e65100);
-  color: #ffffff;
+  background: var(--kura-accent, #e5a93c);
+  color: #000000;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  box-shadow: 0 0 6px var(--kura-accent-glow, rgba(230, 81, 0, 0.4));
   animation: pulse-badge 2s infinite;
 }
 
-@keyframes pulse-badge {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-@media (max-width: 540px) {
-  .brand-sub {
-    display: none;
+/* Mobile 2-Row Styling */
+@media (max-width: 768px) {
+  .kura-topbar.topbar-mobile-2row {
+    height: auto !important;
+    padding: 8px 12px 10px !important;
   }
+
+  .topbar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .topbar-row-top {
+    justify-content: space-between;
+  }
+
+  .topbar-row-search {
+    width: 100%;
+  }
+
   .action-label {
     display: none;
   }
+
   .action-pill {
     padding: 6px;
   }

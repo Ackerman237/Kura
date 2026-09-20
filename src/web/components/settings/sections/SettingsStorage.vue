@@ -10,6 +10,7 @@ import {
   clearAllCache,
   getStorageEstimate,
 } from '../../../services/clientCache.js';
+import { useToast } from '../../../composables/useToast.js';
 
 const props = defineProps({
   offlineChapterCount: { type: Number, default: 0 },
@@ -91,21 +92,17 @@ onMounted(() => {
   refreshStorageStats();
 });
 
+const toast = useToast();
+
 function exportBackupData() {
   try {
     const backupObj = {
-      version: '1.0',
+      version: 1,
       exportedAt: new Date().toISOString(),
-      theme: props.currentTheme,
-      customTheme: props.customTheme,
       readingProgress: JSON.parse(localStorage.getItem('kura_reading_progress') || '{}'),
       bookmarks: JSON.parse(localStorage.getItem('kura_bookmarks') || '[]'),
-      settings: {
-        peekDuration: props.peekDuration,
-        blurIntensity: props.blurIntensity,
-        readerMode: props.readerMode,
-        defaultVideoProvider: props.defaultVideoProvider,
-      },
+      customTheme: JSON.parse(localStorage.getItem('kura_custom_theme') || 'null'),
+      theme: localStorage.getItem('kura_theme') || 'default',
     };
     const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -116,9 +113,10 @@ function exportBackupData() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    toast.success('File cadangan data berhasil diunduh!');
   } catch (err) {
     console.error('Export failed:', err);
-    alert('Gagal mengekspor data cadangan.');
+    toast.error('Gagal mengekspor data cadangan.');
   }
 }
 
@@ -130,7 +128,7 @@ function importBackupData(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!data || !data.version) {
-        alert('File JSON tidak valid atau bukan format cadangan Kura.');
+        toast.error('File JSON tidak valid atau bukan format cadangan Kura.');
         return;
       }
       if (confirm('Pulihkan data dari cadangan ini? Data riwayat dan bookmark yang ada akan digabungkan.')) {
@@ -138,7 +136,7 @@ function importBackupData(event) {
       }
     } catch (err) {
       console.error('Import failed:', err);
-      alert('Gagal membaca file cadangan: Format JSON tidak valid.');
+      toast.error('Gagal membaca file cadangan: Format JSON tidak valid.');
     }
   };
   reader.readAsText(file);
@@ -147,7 +145,7 @@ function importBackupData(event) {
 function clearReadingHistory() {
   if (confirm('Hapus seluruh riwayat bacaan komik dari perangkat ini?')) {
     localStorage.removeItem('kura_reading_progress');
-    alert('Riwayat bacaan telah dibersihkan.');
+    toast.info('Riwayat bacaan telah dibersihkan.');
   }
 }
 </script>

@@ -9,7 +9,7 @@ import {
   MAX_RESPONSE_BYTES_HTML,
 } from '../../http.js';
 
-export const DEFAULT_API_BASE = 'https://api.eporner.com/api/v2';
+export const DEFAULT_API_BASE = 'https://www.eporner.com/api/v2';
 export const DEFAULT_HTML_BASE = 'https://www.eporner.com';
 export const REFERER = 'https://www.eporner.com/';
 export const DEFAULT_USER_AGENT =

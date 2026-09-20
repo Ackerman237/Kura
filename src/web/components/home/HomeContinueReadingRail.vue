@@ -37,10 +37,10 @@ onMounted(() => {
         v-for="item in continueList"
         :key="item.mangaSlug || item.id"
         class="continue-card"
-        @click="emit('select-comic', { slug: item.mangaSlug || item.id, title: item.title, thumb: item.thumb })"
+        @click="emit('select-comic', { slug: item.mangaSlug || item.id, title: item.title, thumb: item.thumb || item.cover })"
       >
         <div class="continue-thumb-box">
-          <img :src="item.thumb || ''" :alt="item.title" class="continue-thumb" loading="lazy" />
+          <img :src="item.thumb || item.cover || ''" :alt="item.title" class="continue-thumb" loading="lazy" referrerpolicy="no-referrer" />
           <div class="play-pill">
             <Play :size="10" fill="currentColor" />
           </div>

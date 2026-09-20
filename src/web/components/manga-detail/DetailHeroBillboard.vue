@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { Star, Play, Bookmark, Clock, User, Tag } from 'lucide-vue-next';
 import CountryFlag from '../common/CountryFlag.vue';
 import Badge from '../common/Badge.vue';
+import { getComicTypeMeta } from '../../utils/comicType.js';
+import { useImageFallback } from '../../composables/useImageFallback.js';
 
 const props = defineProps({
   manga: {
@@ -37,22 +39,8 @@ const props = defineProps({
 
 const emit = defineEmits(['select-chapter', 'toggle-bookmark']);
 
-const typeLabel = computed(() => {
-  const t = (props.manga.type || 'manga').toLowerCase();
-  if (t === 'manhwa') return 'MANHWA';
-  if (t === 'manhua') return 'MANHUA';
-  if (t === 'doujinshi') return 'DOUJIN';
-  return 'MANGA';
-});
-
-function onCoverError(event) {
-  const currentSrc = event.target.src || '';
-  if (currentSrc.startsWith('http') && !currentSrc.includes('/api/image-proxy')) {
-    event.target.src = `/api/image-proxy?url=${encodeURIComponent(currentSrc)}`;
-  } else {
-    event.target.style.opacity = '0';
-  }
-}
+const { handleImageError } = useImageFallback();
+const typeMeta = computed(() => getComicTypeMeta(props.manga.type));
 </script>
 
 <template>
@@ -73,12 +61,12 @@ function onCoverError(event) {
             :src="coverImage"
             :alt="manga.title"
             class="poster-image"
-            @error="onCoverError"
+            @error="handleImageError($event, 'cover')"
           />
           <div class="poster-badge-overlay">
             <div class="type-flag-wrap">
               <CountryFlag :type="manga.type" size="xs" />
-              <Badge variant="accent" size="xs" pill>{{ typeLabel }}</Badge>
+              <Badge :variant="typeMeta.variant" size="xs" pill>{{ typeMeta.label }}</Badge>
             </div>
             <span v-if="manga.status" class="status-pill" :class="manga.status.toLowerCase()">
               {{ manga.status === 'Completed' ? 'Tamat' : 'Berjalan' }}

@@ -29,7 +29,11 @@ function openDb() {
 
 // Convert image URL to DataURL (base64) so it can be stored persistently in IndexedDB
 async function fetchImageAsDataUrl(url) {
-  const res = await fetch(url, { mode: 'cors' });
+  const fetchUrl =
+    url.startsWith('http://') || url.startsWith('https://')
+      ? `/api/image-proxy?url=${encodeURIComponent(url)}`
+      : url;
+  const res = await fetch(fetchUrl);
   if (!res.ok) throw new Error(`HTTP ${res.status} fetching image`);
   const blob = await res.blob();
   return new Promise((resolve, reject) => {

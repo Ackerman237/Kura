@@ -5,6 +5,8 @@ import CinemaHeroBillboard from '../components/cinema/CinemaHeroBillboard.vue';
 import CinemaTrendingRail from '../components/cinema/CinemaTrendingRail.vue';
 import CinemaStudioSwitcher from '../components/cinema/CinemaStudioSwitcher.vue';
 import CinemaCatalogGrid from '../components/cinema/CinemaCatalogGrid.vue';
+import CinemaUnifiedFeed from '../components/cinema/CinemaUnifiedFeed.vue';
+import { mergeUnifiedFeed } from '../services/unifiedFeed.js';
 
 const props = defineProps({
   isPrivacyMode: {
@@ -47,7 +49,16 @@ const loadVideos = async (page = 1) => {
 
   try {
     let data;
-    if (currentProvider.value === 'neko') {
+    if (currentProvider.value === 'all') {
+      const merged = await mergeUnifiedFeed([
+        { provider: 'htv', fetcher: () => fetchHtvList({ page }) },
+        { provider: 'neko', fetcher: () => fetchNekoList(page) },
+        { provider: 'tube', fetcher: () => fetchTubeList({ page }) },
+      ]);
+      videoList.value = merged;
+      videoTotalPages.value = 1;
+      return;
+    } else if (currentProvider.value === 'neko') {
       data = await fetchNekoList(page);
     } else if (currentProvider.value === 'htv') {
       data = await fetchHtvList({ page, genre: selectedGenre.value || undefined });
@@ -112,8 +123,18 @@ onMounted(() => {
       @select-video="(v) => emit('select-video', { ...v, provider: currentProvider })"
     />
 
-    <!-- 4. Full Symmetrical Video Catalog Grid with Genre Filter & Pagination -->
+    <!-- 4. Studio Catalog Grid OR Unified Feed -->
+    <CinemaUnifiedFeed
+      v-if="currentProvider === 'all'"
+      :videos="videoList"
+      :loading="videoLoading"
+      :error="videoError"
+      :is-privacy-mode="isPrivacyMode"
+      @select-video="(v) => emit('select-video', v)"
+      @retry="loadVideos(1)"
+    />
     <CinemaCatalogGrid
+      v-else
       :videos="videoList"
       :loading="videoLoading"
       :error="videoError"

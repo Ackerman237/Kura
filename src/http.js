@@ -22,6 +22,38 @@ export class ResponseTooLargeError extends Error {
   }
 }
 
+const dohCache = new Map();
+
+/**
+ * Resolve hostname using Cloudflare DNS over HTTPS (DoH).
+ * Bypasses local ISP DNS poisoning/blocking (e.g. internetpositif.id).
+ * @param {string} hostname
+ * @returns {Promise<Array<{address: string, family: number}>|null>}
+ */
+export async function resolveDoh(hostname) {
+  const cached = dohCache.get(hostname);
+  if (cached && cached.expires > Date.now()) {
+    return cached.records;
+  }
+  try {
+    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=A`, {
+      headers: { Accept: 'application/dns-json' },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json.Status === 0 && Array.isArray(json.Answer)) {
+      const ips = json.Answer.filter((a) => a.type === 1).map((a) => a.data);
+      if (ips.length > 0) {
+        const records = ips.map((ip) => ({ address: ip, family: 4 }));
+        dohCache.set(hostname, { records, expires: Date.now() + 60000 });
+        return records;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
 /**
  * Membuat custom undici Agent dengan socket-level DNS verification (Anti DNS Rebinding).
  * @param {Function} [customLookup]
@@ -31,12 +63,32 @@ export function createSafeDispatcher(customLookup) {
   return new Agent({
     connect: {
       lookup(hostname, opts, cb) {
-        const lookupFn =
-          customLookup ||
-          (async (h, o) => {
-            const { lookup } = await import('node:dns/promises');
-            return lookup(h, o);
-          });
+        const defaultLookup = async (h, o) => {
+          const { lookup } = await import('node:dns/promises');
+          try {
+            const res = await lookup(h, o);
+            const list = Array.isArray(res) ? res : [res];
+            const isPoisoned = list.some((item) => {
+              const ip = typeof item === 'string' ? item : item?.address;
+              return ip === '36.86.63.185' || ip === '127.0.0.1';
+            });
+            if (isPoisoned) {
+              const doh = await resolveDoh(h);
+              if (doh && doh.length > 0) {
+                return Array.isArray(res) ? doh : doh[0];
+              }
+            }
+            return res;
+          } catch (err) {
+            const doh = await resolveDoh(h);
+            if (doh && doh.length > 0) {
+              return Array.isArray(opts?.all) || opts?.all ? doh : doh[0];
+            }
+            throw err;
+          }
+        };
+
+        const lookupFn = customLookup || defaultLookup;
 
         Promise.resolve()
           .then(() => lookupFn(hostname, opts))

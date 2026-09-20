@@ -4,6 +4,7 @@ import { ArrowLeft, Bookmark, Share2 } from 'lucide-vue-next';
 import { getReadingProgress, toggleBookmark, isBookmarked } from '../services/storage.js';
 import { downloadChapterForOffline, isChapterOffline, exportChapterAsCbz } from '../services/offline.js';
 import { useDownloadQueue, buildFilename } from '../services/download.js';
+import { useToast } from '../composables/useToast.js';
 import DetailHeroBillboard from '../components/manga-detail/DetailHeroBillboard.vue';
 import DetailSynopsis from '../components/manga-detail/DetailSynopsis.vue';
 import DetailChapterList from '../components/manga-detail/DetailChapterList.vue';
@@ -83,6 +84,8 @@ const handleToggleBookmark = () => {
 
 const { addMangaDownload, settings } = useDownloadQueue();
 
+const toast = useToast();
+
 const handleDownloadChapter = async (chapter) => {
   const chapterId = chapter.id || chapter.slug;
   if (!chapterId) return;
@@ -93,9 +96,12 @@ const handleDownloadChapter = async (chapter) => {
       chapter,
     });
     offlineMap.value[chapterId] = true;
-    alert(`Bab "${chapter.title || chapter.chapterNumber}" berhasil diunduh untuk dibaca offline!`);
+    toast.success(
+      `Bab "${chapter.title || chapter.chapterNumber}" berhasil diunduh dan tersimpan di IndexedDB browser untuk dibaca offline!`,
+      'Unduhan Berhasil'
+    );
   } catch (err) {
-    alert(`Gagal mengunduh bab: ${err.message}`);
+    toast.error(`Gagal mengunduh bab: ${err.message}`);
   }
 };
 
@@ -149,7 +155,7 @@ const handleShare = () => {
     }).catch(() => {});
   } else {
     navigator.clipboard?.writeText(window.location.href);
-    alert('Tautan komik berhasil disalin ke clipboard!');
+    toast.success('Tautan komik berhasil disalin ke clipboard!');
   }
 };
 </script>

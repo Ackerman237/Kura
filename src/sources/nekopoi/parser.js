@@ -24,14 +24,25 @@ export function decodeEntities(s) {
   if (typeof s !== 'string') return '';
   return s
     .replace(/&#8211;/g, '–')
-    .replace(/&#8217;/g, '’')
-    .replace(/&#8216;/g, '‘')
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8216;/g, "'")
     .replace(/&#8220;/g, '"')
     .replace(/&#8221;/g, '"')
     .replace(/&#8230;/g, '…')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+      const code = parseInt(hex, 16);
+      return !isNaN(code) && code > 0 ? String.fromCodePoint(code) : '';
+    })
+    .replace(/&#([0-9]+);/g, (_, dec) => {
+      const code = parseInt(dec, 10);
+      return !isNaN(code) && code > 0 ? String.fromCodePoint(code) : '';
+    })
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .replace(/&nbsp;/g, ' ')
     .trim();
 }

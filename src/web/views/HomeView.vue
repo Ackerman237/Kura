@@ -4,8 +4,6 @@ import HomeHeroBillboard from '../components/home/HomeHeroBillboard.vue';
 import HomeContinueReadingRail from '../components/home/HomeContinueReadingRail.vue';
 import HomeTrendingRail from '../components/home/HomeTrendingRail.vue';
 import HomeLatestReleasesGrid from '../components/home/HomeLatestReleasesGrid.vue';
-import { MOCK_COMICS } from '../data/mockComics.js';
-
 const props = defineProps({
   isPrivacyMode: {
     type: Boolean,
@@ -28,10 +26,7 @@ const props = defineProps({
 const emit = defineEmits(['select-comic', 'toggle-bookmark', 'navigate-catalog']);
 
 const displayComics = computed(() => {
-  if (props.liveComics && props.liveComics.length) {
-    return props.liveComics;
-  }
-  return MOCK_COMICS;
+  return props.liveComics || [];
 });
 </script>
 

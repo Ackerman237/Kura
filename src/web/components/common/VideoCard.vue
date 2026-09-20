@@ -1,6 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { Play, Eye, Star, Clock, EyeOff } from 'lucide-vue-next';
+import { getVideoThumb } from '../../utils/media.js';
+import { useImageFallback } from '../../composables/useImageFallback.js';
+import { usePrivacyPeek } from '../../composables/usePrivacyPeek.js';
 
 const props = defineProps({
   video: {
@@ -19,17 +22,15 @@ const props = defineProps({
 
 const emit = defineEmits(['select']);
 
-const isPeeking = ref(false);
-let peekTimer = null;
+const { isPeeking, triggerPeek } = usePrivacyPeek();
+const { handleImageError } = useImageFallback();
+
+const thumbUrl = computed(() => getVideoThumb(props.video));
 
 const handleThumbClick = (e) => {
   if (props.isPrivacyMode) {
     e.stopPropagation();
-    isPeeking.value = true;
-    if (peekTimer) clearTimeout(peekTimer);
-    peekTimer = setTimeout(() => {
-      isPeeking.value = false;
-    }, 2000);
+    triggerPeek();
     return;
   }
   emit('select', props.video);
@@ -38,15 +39,6 @@ const handleThumbClick = (e) => {
 const handleCardClick = () => {
   emit('select', props.video);
 };
-
-function onImgError(event) {
-  const currentSrc = event.target.src || '';
-  if (currentSrc.startsWith('http') && !currentSrc.includes('/api/image-proxy')) {
-    event.target.src = `/api/image-proxy?url=${encodeURIComponent(currentSrc)}`;
-  } else {
-    event.target.style.opacity = '0';
-  }
-}
 </script>
 
 <template>
@@ -58,7 +50,7 @@ function onImgError(event) {
     <!-- Thumbnail Canvas with 16:9 aspect ratio -->
     <div class="thumb-container" @click="handleThumbClick">
       <img
-        :src="video.thumb || video.poster || video.thumbnail_url || ''"
+        :src="thumbUrl"
         :alt="video.title"
         class="video-thumb"
         :class="{
@@ -67,7 +59,8 @@ function onImgError(event) {
         }"
         loading="lazy"
         decoding="async"
-        @error="onImgError"
+        referrerpolicy="no-referrer"
+        @error="handleImageError($event, 'thumbnail')"
       />
 
       <!-- Privacy Mask Indicator -->

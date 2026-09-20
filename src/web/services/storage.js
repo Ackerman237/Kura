@@ -23,17 +23,21 @@ export function getReadingProgress(mangaSlug) {
   }
 }
 
-export function saveReadingProgress(mangaSlug, { chapterId, chapterNumber, pageIndex = 1, title = '' }) {
+export function saveReadingProgress(mangaSlug, { chapterId, chapterNumber, pageIndex = 1, title = '', thumb, cover }) {
   if (!mangaSlug) return;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.READING_PROGRESS);
     const store = raw ? JSON.parse(raw) : {};
+    const existing = store[mangaSlug] || {};
+    const coverImage = thumb || cover || existing.thumb || existing.cover || '';
     store[mangaSlug] = {
       mangaSlug,
-      title,
+      title: title || existing.title || '',
       chapterId,
       chapterNumber,
       pageIndex,
+      thumb: coverImage,
+      cover: coverImage,
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEYS.READING_PROGRESS, JSON.stringify(store));

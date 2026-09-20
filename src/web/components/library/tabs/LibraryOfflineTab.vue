@@ -2,6 +2,9 @@
 import { ref } from 'vue';
 import { HardDrive, Play, Trash2, FolderUp, Film, BookOpen, Loader2 } from 'lucide-vue-next';
 import { extractCbzImages, createLocalVideoObject } from '../../../services/localFileExtractor.js';
+import { useToast } from '../../../composables/useToast.js';
+import { useImageFallback } from '../../../composables/useImageFallback.js';
+import { getComicCover } from '../../../utils/media.js';
 
 const props = defineProps({
   chapters: {
@@ -11,6 +14,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['read-chapter', 'delete-chapter', 'open-local-manga', 'open-local-video']);
+
+const toast = useToast();
+const { handleImageError } = useImageFallback();
 
 const fileInputRef = ref(null);
 const isExtracting = ref(false);
@@ -43,7 +49,7 @@ const processFile = async (file) => {
       });
       emit('open-local-manga', result);
     } catch (err) {
-      alert(`Gagal membuka CBZ: ${err.message}`);
+      toast.error(`Gagal membuka CBZ: ${err.message}`);
     } finally {
       isExtracting.value = false;
       extractProgress.value = 0;
@@ -52,7 +58,7 @@ const processFile = async (file) => {
     return;
   }
 
-  alert('Format berkas tidak didukung. Harap pilih berkas .mp4, .webm, .cbz, atau .zip.');
+  toast.warning('Format berkas tidak didukung. Harap pilih berkas .mp4, .webm, .cbz, atau .zip.');
 };
 
 const onFileChange = (e) => {
@@ -131,11 +137,19 @@ const onDrop = (e) => {
         @click="emit('read-chapter', ch)"
       >
         <div class="thumb-box">
-          <img :src="ch.thumb || ''" :alt="ch.title" class="thumb-img" loading="lazy" />
+          <img
+            :src="getComicCover(ch)"
+            :alt="ch.mangaTitle || ch.title"
+            class="thumb-img"
+            loading="lazy"
+            @error="handleImageError($event, 'cover')"
+          />
         </div>
 
         <div class="info-box">
-          <h4 class="manga-name" :title="ch.title">{{ ch.title }}</h4>
+          <h4 class="manga-name" :title="ch.mangaTitle || ch.title">
+            {{ ch.mangaTitle || ch.title || 'Manga Offline' }}
+          </h4>
           <span class="chapter-badge">Bab {{ ch.chapterNumber || ch.chapterTitle }}</span>
           <span v-if="ch.imageCount" class="page-count">{{ ch.imageCount }} Halaman Tersimpan</span>
         </div>
