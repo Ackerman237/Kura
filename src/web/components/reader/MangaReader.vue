@@ -316,7 +316,7 @@ onUnmounted(() => {
     <!-- Reading Progress Indicator -->
     <div class="reader-progress-line" :style="{ width: `${scrollProgress}%` }"></div>
 
-    <!-- 1. TOP FLOATING CONTROL BAR (Doujindesu / WibuDex Style) -->
+    <!-- 1. TOP FLOATING CONTROL BAR (Kura Immersive HUD Style) -->
     <header class="reader-top-bar" :class="{ visible: showControls }" @click.stop>
       <div class="top-bar-left">
         <button type="button" class="icon-btn back-btn" title="Kembali ke Detail" @click="emit('close')">

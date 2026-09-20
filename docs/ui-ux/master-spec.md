@@ -1,4 +1,4 @@
-# Master UI/UX Specification: Kura (Wibudex / Noctra Architecture)
+# Master UI/UX Specification: Kura
 
 Dokumen ini adalah cetak biru teknis resmi untuk perombakan UI/UX Kura (aplikasi self-hosted pembaca manga dan streaming video) berdasarkan audit menyeluruh, ekstraksi pola modern (MangaDex, Tachiyomi, YouTube, 21st.dev), serta 22 dokumen spesifikasi arsitektur Noctra.
 

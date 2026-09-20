@@ -53,6 +53,15 @@ const toggleTheater = () => {
         <span class="loading-label">Menyiapkan Sandbox Stream Aman...</span>
       </div>
 
+      <!-- Local Video Player (Offline / Local File) -->
+      <video
+        v-else-if="video.isLocal"
+        :src="video.localUrl || video.url"
+        controls
+        autoplay
+        class="player-iframe local-video-element"
+      ></video>
+
       <!-- Live Sandbox Iframe -->
       <iframe
         v-else
@@ -69,7 +78,7 @@ const toggleTheater = () => {
       <div class="player-top-controls">
         <div class="provider-pill">
           <Tv :size="12" />
-          <span>{{ provider === 'neko' ? 'NekoPoi' : provider === 'htv' ? 'HentaiTV' : 'Tube' }}</span>
+          <span>{{ video.isLocal ? 'Berkas Lokal' : provider === 'neko' ? 'NekoPoi' : provider === 'htv' ? 'HentaiTV' : 'Tube' }}</span>
         </div>
 
         <div class="top-buttons">

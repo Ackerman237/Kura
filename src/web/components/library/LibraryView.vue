@@ -7,7 +7,14 @@ import LibraryHistoryTab from './tabs/LibraryHistoryTab.vue';
 import LibraryOfflineTab from './tabs/LibraryOfflineTab.vue';
 import LibraryBookmarksTab from './tabs/LibraryBookmarksTab.vue';
 
-const emit = defineEmits(['readManga', 'readOfflineChapter', 'openVideo', 'selectMangaDetail']);
+const emit = defineEmits([
+  'readManga',
+  'readOfflineChapter',
+  'openVideo',
+  'selectMangaDetail',
+  'openLocalManga',
+  'openLocalVideo',
+]);
 
 const activeTab = ref('progress'); // 'progress' | 'offline' | 'bookmarks'
 const readingProgressList = ref([]);
@@ -98,6 +105,8 @@ onMounted(() => {
       :chapters="offlineChapters"
       @read-chapter="(ch) => emit('readOfflineChapter', { chapter: ch, manga: { slug: ch.mangaSlug, title: ch.title } })"
       @delete-chapter="handleDeleteOffline"
+      @open-local-manga="(payload) => emit('openLocalManga', payload)"
+      @open-local-video="(payload) => emit('openLocalVideo', payload)"
     />
 
     <LibraryBookmarksTab

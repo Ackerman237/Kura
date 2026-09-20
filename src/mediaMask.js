@@ -1,5 +1,5 @@
 /**
- * Media Utilities (Noctra Blueprint)
+ * Media Utilities (Kura Architecture)
  * Real covers, thumbnails, and reader pages are preserved directly without SVG placeholder substitution.
  */
 

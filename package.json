@@ -45,7 +45,7 @@
     "nodejs",
     "zero-dependency"
   ],
-  "license": "MIT",
+  "license": "GPL-3.0",
   "author": "Hengki <henkii@henkii.dev>",
   "repository": {
     "type": "git",

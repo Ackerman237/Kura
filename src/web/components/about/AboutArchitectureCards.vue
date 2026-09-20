@@ -9,7 +9,7 @@ const architecturePillars = [
   },
   {
     icon: Layers,
-    title: 'Arsitektur Layar Penuh (WibuDex Pattern)',
+    title: 'Arsitektur Layar Penuh (Kura Dedicated Screen Pattern)',
     desc: 'Menolak pola modal popup bertumpuk yang sempit. Setiap navigasi memiliki layar dedicated mandiri untuk beranda, katalog, detail komik, pembaca bab, dan pemutar video serial 70/30.',
   },
   {

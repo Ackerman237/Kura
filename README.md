@@ -1,131 +1,192 @@
 <div align="center">
 
-  <img src="docs/assets/branding/kura-logo-horizontal.svg" alt="Kura Logo" width="440" />
+  <img src="docs/assets/branding/kura-logo-horizontal.svg" alt="Kura Logo" width="460" />
 
-  <p><strong>Your private, self-hosted storehouse of manga and cinema.</strong></p>
-  <p><em>Khazanah bacaan manga dan tontonan sinema mandiri — cepat, hening, dan bebas iklan.</em></p>
+  <p><strong>Your private, self-hosted sanctuary for manga reading, anime streaming, and media archiving.</strong></p>
+  <p><em>Khazanah media mandiri — hening, cepat, hemat sumber daya, dan bebas dari iklan.</em></p>
 
   <p>
-    <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%E2%89%A518.17-339933?style=flat-square&logo=node.js" alt="Node.js" /></a>
-    <img src="https://img.shields.io/badge/Modules-ESM%20Only-f7df1e?style=flat-square&logo=javascript" alt="ESM" />
-    <img src="https://img.shields.io/badge/Tests-164%20Passing-34D399?style=flat-square&logo=node.js" alt="Tests" />
-    <img src="https://img.shields.io/badge/Security-SSRF%20%26%20DNS%20Guarded-E8613C?style=flat-square" alt="Security" />
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge" alt="GPL-3.0 License" /></a>
+    <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%E2%89%A518.17-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" /></a>
+    <img src="https://img.shields.io/badge/Tests-164%20Passing-34D399?style=for-the-badge&logo=node.js&logoColor=white" alt="Tests" />
+    <img src="https://img.shields.io/badge/PWA-Ready-9333EA?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
+    <img src="https://img.shields.io/badge/Security-SSRF%20%26%20CSP%20Guarded-E8613C?style=for-the-badge" alt="Security" />
   </p>
+
+  <br />
+
+  <img src="docs/assets/branding/kura-showcase-mockup.jpg" alt="Kura Web Interface Showcase" width="96%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 
 </div>
 
 ---
 
-## 📖 Tentang Kura (蔵)
+## 📖 Overview
 
-**Kura** (bahasa Jepang: 蔵, yang berarti gudang penyimpanan pusaka tradisional) adalah platform media mandiri (*self-hosted manga reader & video streaming*) dan scraping engine berkinerja tinggi.
+**Kura (蔵)** — named after the traditional Japanese storehouses designed to safeguard precious valuables from fire and theft — is a high-performance, private, self-hosted web application and scraping engine for manga, anime, and video media.
 
-Kura dibangun untuk pembaca dan penonton yang menginginkan privasi mutlak, kecepatan tinggi, dan kenyamanan tanpa gangguan iklan judi, popunder pembajak tab, atau pelacak pihak ketiga. Seluruh preferensi, riwayat, dan metadata tersimpan aman di server milik Anda sendiri (*privacy-first*).
-
----
-
-## ✨ Pilar Keunggulan Kura
-
-- 🛡️ **Pertahanan Anti-Iklan 3-Tier**: 
-  Sistem isolasi video player berlapis (Tier 1: Ekstraksi Direct MP4 via `curl.exe` tanpa iklan; Tier 2: Reverse-proxy iframe dengan pembersihan domain iklan, injeksi shims `guardShim`/`stealthShim`, dan CSP sandbox tanpa `allow-same-origin`; Tier 3: Direct fallback allowlist).
-- 🔒 **Keamanan Tingkat Enterprise**: 
-  Mitigasi SSRF dan DNS Rebinding pada level socket TCP via Undici custom dispatcher, proteksi DoS body bomb (stream limits), per-hop redirect validation, dan sanitasi URL scheme ketat.
-- ⚡ **Arsitektur Modular Murni (Clean Code & SRP)**: 
-  Pemisahan total antara logika parser murni (*pure DOM/JSON parsing*) dan client jaringan (*transport client*), memungkinkan 100% offline unit-testability tanpa ketergantungan koneksi internet.
-- 🎨 **Sistem Desain Minimalis Jepang**: 
-  Palet warna 60-30-10 berlatar arang *Sumi* (`#17181C`), aksen stempel *Vermilion Shu-iro* (`#E8613C`), dan kertas *Washi* (`#ECE8E1`) dengan standar kontras WCAG AAA (14.5:1) dan sistem spasial 8pt.
-- 🚀 **Zero Runtime Dependencies**: 
-  Hanya menggunakan 1 dependensi eksternal (`undici` untuk socket security), sisanya menggunakan native Node.js runtime.
+Engineered from the ground up with a **privacy-first and zero-annoyance philosophy**, Kura eliminates intrusive gambling advertisements, malicious popunders, and third-party trackers. All reading history, bookmarks, offline chapters, and preferences stay strictly within your own self-hosted environment.
 
 ---
 
-## 🗂️ Sumber Media yang Didukung
+## ✨ Key Capabilities & Highlights
 
-| Modul | Tipe Media | Autentikasi | Fitur Utama |
-| :--- | :--- | :--- | :--- |
-| **Doujindesu** | Manga / Doujinshi / Manhwa | App Secret + Salt | Katalog, pencarian, detail chapter, ekstraksi gambar chapter |
-| **NekoPoi** | Video / Animasi Subtitle | Publik (None) | Katalog episode, rekomendasi relasi, stream & sanitized iframe |
-| **Hentai.tv** | Streaming Animasi 2D | Publik (None) | Pencarian RSC payload, serial, episode, trending & views |
-| **Eporner** | Video Tube Web | Publik (None) | Resolusi bertingkat (360p - 1080p direct MP4), kategori, related |
+### 📖 Immersive Manga & Comic Reader
+- **Multi-Layout Reading**: Seamlessly switch between **Webtoon / Long-Strip Vertical Scroll**, **Single Page**, and **Double Page** spread modes.
+- **Smart Reading State**: Automatically persists your reading progress down to the exact pixel and chapter offset.
+- **Predictive Background Pre-fetching**: Silently preloads upcoming chapter pages for instantaneous, zero-wait transitions.
+- **Zero Distraction HUD**: Floating controls that auto-hide while reading, leaving only pure art.
+
+### 🎬 Cinema & Video Streaming
+- **Responsive Adaptive Player**: Native HLS (`.m3u8`) and MP4 video player with resolution switcher (*1080p, 720p, 480p, 360p*).
+- **Cinema Theater & 70/30 Layout**: Dedicated watch view pairing the main theater screen with a quick-access episode queue.
+- **Alternative Server Switching**: Instant failover between video sources when an upstream stream is congested.
+
+### 🛡️ 3-Tier Anti-Ad & Sandbox Shield
+- **Tier 1 (Direct Stream Resolution)**: Resolves direct MP4 streams via curl TLS fallback, bypassing browser popunders entirely.
+- **Tier 2 (Iframe Sandbox & Shims)**: Reverse-proxies third-party players through strict Content-Security-Policy headers (`sandbox allow-scripts allow-forms allow-presentation`) and injects ad-defusing shims (`stealthShim`/`guardShim`) to suppress popups.
+- **Tier 3 (Domain Allowlisting)**: Prevents malicious domain redirections and rogue advertising networks from hijacking your tabs.
+
+### ⚡ Smart Multi-Tier Client Caching
+- **Instant 0ms Switching**: An in-memory LRU cache serves catalog and detail pages instantly during navigation.
+- **Persistent Web Cache Storage**: Offline-capable IndexedDB and Web Cache API (`kura-api-cache-v1`) storage with user-adjustable TTL presets (15 min, 1 hour, 6 hours, 24 hours).
+- **Zero Server Pressure**: Eliminates repeated upstream scraping calls and reduces bandwidth consumption to a minimum.
+
+### 📥 IDM-Style Download Manager
+- **Dual-Mode Engine**: Choose between **Browser Direct Download** (saved directly to your device) or **Server Disk Storage** (streamed directly to host filesystem).
+- **Live Queue Drawer**: Floating management drawer featuring Pause, Resume, Cancel, and Retry controls.
+- **Realtime SSE Telemetry**: Progress percentage, transfer rate, and download states pushed via Server-Sent Events (`/api/downloads/events`).
+- **Automated Archiving**: Manga chapters are automatically bundled into clean `.zip` archives.
+
+### 💾 Local File Offline Hub
+- **Direct Drag & Drop**: Upload `.zip`, `.cbz`, and `.mp4` files from your local storage directly into the web interface.
+- **Client-Side Extraction**: Unpacks and renders comic archives on-the-fly inside your browser without uploading to the server disk.
+
+### 📱 Progressive Web App (PWA)
+- **Standalone App Experience**: Installable directly to your home screen or desktop via Chrome, Safari, Edge, or Firefox.
+- **Full Offline Reading**: Save entire chapters to IndexedDB for offline reading on trains, flights, or off-grid travels.
 
 ---
 
-## 🚀 Memulai Cepat (Quick Start)
+## ⌨️ Keyboard Shortcuts
 
-### 1. Prasyarat
-- Node.js **≥ 18.17 LTS** (atau Bun / Deno yang mendukung global `fetch`)
-- Kredensial Doujindesu (opsional jika hanya memakai video/anime)
+Kura provides full keyboard navigation for both reader and media player modes:
 
-### 2. Instalasi & Setup Lingkungan
+| Mode | Shortcut | Action |
+|:---|:---|:---|
+| **Reader** | <kbd>→</kbd> / <kbd>D</kbd> | Next Page / Scroll Down |
+| **Reader** | <kbd>←</kbd> / <kbd>A</kbd> | Previous Page / Scroll Up |
+| **Reader** | <kbd>Shift</kbd> + <kbd>→</kbd> | Jump to Next Chapter |
+| **Reader** | <kbd>Shift</kbd> + <kbd>←</kbd> | Jump to Previous Chapter |
+| **Reader** | <kbd>F</kbd> | Toggle Fullscreen Mode |
+| **Reader** | <kbd>W</kbd> | Toggle Webtoon / Paginated Layout |
+| **Player** | <kbd>Space</kbd> / <kbd>K</kbd> | Play / Pause Video |
+| **Player** | <kbd>J</kbd> / <kbd>L</kbd> | Seek Backward / Forward 10 Seconds |
+| **Player** | <kbd>M</kbd> | Mute / Unmute Audio |
+| **Global** | <kbd>Esc</kbd> | Close Overlay / Reader / Return to Details |
+
+---
+
+## 🚀 Quick Start
+
+### Option A: Using Docker (Recommended)
+
+Run Kura in an isolated container with a single command:
+
 ```bash
-# Clone repositori
+# Clone the repository
 git clone https://github.com/Ackerman237/self-hosted-manga-and-anime.git
 cd self-hosted-manga-and-anime
 
-# Salin konfigurasi environment
+# Launch via Docker Compose
+docker compose up -d
+```
+
+Open `http://localhost:3000` in your web browser.
+
+---
+
+### Option B: Local Node.js Setup
+
+#### 1. Prerequisites
+- **Node.js** `≥ 18.17 LTS`
+- `curl` available on system PATH (for upstream video stream resolution)
+
+#### 2. Installation & Launch
+```bash
+# 1. Clone repository
+git clone https://github.com/Ackerman237/self-hosted-manga-and-anime.git
+cd self-hosted-manga-and-anime
+
+# 2. Copy environment configuration
 cp .env.example .env
 
-# Jalankan seluruh rangkaian pengujian unit (164 tests)
+# 3. Install dependencies (zero production runtime dependencies)
+npm install
+
+# 4. Build frontend client bundle
+npm run build:web
+
+# 5. Start the server
+npm start
+```
+
+Visit `http://localhost:3000` to start using Kura.
+
+---
+
+### 🧪 Running Automated Tests
+
+Kura includes a comprehensive test suite covering scrapers, security policies, and parsers:
+
+```bash
+# Execute all 164 unit & integration tests
 npm test
 ```
 
-### 3. Penggunaan Dasar SDK
+---
 
-```javascript
-import { 
-  scrapeMangaList, 
-  scrapeNekoDetail, 
-  scrapeHentaiDetail, 
-  scrapeEpornerDetail 
-} from './src/index.js';
+## 🏗️ Architecture & Project Layout
 
-// Mengambil daftar manga terbaru
-const mangaList = await scrapeMangaList({ page: 1, type: 'manga' });
-console.log(mangaList);
-
-// Mengambil detail video dengan player iframe yang sudah disanitasi
-const video = await scrapeNekoDetail('slug-episode-contoh');
-console.log(video.stream);
+```text
+self-hosted-manga-reader/
+├── docs/                        # Architectural blueprints, security, & design tokens
+│   └── assets/branding/         # Kura logos and UI showcase mockups
+├── src/
+│   ├── sources/                 # Modular scrapers (Doujindesu, NekoPoi, HentaiTV, Eporner)
+│   │   └── <provider>/
+│   │       ├── parser.js        # Pure DOM/JSON parsing (no network dependency)
+│   │       ├── client.js        # Secure HTTP client with SSRF mitigation
+│   │       └── index.js         # Unified facade export
+│   └── web/                     # Vue 3 Frontend Client
+│       ├── components/          # Reusable UI components (Reader, Player, Library, Drawer)
+│       ├── services/            # Client cache (LRU + Web Cache), local file extractor, API
+│       ├── views/               # Dedicated full-screen views (Catalog, Details, Watch)
+│       └── App.vue              # Core root view with reactive screen navigation
+├── server.js                    # Express backend, streaming proxy, & SSE download engine
+├── CREDITS.md                   # Third-party scraper source acknowledgments & legal disclaimer
+├── LICENSE                      # GNU General Public License v3.0
+└── package.json
 ```
 
 ---
 
-## 📚 Pusat Dokumentasi Teknis
+## 🤝 Credits & Acknowledgments
 
-Seluruh dokumentasi arsitektur, standar keamanan, referensi API, dan rekam keputusan (ADR) tersusun rapi dengan hierarki Universal $\rightarrow$ Spesifik di direktori [`docs/`](docs/):
-
-- 📄 [`docs/01-overview/project-charter.md`](docs/01-overview/project-charter.md) — Visi produk, sasaran, dan lingkup Kura.
-- 🎨 **Design**:
-  - [`docs/02-design/brand/identity-and-logo.md`](docs/02-design/brand/identity-and-logo.md) — Filosofi brand Kura, motif Kikkō Mon, dan spesifikasi logo SVG.
-  - [`docs/02-design/tokens/design-system.md`](docs/02-design/tokens/design-system.md) — 22 kaidah desain, palet 60-30-10, WCAG AAA, dan grid 8pt.
-- 🏛️ **Architecture**:
-  - [`docs/03-architecture/system/system-design.md`](docs/03-architecture/system/system-design.md) — Blueprint arsitektur modular 3-Layer scraper.
-  - [`docs/03-architecture/player/video-ad-isolation.md`](docs/03-architecture/player/video-ad-isolation.md) — Pertahanan 3-Tier pemutar video anti-iklan/popunder.
-- 🔒 **Security**:
-  - [`docs/04-security/policies/security-policy.md`](docs/04-security/policies/security-policy.md) — Standar keamanan socket outbound, rate limiting, dan proxy.
-  - [`docs/04-security/audits/security-audit-problem-map.md`](docs/04-security/audits/security-audit-problem-map.md) — Matriks audit keamanan T0–T7 lengkap.
-- 🔌 **API Reference**:
-  - [`docs/05-api/contracts/api-contracts.md`](docs/05-api/contracts/api-contracts.md) — Spesifikasi input bounds & normalized DTO output.
-  - [`docs/05-api/engine/sdk-doujin-scraper.md`](docs/05-api/engine/sdk-doujin-scraper.md) — Referensi lengkap SDK data collection bawaan.
-- ⚖️ **Decisions & Roadmap**:
-  - [`docs/06-decisions/`](docs/06-decisions/) — Architecture Decision Records (ADR-001 & ADR-002).
-  - [`docs/07-roadmap/roadmap-and-backlog.md`](docs/07-roadmap/roadmap-and-backlog.md) — Rencana milestone pengembangan frontend & PWA.
+Kura acknowledges and credits community scraper engines, upstream platforms, and open-source libraries. For detailed source attribution, provider scopes, and DMCA guidelines, please see [CREDITS.md](CREDITS.md).
 
 ---
 
-## 🤝 Penghargaan & Atribusi (Credits & Acknowledgements)
+## ⚖️ License
 
-Proyek **Kura (蔵)** dibangun di atas fondasi solid dari komunitas open-source:
+This project is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)**.
 
-1. **Scraping Engine Asli**:  
-   Modul data-collection inti dikembangkan berdasarkan library `doujin-scraper` yang awalnya dibuat oleh **[Hengki (@kyy0887)](https://github.com/kyy0887/doujin-scraper)** di bawah lisensi MIT. Kami menyampaikan terima kasih dan apresiasi sebesar-besarnya atas karya awal yang menjadi fondasi ekstraksi data project ini.
-2. **Arsitektur & Resiliensi**:  
-   Pola pemisahan *pure parser*, sistem isolasi iklan video player 3-tier, serta manajemen proxy terinspirasi dari arsitektur proyek **WibuDex**.
+```text
+Kura (蔵) — Self-Hosted Manga Reader & Video Streaming Engine
+Copyright (C) 2026 Kura Contributors & Hengki
 
----
-
-## ⚖️ Lisensi (License)
-
-Proyek ini dilisensikan di bawah lisensi **[MIT](LICENSE)** © 2026 Kura Contributors & Hengki.
-Disediakan untuk kepentingan pembelajaran, riset, dan penggunaan personal mandiri (*educational and personal self-hosted use only*).
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+```

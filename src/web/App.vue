@@ -39,7 +39,7 @@ import {
 // Responsive Breakpoint (768px threshold)
 const isDesktop = useMediaQuery('(min-width: 768px)');
 
-// Navigation Screen Architecture (WibuDex Dedicated Screen Pattern)
+// Navigation Screen Architecture (Kura Dedicated Screen Pattern)
 // 'manga-home' | 'manga-detail' | 'manga-reader' | 'video-home' | 'video-watch' | 'library' | 'settings'
 const activeScreen = ref('manga-home');
 const currentTab = ref('manga'); // 'manga' | 'video' | 'library' | 'settings'
@@ -464,6 +464,33 @@ const closeVideoPlayer = () => {
   navigateHistory('video-home');
 };
 
+const handleOpenLocalManga = ({ title, images }) => {
+  activeReading.value = {
+    mangaSlug: 'local-comic',
+    title: title || 'Komik Berkas Lokal',
+    chapterId: 'local-' + Date.now(),
+    chapterNumber: '1',
+    images: images || [],
+  };
+  selectedManga.value = {
+    title: title || 'Komik Berkas Lokal',
+    chapters: [{ id: activeReading.value.chapterId, title: 'Bab Berkas Lokal' }],
+  };
+  activeScreen.value = 'manga-reader';
+  navigateHistory('manga-reader');
+};
+
+const handleOpenLocalVideo = (videoObj) => {
+  selectedVideo.value = videoObj;
+  videoDetailData.value = {
+    title: videoObj.title,
+    views: 'Offline Local',
+    tags: ['Lokal', 'Offline'],
+  };
+  activeScreen.value = 'cinema-watch';
+  navigateHistory('cinema-watch');
+};
+
 // ---------------------------------------------------------------------------
 // 6. Offline Storage Handlers
 // ---------------------------------------------------------------------------
@@ -652,7 +679,7 @@ onMounted(async () => {
         @toggle-bookmark="toggleBookmark"
       />
 
-      <!-- SCREEN 1B: DEDICATED MANGA CATALOG SCREEN (WibuDex Pattern) -->
+      <!-- SCREEN 1B: DEDICATED MANGA CATALOG SCREEN (Kura Dedicated Screen Pattern) -->
       <MangaCatalogView
         v-else-if="activeScreen === 'manga-catalog'"
         :is-privacy-mode="isPrivacyMode"
@@ -661,7 +688,7 @@ onMounted(async () => {
         @toggle-bookmark="toggleBookmark"
       />
 
-      <!-- SCREEN 2: DEDICATED MANGA DETAIL SCREEN (WibuDex Pattern - NOT A POPUP MODAL) -->
+      <!-- SCREEN 2: DEDICATED MANGA DETAIL SCREEN (Kura Dedicated Screen Pattern - NOT A POPUP MODAL) -->
       <MangaDetailView
         v-else-if="activeScreen === 'manga-detail' && selectedManga"
         :manga="selectedManga"
@@ -688,14 +715,14 @@ onMounted(async () => {
         @close="closeReader"
       />
 
-      <!-- SCREEN 4: DEDICATED CINEMA STREAMING HOME (WibuDex/Rich Streaming Pattern) -->
+      <!-- SCREEN 4: DEDICATED CINEMA STREAMING HOME (Kura Rich Streaming Pattern) -->
       <CinemaHomeView
         v-else-if="activeScreen === 'video-home'"
         :is-privacy-mode="isPrivacyMode"
         @select-video="openVideoPlayer"
       />
 
-      <!-- SCREEN 5: DEDICATED VIDEO WATCH SCREEN (WibuDex 70/30 Pattern - NOT A FLOATING MODAL) -->
+      <!-- SCREEN 5: DEDICATED VIDEO WATCH SCREEN (Kura 70/30 Screen Pattern - NOT A FLOATING MODAL) -->
       <VideoWatchView
         v-else-if="activeScreen === 'video-watch' && selectedVideo"
         :video="selectedVideo"
@@ -715,6 +742,8 @@ onMounted(async () => {
           @selectMangaDetail="openMangaDetail"
           @readOfflineChapter="openChapterReader"
           @openVideo="openVideoPlayer"
+          @openLocalManga="handleOpenLocalManga"
+          @openLocalVideo="handleOpenLocalVideo"
         />
       </main>
 

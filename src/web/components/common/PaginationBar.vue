@@ -27,7 +27,7 @@ const emit = defineEmits(['change-page']);
 
 const jumpInput = ref('');
 
-// Generate numeric pagination sequence with smart ellipses ala WibuDex
+// Generate numeric pagination sequence with smart ellipses (Kura Pagination Engine)
 const paginationItems = computed(() => {
   const current = Math.max(1, props.currentPage);
   const total = Math.max(1, props.totalPages);

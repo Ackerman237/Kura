@@ -1,5 +1,7 @@
 <script setup>
-import { HardDrive, Play, Trash2 } from 'lucide-vue-next';
+import { ref } from 'vue';
+import { HardDrive, Play, Trash2, FolderUp, Film, BookOpen, Loader2 } from 'lucide-vue-next';
+import { extractCbzImages, createLocalVideoObject } from '../../../services/localFileExtractor.js';
 
 const props = defineProps({
   chapters: {
@@ -8,11 +10,113 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['read-chapter', 'delete-chapter']);
+const emit = defineEmits(['read-chapter', 'delete-chapter', 'open-local-manga', 'open-local-video']);
+
+const fileInputRef = ref(null);
+const isExtracting = ref(false);
+const extractProgress = ref(0);
+const extractStatus = ref('');
+const isDragging = ref(false);
+
+const triggerFileSelect = () => {
+  fileInputRef.value?.click();
+};
+
+const processFile = async (file) => {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith('.mp4') || name.endsWith('.webm') || name.endsWith('.mkv') || file.type.startsWith('video/')) {
+    const videoObj = createLocalVideoObject(file);
+    emit('open-local-video', videoObj);
+    return;
+  }
+
+  if (name.endsWith('.cbz') || name.endsWith('.zip') || file.type.includes('zip')) {
+    isExtracting.value = true;
+    extractProgress.value = 5;
+    extractStatus.value = `Mengekstrak "${file.name}"...`;
+
+    try {
+      const result = await extractCbzImages(file, (pct) => {
+        extractProgress.value = pct;
+      });
+      emit('open-local-manga', result);
+    } catch (err) {
+      alert(`Gagal membuka CBZ: ${err.message}`);
+    } finally {
+      isExtracting.value = false;
+      extractProgress.value = 0;
+      extractStatus.value = '';
+    }
+    return;
+  }
+
+  alert('Format berkas tidak didukung. Harap pilih berkas .mp4, .webm, .cbz, atau .zip.');
+};
+
+const onFileChange = (e) => {
+  const file = e.target.files?.[0];
+  if (file) processFile(file);
+  if (fileInputRef.value) fileInputRef.value.value = '';
+};
+
+const onDrop = (e) => {
+  isDragging.value = false;
+  const file = e.dataTransfer?.files?.[0];
+  if (file) processFile(file);
+};
 </script>
 
 <template>
   <div class="library-tab-content">
+    <!-- Local File Dropzone / Picker Card -->
+    <div
+      class="local-dropzone-card"
+      :class="{ 'is-dragging': isDragging, 'is-loading': isExtracting }"
+      @dragover.prevent="isDragging = true"
+      @dragleave.prevent="isDragging = false"
+      @drop.prevent="onDrop"
+    >
+      <input
+        ref="fileInputRef"
+        type="file"
+        accept=".mp4,.webm,.mkv,.cbz,.zip,video/*"
+        class="hidden-file-input"
+        @change="onFileChange"
+      />
+
+      <div v-if="isExtracting" class="dropzone-loader">
+        <Loader2 :size="28" class="spin-icon" />
+        <span class="loader-text">{{ extractStatus }} ({{ extractProgress }}%)</span>
+        <div class="extract-progress-bar">
+          <div class="bar-fill" :style="{ width: `${extractProgress}%` }"></div>
+        </div>
+      </div>
+
+      <div v-else class="dropzone-content" @click="triggerFileSelect">
+        <div class="dropzone-icons">
+          <div class="type-badge video"><Film :size="15" /> <span>Video MP4/WEBM</span></div>
+          <div class="type-badge comic"><BookOpen :size="15" /> <span>Komik CBZ/ZIP</span></div>
+        </div>
+        <div class="dropzone-label-box">
+          <h4 class="dropzone-title">
+            <FolderUp :size="16" />
+            <span>Buka Berkas Lokal (Putar Video / Baca CBZ)</span>
+          </h4>
+          <p class="dropzone-subtitle">
+            Seret berkas ke sini atau <u>klik untuk memilih berkas dari HP/Komputer Anda</u>. 100% diproses di browser tanpa internet.
+          </p>
+        </div>
+        <button type="button" class="browse-files-btn">Pilih Berkas</button>
+      </div>
+    </div>
+
+    <!-- Offline Chapters Section -->
+    <div class="offline-section-header">
+      <h3 class="sub-heading">Bab Komik Tersimpan di Database Browser</h3>
+      <span class="sub-count">{{ chapters.length }} Bab Tersedia</span>
+    </div>
     <div v-if="chapters.length === 0" class="empty-state">
       <HardDrive :size="40" class="empty-icon" />
       <h3 class="empty-title">Belum Ada Bab Tersimpan Offline</h3>
@@ -211,5 +315,160 @@ const emit = defineEmits(['read-chapter', 'delete-chapter']);
 .offline-card:hover .action-btn.play {
   background: var(--kura-accent, #e5a93c);
   color: #000000;
+}
+
+/* Local Dropzone Styles */
+.hidden-file-input {
+  display: none;
+}
+
+.local-dropzone-card {
+  border: 2px dashed rgba(229, 169, 60, 0.35);
+  border-radius: 12px;
+  background: rgba(229, 169, 60, 0.03);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.local-dropzone-card:hover,
+.local-dropzone-card.is-dragging {
+  border-color: var(--kura-accent, #e5a93c);
+  background: rgba(229, 169, 60, 0.08);
+  transform: translateY(-1px);
+}
+
+.dropzone-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dropzone-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.type-badge.video {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.type-badge.comic {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.dropzone-label-box {
+  flex: 1;
+  min-width: 240px;
+}
+
+.dropzone-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--kura-text-primary, #ffffff);
+  margin: 0 0 4px 0;
+}
+
+.dropzone-subtitle {
+  font-size: 0.78rem;
+  color: var(--kura-text-muted, #94a3b8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.browse-files-btn {
+  background: var(--kura-accent, #e5a93c);
+  color: #0b0c10;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.browse-files-btn:hover {
+  opacity: 0.9;
+}
+
+.dropzone-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  color: var(--kura-accent, #e5a93c);
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loader-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.extract-progress-bar {
+  width: 100%;
+  max-width: 320px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--kura-accent, #e5a93c);
+  transition: width 0.15s ease;
+}
+
+.offline-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sub-heading {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--kura-text-primary, #ffffff);
+  margin: 0;
+}
+
+.sub-count {
+  font-size: 0.75rem;
+  color: var(--kura-text-muted, #94a3b8);
 }
 </style>

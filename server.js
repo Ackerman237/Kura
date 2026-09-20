@@ -455,7 +455,7 @@ app.get('/api/video/download/progress/:jobId', (req, res) => {
 });
 
 // --------------------------------------------------------------------------
-// 4. VIDEO PLAYER FRAME PROXY & SHIELD (WibuDex Anti-Ad & Sandbox)
+// 4. VIDEO PLAYER FRAME PROXY & SHIELD (Kura Anti-Ad & Sandbox)
 // --------------------------------------------------------------------------
 const execFileAsync = promisify(execFile);
 

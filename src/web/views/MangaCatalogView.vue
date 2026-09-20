@@ -193,7 +193,7 @@ onMounted(async () => {
       </div>
     </header>
 
-    <!-- Floating Filter Bar (WibuDex Style) -->
+    <!-- Floating Filter Bar (Kura Adaptive Style) -->
     <section class="floating-filter-container">
       <div class="filter-pills-row">
         <!-- Tipe Pills -->
@@ -242,7 +242,7 @@ onMounted(async () => {
           </button>
         </div>
 
-        <!-- Genre Multi-Select Dropdown ala WibuDex -->
+        <!-- Genre Multi-Select Dropdown (Kura Architecture) -->
         <GenreFilterDropdown
           v-if="genres.length"
           v-model="selectedGenres"
@@ -319,7 +319,7 @@ onMounted(async () => {
         />
       </div>
 
-      <!-- WibuDex Numbered Pagination Bar (< 1 2 3 ... 100 >) -->
+      <!-- Kura Numbered Pagination Bar (< 1 2 3 ... 100 >) -->
       <PaginationBar
         v-if="!isLoading && displayComics.length"
         :current-page="currentPage"
