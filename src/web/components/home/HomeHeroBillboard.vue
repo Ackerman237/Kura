@@ -128,10 +128,11 @@ onUnmounted(() => {
         @click="emit('select-comic', currentComic)"
       >
         <img
-          :src="currentComic.thumb || currentComic.cover || ''"
+          :src="currentComic.thumb || currentComic.cover || '/placeholder-cover.svg'"
           :alt="currentComic.title"
           class="hero-poster-img"
           loading="eager"
+          @error="$event.target.src = '/placeholder-cover.svg'"
         />
       </div>
     </div>
@@ -387,15 +388,64 @@ onUnmounted(() => {
 
 @media (max-width: 640px) {
   .hero-content {
-    padding: 18px;
-    flex-direction: column-reverse;
-    align-items: flex-start;
+    padding: 16px;
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .hero-meta-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    text-align: center;
   }
   .hero-poster-column {
-    display: none;
+    display: flex;
+    align-self: center;
+    width: 110px;
+    max-width: 110px;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-md, 8px);
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.15);
   }
   .hero-title {
-    font-size: 1.25rem;
+    font-size: 1.22rem;
+    line-height: 1.35;
+    text-align: center;
+  }
+  .hero-badge-row {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .hero-synopsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.8rem;
+    text-align: center;
+    margin: 0;
+  }
+  .hero-genres-wrap {
+    justify-content: center;
+  }
+  .hero-actions-row {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hero-cta-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 0.84rem;
+  }
+  .carousel-nav-arrows {
+    bottom: 12px;
+    right: 12px;
   }
 }
 </style>

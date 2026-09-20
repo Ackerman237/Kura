@@ -18,6 +18,17 @@ const loadProgress = () => {
   }
 };
 
+const onImgError = (e, item) => {
+  const target = e.target;
+  const raw = item.thumb || item.cover || '';
+  if (raw && !target.dataset.retried && !raw.includes('/api/image-proxy')) {
+    target.dataset.retried = 'true';
+    target.src = `/api/image-proxy?url=${encodeURIComponent(raw)}`;
+  } else {
+    target.src = '/placeholder-cover.svg';
+  }
+};
+
 onMounted(() => {
   loadProgress();
 });
@@ -40,7 +51,14 @@ onMounted(() => {
         @click="emit('select-comic', { slug: item.mangaSlug || item.id, title: item.title, thumb: item.thumb || item.cover })"
       >
         <div class="continue-thumb-box">
-          <img :src="item.thumb || item.cover || ''" :alt="item.title" class="continue-thumb" loading="lazy" referrerpolicy="no-referrer" />
+          <img
+            :src="item.thumb || item.cover || '/placeholder-cover.svg'"
+            :alt="item.title"
+            class="continue-thumb"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            @error="onImgError($event, item)"
+          />
           <div class="play-pill">
             <Play :size="10" fill="currentColor" />
           </div>

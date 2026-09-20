@@ -159,4 +159,10 @@ const tabs = [
     transform: translateX(0);
   }
 }
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .kura-mobile-dock {
+    display: none !important;
+  }
+}
 </style>

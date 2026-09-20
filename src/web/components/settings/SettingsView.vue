@@ -2,7 +2,8 @@
 import { ref, onMounted } from 'vue';
 import {
   Palette, HardDrive, Sliders, EyeOff, Layers,
-  Sparkles, Image as ImageIcon, Info, SlidersHorizontal, Download,
+  Sparkles, SlidersHorizontal, Download, ShieldCheck,
+  BookOpen, Info,
 } from 'lucide-vue-next';
 
 // Section Components
@@ -25,6 +26,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['set-theme', 'toggle-privacy-mode', 'clear-offline', 'navigate']);
+
+// Active Top-Level Tab (macOS / Arc Style Segmented Control)
+const activeTab = ref('appearance'); // 'appearance' | 'reading' | 'system'
 
 // --- SFW State ---
 const peekDuration = ref(2000);
@@ -131,97 +135,132 @@ onMounted(() => {
     <div class="settings-container">
       <!-- Header -->
       <header class="settings-header">
-        <div class="header-badge">
-          <SlidersHorizontal :size="14" />
-          <span>SETTINGS STUDIO</span>
+        <div class="header-top-meta">
+          <div class="header-badge">
+            <SlidersHorizontal :size="13" />
+            <span>PENGATURAN KURA</span>
+          </div>
+          <button type="button" class="about-shortcut-btn" @click="emit('navigate', 'about')">
+            <Info :size="13" />
+            <span>Tentang Kura</span>
+          </button>
         </div>
-        <h1 class="settings-title">Pusat Kendali &amp; Pengaturan</h1>
+        <h1 class="settings-title">Pusat Kendali &amp; Preferensi</h1>
         <p class="settings-subtitle">
-          Kustomisasi visual tanpa batas, ekstraktor palet gambar, mode privasi adaptif, preferensi pembaca &amp; pemutar, serta manajemen cadangan data lokal.
+          Kustomisasi visual tanpa batas, tata letak pembaca, mode perlindungan privasi adaptif, dan manajemen penyimpanan lokal.
         </p>
       </header>
 
-      <!-- Section Navigation Pills (Quick Scroll) -->
-      <nav class="settings-nav-pills">
-        <a href="#sec-theme" class="nav-pill"><Palette :size="13" /> Tema &amp; Tampilan</a>
-        <a href="#sec-extractor" class="nav-pill"><Sparkles :size="13" /> Ekstraktor Gambar</a>
-        <a href="#sec-custom" class="nav-pill"><Sliders :size="13" /> Buat Tema</a>
-        <a href="#sec-privacy" class="nav-pill"><EyeOff :size="13" /> Privasi &amp; SFW</a>
-        <a href="#sec-reader" class="nav-pill"><Layers :size="13" /> Reader &amp; Video</a>
-        <a href="#sec-storage" class="nav-pill"><HardDrive :size="13" /> Cadangan &amp; Cache</a>
-        <a href="#sec-download" class="nav-pill"><Download :size="13" /> Unduhan</a>
-        <button type="button" class="nav-pill highlight" @click="emit('navigate', 'about')">
-          <Info :size="13" /> Tentang Kura (Layar Penuh)
-        </button>
-      </nav>
+      <!-- Modern Segmented Control Tab Bar -->
+      <div class="settings-tabs-wrapper">
+        <div class="settings-segmented-bar" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            class="segment-tab-btn"
+            :class="{ active: activeTab === 'appearance' }"
+            :aria-selected="activeTab === 'appearance'"
+            @click="activeTab = 'appearance'"
+          >
+            <Palette :size="16" class="tab-icon" />
+            <span class="tab-title">Tampilan &amp; Tema</span>
+          </button>
 
-      <!-- 1. Privacy (SFW) -->
-      <div id="sec-privacy">
-        <SettingsPrivacy
-          :is-privacy-mode="isPrivacyMode"
-          :peek-duration="peekDuration"
-          :blur-intensity="blurIntensity"
-          @toggle-privacy="emit('toggle-privacy-mode')"
-          @set-peek-duration="setPeekDuration"
-          @set-blur-intensity="setBlurIntensity"
-        />
+          <button
+            type="button"
+            role="tab"
+            class="segment-tab-btn"
+            :class="{ active: activeTab === 'reading' }"
+            :aria-selected="activeTab === 'reading'"
+            @click="activeTab = 'reading'"
+          >
+            <BookOpen :size="16" class="tab-icon" />
+            <span class="tab-title">Membaca &amp; Sinema</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            class="segment-tab-btn"
+            :class="{ active: activeTab === 'system' }"
+            :aria-selected="activeTab === 'system'"
+            @click="activeTab = 'system'"
+          >
+            <ShieldCheck :size="16" class="tab-icon" />
+            <span class="tab-title">Privasi &amp; Sistem</span>
+          </button>
+        </div>
       </div>
 
-      <!-- 2. Theme Presets -->
-      <div id="sec-theme">
-        <SettingsThemePresets
-          :current-theme="currentTheme"
-          @set-theme="(id) => emit('set-theme', id)"
-        />
-      </div>
+      <!-- Tab Content Panels -->
+      <Transition name="tab-fade" mode="out-in">
+        <!-- TAB 1: TAMPILAN & TEMA -->
+        <div v-if="activeTab === 'appearance'" key="tab-appearance" class="tab-panel-section">
+          <!-- 1. Theme Presets -->
+          <SettingsThemePresets
+            :current-theme="currentTheme"
+            @set-theme="(id) => emit('set-theme', id)"
+          />
 
-      <!-- 3. Curated Palettes -->
-      <SettingsCuratedPalettes @apply-palette="applyPalette" />
+          <!-- 2. Curated Palettes -->
+          <SettingsCuratedPalettes @apply-palette="applyPalette" />
 
-      <!-- 4. Image Color Extractor -->
-      <div id="sec-extractor">
-        <SettingsImageExtractor @apply-extracted="applyExtracted" />
-      </div>
+          <!-- 3. Image Color Extractor -->
+          <SettingsImageExtractor @apply-extracted="applyExtracted" />
 
-      <!-- 5. Custom Theme Studio -->
-      <SettingsCustomTheme
-        v-model="customTheme"
-        @save-and-apply="saveAndApplyCustomTheme"
-      />
+          <!-- 4. Custom Theme Studio -->
+          <SettingsCustomTheme
+            v-model="customTheme"
+            @save-and-apply="saveAndApplyCustomTheme"
+          />
+        </div>
 
-      <!-- 6. Reader & Player Preferences -->
-      <SettingsReader
-        :reader-mode="readerMode"
-        :default-video-provider="defaultVideoProvider"
-        @set-reader-mode="setReaderMode"
-        @set-video-provider="setVideoProvider"
-      />
+        <!-- TAB 2: MEMBACA & SINEMA -->
+        <div v-else-if="activeTab === 'reading'" key="tab-reading" class="tab-panel-section">
+          <!-- 1. Reader & Player Preferences -->
+          <SettingsReader
+            :reader-mode="readerMode"
+            :default-video-provider="defaultVideoProvider"
+            @set-reader-mode="setReaderMode"
+            @set-video-provider="setVideoProvider"
+          />
 
-      <!-- 7. Storage, Backup & Cache -->
-      <div id="sec-storage">
-        <SettingsStorage
-          :offline-chapter-count="offlineChapterCount"
-          :current-theme="currentTheme"
-          :custom-theme="customTheme"
-          :peek-duration="peekDuration"
-          :blur-intensity="blurIntensity"
-          :reader-mode="readerMode"
-          :default-video-provider="defaultVideoProvider"
-          @clear-offline="emit('clear-offline')"
-          @restore-backup="handleRestoreBackup"
-        />
-      </div>
+          <!-- 2. Download Settings -->
+          <SettingsDownload />
 
-      <!-- 8. Tutorial & Design Guide -->
-      <SettingsTutorial />
+          <!-- 3. Tutorial & Design Guide -->
+          <SettingsTutorial />
+        </div>
 
-      <!-- 9. About Kura Portal -->
-      <SettingsAboutPortal @navigate="(s) => emit('navigate', s)" />
+        <!-- TAB 3: PRIVASI & SISTEM -->
+        <div v-else-if="activeTab === 'system'" key="tab-system" class="tab-panel-section">
+          <!-- 1. Privacy (SFW) -->
+          <SettingsPrivacy
+            :is-privacy-mode="isPrivacyMode"
+            :peek-duration="peekDuration"
+            :blur-intensity="blurIntensity"
+            @toggle-privacy="emit('toggle-privacy-mode')"
+            @set-peek-duration="setPeekDuration"
+            @set-blur-intensity="setBlurIntensity"
+          />
 
-      <!-- 10. Download Settings -->
-      <div id="sec-download">
-        <SettingsDownload />
-      </div>
+          <!-- 2. Storage, Backup & Cache -->
+          <SettingsStorage
+            :offline-chapter-count="offlineChapterCount"
+            :current-theme="currentTheme"
+            :custom-theme="customTheme"
+            :peek-duration="peekDuration"
+            :blur-intensity="blurIntensity"
+            :reader-mode="readerMode"
+            :default-video-provider="defaultVideoProvider"
+            @clear-offline="emit('clear-offline')"
+            @restore-backup="handleRestoreBackup"
+          />
+
+          <!-- 3. About Kura Portal -->
+          <SettingsAboutPortal @navigate="(s) => emit('navigate', s)" />
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -234,96 +273,206 @@ onMounted(() => {
 }
 
 .settings-container {
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 0 var(--space-4, 16px);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 /* Header */
 .settings-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-bottom: 4px;
+  gap: 10px;
+  padding-bottom: 6px;
+}
+
+.header-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .header-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--kura-border-subtle, rgba(255,255,255,0.08));
+  background: rgba(229, 169, 60, 0.1);
+  border: 1px solid rgba(229, 169, 60, 0.25);
   color: var(--kura-accent, #e5a93c);
   padding: 3px 10px;
   border-radius: var(--radius-pill, 9999px);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  width: fit-content;
+}
+
+.about-shortcut-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--kura-text-muted, #94a3b8);
+  font-family: var(--kura-font-sans, sans-serif);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill, 9999px);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.about-shortcut-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .settings-title {
   font-family: var(--kura-font-heading, sans-serif);
-  font-size: 1.8rem;
+  font-size: 1.85rem;
   font-weight: 900;
   color: var(--kura-text-primary, #fff);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .settings-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   line-height: 1.6;
   color: var(--kura-text-muted, #94a3b8);
   margin: 0;
   max-width: 640px;
 }
 
-/* Nav Pills */
-.settings-nav-pills {
+/* Modern Segmented Control Bar */
+.settings-tabs-wrapper {
+  position: sticky;
+  top: 68px;
+  z-index: 20;
+  padding: 4px 0;
+  background: linear-gradient(180deg, var(--kura-bg, #0b0c0f) 80%, transparent 100%);
+}
+
+.settings-segmented-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  background: var(--kura-surface, #14151a);
+  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-pill, 9999px);
+  padding: 4px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+}
+
+.segment-tab-btn {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  background: var(--kura-surface, #14151a);
-  border: 1px solid var(--kura-border-subtle, rgba(255,255,255,0.08));
-  border-radius: var(--radius-md, 8px);
-  padding: 12px 16px;
-}
-
-.nav-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 11px;
-  border-radius: var(--radius-pill, 9999px);
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
+  border-radius: var(--radius-pill, 9999px);
   color: var(--kura-text-muted, #94a3b8);
-  font-size: 0.74rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
   font-family: var(--kura-font-sans, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
-.nav-pill:hover {
-  color: var(--kura-text-primary, #fff);
-  background: rgba(255,255,255,0.05);
-  border-color: var(--kura-border-subtle, rgba(255,255,255,0.1));
+.segment-tab-btn:hover {
+  color: var(--kura-text-primary, #ffffff);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.nav-pill.highlight {
-  background: rgba(229,169,60,0.08);
-  border-color: rgba(229,169,60,0.25);
-  color: var(--kura-accent, #e5a93c);
+.segment-tab-btn.active {
+  background: var(--kura-accent, #e5a93c);
+  color: #0b0c0f;
+  font-weight: 750;
+  box-shadow: 0 4px 14px rgba(229, 169, 60, 0.35);
 }
 
-.nav-pill.highlight:hover {
-  background: rgba(229,169,60,0.15);
+.segment-tab-btn.active .tab-icon {
+  color: #0b0c0f;
+}
+
+.tab-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.segment-tab-btn:active .tab-icon {
+  transform: scale(0.92);
+}
+
+/* Tab Panels */
+.tab-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Transitions */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .settings-container {
+    gap: 16px;
+    padding: 0 12px;
+  }
+
+  .settings-title {
+    font-size: 1.45rem;
+  }
+
+  .settings-tabs-wrapper {
+    top: 56px;
+  }
+
+  .settings-segmented-bar {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .segment-tab-btn {
+    height: 35px;
+    padding: 0 6px;
+    gap: 5px;
+    font-size: 0.72rem;
+  }
+
+  .tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 440px) {
+  .segment-tab-btn .tab-title {
+    font-size: 0.68rem;
+  }
 }
 </style>

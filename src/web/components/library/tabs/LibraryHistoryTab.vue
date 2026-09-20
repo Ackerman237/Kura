@@ -9,6 +9,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['select-comic', 'clear-item']);
+
+const onImgError = (e, item) => {
+  const target = e.target;
+  const raw = item.thumb || item.cover || '';
+  if (raw && !target.dataset.retried && !raw.includes('/api/image-proxy')) {
+    target.dataset.retried = 'true';
+    target.src = `/api/image-proxy?url=${encodeURIComponent(raw)}`;
+  } else {
+    target.src = '/placeholder-cover.svg';
+  }
+};
 </script>
 
 <template>
@@ -27,7 +38,14 @@ const emit = defineEmits(['select-comic', 'clear-item']);
         @click="emit('select-comic', { slug: item.mangaSlug || item.id, title: item.title, thumb: item.thumb || item.cover })"
       >
         <div class="thumb-box">
-          <img :src="item.thumb || item.cover || ''" :alt="item.title" class="thumb-img" loading="lazy" referrerpolicy="no-referrer" />
+          <img
+            :src="item.thumb || item.cover || '/placeholder-cover.svg'"
+            :alt="item.title"
+            class="thumb-img"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            @error="onImgError($event, item)"
+          />
         </div>
 
         <div class="info-box">

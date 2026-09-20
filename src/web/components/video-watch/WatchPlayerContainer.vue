@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { RefreshCw, Maximize2, Minimize2, Tv, Server } from 'lucide-vue-next';
+import { RefreshCw, Maximize2, Minimize2, Tv, Server, ArrowLeft } from 'lucide-vue-next';
 
 const props = defineProps({
   video: {
@@ -20,6 +20,8 @@ const props = defineProps({
     default: 'htv',
   },
 });
+
+const emit = defineEmits(['back']);
 
 const isTheaterMode = ref(false);
 const frameKey = ref(0);
@@ -63,29 +65,19 @@ const directMp4Sources = computed(() => {
   return null;
 });
 
-const playerAllowedHosts = ['nhplayer.com', 'playmogo.com', 'streampoi.com', 'yandex.ru'];
+// Trusted direct player hosts recognized for video stream integration (nhplayer.com, playmogo, streampoi)
+const playerAllowedHosts = ['nhplayer.com', 'playmogo.com', 'streampoi.com'];
 
 const isDirectPlayer = computed(() => {
-  if (availableServers.value.length > 0) {
-    const activeServer = availableServers.value[selectedServerIdx.value] || availableServers.value[0];
-    const targetUrl = activeServer?.url || '';
-    try {
-      const u = new URL(targetUrl);
-      return playerAllowedHosts.some((h) => u.hostname === h || u.hostname.endsWith('.' + h));
-    } catch (_) {
-      return false;
-    }
-  }
-  return false;
+  if (availableServers.value.length === 0) return false;
+  const activeUrl = (availableServers.value[selectedServerIdx.value] || availableServers.value[0])?.url || '';
+  return playerAllowedHosts.some((h) => activeUrl.includes(h));
 });
 
 const iframeSrc = computed(() => {
   if (availableServers.value.length > 0) {
     const activeServer = availableServers.value[selectedServerIdx.value] || availableServers.value[0];
     const targetUrl = activeServer.url;
-    if (isDirectPlayer.value) {
-      return targetUrl;
-    }
     const slug = props.video.slug || props.video.id || '';
     return `/api/video/player-frame?url=${encodeURIComponent(targetUrl)}&slug=${encodeURIComponent(slug)}`;
   }
@@ -138,32 +130,29 @@ const toggleTheater = () => {
         Browser Anda tidak mendukung pemutar video HTML5.
       </video>
 
-      <!-- Direct Trusted Frame (nhplayer, playmogo, streampoi - no strict sandbox cookie blockage) -->
-      <iframe
-        v-else-if="isDirectPlayer"
-        :key="`direct-iframe-${frameKey}-${selectedServerIdx}`"
-        :src="iframeSrc"
-        class="player-iframe"
-        title="Kura Direct Video Player"
-        allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      ></iframe>
-
-      <!-- Live Sandbox Iframe with Stealth & Ad-Shield -->
+      <!-- Filtered & Sandboxed Player Frame (WibuDex Strict Ad-Shield Sandbox) -->
       <iframe
         v-else
         :key="`iframe-${frameKey}-${selectedServerIdx}`"
         :src="iframeSrc"
         class="player-iframe"
-        title="Kura Video Player"
+        title="Kura Filtered Video Player"
         allowfullscreen
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        sandbox="allow-scripts allow-forms allow-presentation allow-same-origin"
+        sandbox="allow-scripts allow-forms allow-presentation"
       ></iframe>
 
       <!-- Player Controls Ribbon Overlay -->
       <div class="player-top-controls">
         <div class="provider-group">
+          <button
+            type="button"
+            class="ctrl-icon-btn landscape-back-btn"
+            title="Kembali ke Katalog"
+            @click="emit('back')"
+          >
+            <ArrowLeft :size="13" />
+          </button>
           <div class="provider-pill">
             <Tv :size="12" />
             <span>{{ video.isLocal ? 'Berkas Lokal' : provider === 'neko' ? 'NekoPoi' : provider === 'htv' ? 'HentaiTV' : 'Tube' }}</span>
@@ -361,5 +350,55 @@ const toggleTheater = () => {
 .ctrl-icon-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
+}
+
+.landscape-back-btn {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .watch-player-wrapper {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .player-top-controls {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+
+  .provider-pill {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .server-btn {
+    padding: 2px 6px;
+    font-size: 9.5px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .watch-player-wrapper {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    z-index: 9999;
+  }
+
+  .player-aspect-frame {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+  }
+
+  .landscape-back-btn {
+    display: flex;
+  }
 }
 </style>

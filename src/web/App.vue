@@ -406,7 +406,15 @@ const openChapterReader = async ({ chapter, manga }) => {
       ];
     }
 
-    const mangaCover = manga?.thumb || manga?.cover || manga?.image || chapter.thumb || '';
+    const mangaCover =
+      manga?.thumb ||
+      manga?.cover ||
+      manga?.image ||
+      chapter.thumb ||
+      selectedManga.value?.thumb ||
+      selectedManga.value?.cover ||
+      (mangaList.value.find((m) => (m.slug || m.id) === mSlug)?.thumb) ||
+      '';
     activeReading.value = {
       mangaSlug: mSlug,
       title: manga?.title || chapter.mangaTitle || chapter.title || 'Manga',

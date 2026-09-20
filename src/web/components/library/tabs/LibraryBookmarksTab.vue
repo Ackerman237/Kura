@@ -10,6 +10,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['select-comic', 'remove-bookmark']);
+
+const onImgError = (e, item) => {
+  const target = e.target;
+  const raw = item.thumb || item.cover || '';
+  if (raw && !target.dataset.retried && !raw.includes('/api/image-proxy')) {
+    target.dataset.retried = 'true';
+    target.src = `/api/image-proxy?url=${encodeURIComponent(raw)}`;
+  } else {
+    target.src = '/placeholder-cover.svg';
+  }
+};
 </script>
 
 <template>
@@ -28,7 +39,13 @@ const emit = defineEmits(['select-comic', 'remove-bookmark']);
         @click="emit('select-comic', item)"
       >
         <div class="thumb-box">
-          <img :src="item.thumb || item.cover || ''" :alt="item.title" class="thumb-img" loading="lazy" />
+          <img
+            :src="item.thumb || item.cover || '/placeholder-cover.svg'"
+            :alt="item.title"
+            class="thumb-img"
+            loading="lazy"
+            @error="onImgError($event, item)"
+          />
           <div class="flag-overlay">
             <CountryFlag :type="item.type" size="xs" />
           </div>

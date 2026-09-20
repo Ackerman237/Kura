@@ -69,7 +69,7 @@ const typeMeta = computed(() => getComicTypeMeta(props.manga.type));
               <Badge :variant="typeMeta.variant" size="xs" pill>{{ typeMeta.label }}</Badge>
             </div>
             <span v-if="manga.status" class="status-pill" :class="manga.status.toLowerCase()">
-              {{ manga.status === 'Completed' ? 'Tamat' : 'Berjalan' }}
+              {{ String(manga.status).toLowerCase().includes('complete') || String(manga.status).toLowerCase().includes('tamat') ? 'Completed' : String(manga.status).toLowerCase().includes('hiatus') ? 'Hiatus' : 'Ongoing' }}
             </span>
           </div>
         </div>

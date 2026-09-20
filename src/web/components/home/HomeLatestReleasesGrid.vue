@@ -23,10 +23,14 @@ const props = defineProps({
   },
 });
 
+import { fetchMangaList } from '../../services/api.js';
+
 const emit = defineEmits(['select-comic', 'toggle-bookmark', 'navigate-catalog']);
 
 const selectedType = ref('all');
 const viewMode = ref('grid'); // 'grid' | 'list'
+const isTypeLoading = ref(false);
+const remoteTypeCache = ref({});
 
 const typeFilters = [
   { id: 'all', label: 'Semua Tipe' },
@@ -35,13 +39,35 @@ const typeFilters = [
   { id: 'manhua', label: 'Manhua (CN)' },
 ];
 
+const selectType = async (typeId) => {
+  selectedType.value = typeId;
+  if (typeId === 'all') return;
+  if (remoteTypeCache.value[typeId]) return;
+
+  isTypeLoading.value = true;
+  try {
+    const res = await fetchMangaList({ page: 1, limit: 24, type: typeId });
+    const items = res.items || (Array.isArray(res) ? res : []);
+    remoteTypeCache.value[typeId] = items;
+  } catch (err) {
+    console.warn(`[Home] Failed to load ${typeId} releases:`, err);
+  } finally {
+    isTypeLoading.value = false;
+  }
+};
+
 const filteredComics = computed(() => {
   if (selectedType.value === 'all') return props.comics;
+  if (remoteTypeCache.value[selectedType.value] && remoteTypeCache.value[selectedType.value].length > 0) {
+    return remoteTypeCache.value[selectedType.value];
+  }
   return props.comics.filter((c) => {
     const t = (c.type || 'manga').toLowerCase();
     return t === selectedType.value;
   });
 });
+
+const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
 </script>
 
 <template>
@@ -62,7 +88,7 @@ const filteredComics = computed(() => {
             type="button"
             class="filter-tab"
             :class="{ active: selectedType === f.id }"
-            @click="selectedType = f.id"
+            @click="selectType(f.id)"
           >
             {{ f.label }}
           </button>
@@ -93,7 +119,7 @@ const filteredComics = computed(() => {
     </div>
 
     <!-- Comics Grid / List -->
-    <div v-if="isLoading" class="comics-render-grid">
+    <div v-if="isGridLoading" class="comics-render-grid">
       <ComicSkeleton v-for="n in 12" :key="n" :view-mode="viewMode" />
     </div>
 

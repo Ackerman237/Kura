@@ -7,9 +7,10 @@ export const TYPE_OPTIONS = [
 ];
 
 export const STATUS_OPTIONS = [
-  { id: 'all', label: 'Semua Status' },
-  { id: 'ongoing', label: 'Berjalan' },
-  { id: 'completed', label: 'Tamat' },
+  { id: 'all', label: 'All Status' },
+  { id: 'ongoing', label: 'Ongoing' },
+  { id: 'completed', label: 'Completed' },
+  { id: 'hiatus', label: 'Hiatus' },
 ];
 
 export const SORT_OPTIONS = [

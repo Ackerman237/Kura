@@ -131,6 +131,11 @@ onUnmounted(() => {
       <ChevronDown :size="13" class="chevron-icon" :class="{ 'rotate-180': isOpen }" />
     </button>
 
+    <!-- Mobile Backdrop Overlay -->
+    <Transition name="fade-fast">
+      <div v-if="isOpen" class="genre-backdrop-mobile" @click="isOpen = false"></div>
+    </Transition>
+
     <!-- Floating Dropdown Panel -->
     <Transition name="dropdown-pop">
       <div v-if="isOpen" class="genre-panel-card" @click.stop>
@@ -313,15 +318,29 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .genre-panel-card {
     position: fixed;
     top: auto;
-    bottom: 20px;
-    left: 16px;
-    right: 16px;
+    bottom: 74px;
+    left: 14px;
+    right: 14px;
     width: auto;
-    max-height: 80vh;
+    max-width: none;
+    max-height: calc(85vh - 80px);
+    z-index: 1100;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.88), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+
+  .panel-body {
+    max-height: 42vh;
+  }
+
+  .panel-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--kura-surface, #14151a);
+    z-index: 5;
   }
 }
 
@@ -557,6 +576,32 @@ onUnmounted(() => {
 }
 
 /* Animations */
+.genre-backdrop-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .genre-backdrop-mobile {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1050;
+  }
+}
+
+.fade-fast-enter-active,
+.fade-fast-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-fast-enter-from,
+.fade-fast-leave-to {
+  opacity: 0;
+}
+
 .dropdown-pop-enter-active,
 .dropdown-pop-leave-active {
   transition: opacity 0.18s var(--ease-out), transform 0.18s var(--ease-out);

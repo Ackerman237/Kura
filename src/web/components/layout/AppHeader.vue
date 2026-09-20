@@ -168,12 +168,12 @@ onUnmounted(() => {
             <span v-if="downloadBadge > 0" class="dl-badge">{{ downloadBadge }}</span>
           </button>
 
-          <!-- Profile / Settings Navigation -->
+          <!-- Profile / About Navigation -->
           <button
             type="button"
             class="user-avatar-btn"
-            title="Pengaturan Kura"
-            @click="$emit('navigate', 'settings')"
+            title="Tentang Kura"
+            @click="$emit('navigate', 'about')"
           >
             <User :size="16" />
           </button>

@@ -75,6 +75,7 @@ const handleShare = () => {
             :detail="detail"
             :loading="loading"
             :provider="provider"
+            @back="emit('back')"
           />
         </div>
 
@@ -182,5 +183,51 @@ const handleShare = () => {
 
 .watch-sidebar-column {
   min-width: 0;
+}
+
+/* Mobile Portrait Optimization */
+@media (max-width: 768px) {
+  .kura-video-watch-view {
+    padding-top: 8px;
+    padding-bottom: 84px;
+    gap: 12px;
+  }
+
+  .watch-subnav {
+    padding: 0 4px;
+  }
+
+  .watch-layout-grid {
+    gap: 14px;
+  }
+
+  .watch-main-column {
+    gap: 12px;
+  }
+}
+
+/* Mobile Landscape Cinematic Mode */
+@media (orientation: landscape) and (max-height: 540px) {
+  .kura-video-watch-view {
+    padding: 0 !important;
+    max-width: 100vw !important;
+    gap: 0 !important;
+  }
+
+  .watch-subnav {
+    display: none !important;
+  }
+
+  .sticky-player-anchor {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+  }
+
+  .watch-sidebar-column {
+    display: none !important;
+  }
 }
 </style>
