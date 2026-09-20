@@ -15,9 +15,21 @@
 
   <br />
 
-  <img src="docs/assets/branding/kura-showcase-mockup.jpg" alt="Kura Web Interface Showcase" width="96%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  <img src="docs/assets/screenshots/kura-catalog-sfw.png" alt="Kura Manga Catalog Showcase" width="98%" style="border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 
 </div>
+
+---
+
+## 📸 Interface Showcase (SFW Privacy Mode)
+
+Kura features a built-in **SFW Privacy Engine** that automatically softens adult covers with smooth gaussian blurs and shields explicit titles in public environments. Below are authentic screenshots of the running application:
+
+| 📖 Manga Catalog & Adaptive Filtering | 🎬 Cinema Streaming & Video Rails |
+|:---:|:---:|
+| <img src="docs/assets/screenshots/kura-catalog-sfw.png" width="100%" alt="Manga Catalog" /> | <img src="docs/assets/screenshots/kura-cinema-sfw.png" width="100%" alt="Cinema Streaming" /> |
+| **📥 IDM-Style Download Queue Drawer** | **⚙️ Settings Studio & SFW Privacy Gauges** |
+| <img src="docs/assets/screenshots/kura-downloads-sfw.png" width="100%" alt="Download Manager Drawer" /> | <img src="docs/assets/screenshots/kura-settings-sfw.png" width="100%" alt="Settings Studio" /> |
 
 ---
 

@@ -155,8 +155,9 @@ function onImgError(e) {
     <!-- Metadata Body -->
     <div class="card-content">
       <div class="title-row">
-        <h3 class="comic-title" :title="comic.title">
-          {{ comic.title }}
+        <h3 class="comic-title" :title="isPrivacyMode && !isPeeking ? 'Judul Terproteksi' : comic.title">
+          <span v-if="isPrivacyMode && !isPeeking" class="privacy-censored-dots">••••••••••••••••••••</span>
+          <span v-else>{{ comic.title }}</span>
         </h3>
         <button
           type="button"
@@ -429,6 +430,25 @@ function onImgError(e) {
 
 .privacy-active:hover .poster-img {
   filter: blur(0px);
+}
+
+.privacy-active .comic-title {
+  filter: blur(6px);
+  user-select: none;
+  opacity: 0.65;
+}
+
+.privacy-censored-dots {
+  letter-spacing: 2px;
+  filter: blur(1.5px);
+  opacity: 0.6;
+  user-select: none;
+}
+
+.privacy-active .comic-synopsis {
+  filter: blur(5px);
+  user-select: none;
+  opacity: 0.5;
 }
 
 .privacy-overlay {

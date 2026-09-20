@@ -90,10 +90,12 @@ onMounted(() => {
 
 <template>
   <div class="kura-cinema-home-view container">
-    <!-- 1. Hero Premiere Spotlight Billboard -->
+    <!-- 1. Spotlight Hero Billboard -->
     <CinemaHeroBillboard
+      v-if="videoList && videoList.length"
       :video="videoList[0] || null"
       :provider="currentProvider"
+      :is-privacy-mode="isPrivacyMode"
       @select-video="(v) => emit('select-video', { ...v, provider: currentProvider })"
     />
 

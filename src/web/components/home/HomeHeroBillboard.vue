@@ -79,11 +79,11 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <h2 class="hero-title" :title="currentComic.title">
+        <h2 class="hero-title" :class="{ 'privacy-blur-text': isPrivacyMode }" :title="currentComic.title">
           {{ currentComic.title }}
         </h2>
 
-        <p v-if="currentComic.synopsis" class="hero-synopsis">
+        <p v-if="currentComic.synopsis" class="hero-synopsis" :class="{ 'privacy-blur-text': isPrivacyMode }">
           {{ currentComic.synopsis }}
         </p>
 
@@ -236,16 +236,25 @@ onUnmounted(() => {
 }
 
 .hero-title {
-  font-family: var(--kura-font-heading, sans-serif);
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--kura-text-primary, #ffffff);
-  line-height: 1.25;
+  font-family: var(--kura-font-heading);
+  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  color: #f4f4f6;
   margin: 0;
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.privacy-blur-text {
+  filter: blur(7px) !important;
+  user-select: none !important;
+  opacity: 0.65 !important;
 }
 
 .hero-synopsis {

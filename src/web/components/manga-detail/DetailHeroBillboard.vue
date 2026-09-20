@@ -90,8 +90,8 @@ function onCoverError(event) {
       <!-- Metadata Column -->
       <div class="meta-column">
         <div class="meta-top">
-          <h1 class="manga-title">{{ manga.title }}</h1>
-          <p v-if="manga.altTitle || manga.native_title" class="manga-alt-title">
+          <h1 class="manga-title" :class="{ 'privacy-blur-text': isPrivacyMode }">{{ manga.title }}</h1>
+          <p v-if="manga.altTitle || manga.native_title" class="manga-alt-title" :class="{ 'privacy-blur-text': isPrivacyMode }">
             {{ manga.altTitle || manga.native_title }}
           </p>
         </div>
@@ -305,6 +305,14 @@ function onCoverError(event) {
   color: var(--kura-text-primary, #ffffff);
   line-height: 1.25;
   margin: 0;
+  letter-spacing: -0.01em;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.privacy-blur-text {
+  filter: blur(7px) !important;
+  user-select: none !important;
+  opacity: 0.65 !important;
 }
 
 .manga-alt-title {

@@ -50,7 +50,11 @@ function onImgError(event) {
 </script>
 
 <template>
-  <article class="video-card" @click="handleCardClick">
+  <article
+    class="video-card"
+    :class="{ 'privacy-active': isPrivacyMode && !isPeeking }"
+    @click="handleCardClick"
+  >
     <!-- Thumbnail Canvas with 16:9 aspect ratio -->
     <div class="thumb-container" @click="handleThumbClick">
       <img
@@ -98,7 +102,10 @@ function onImgError(event) {
 
     <!-- Metadata Content -->
     <div class="video-meta">
-      <h3 class="video-title" :title="video.title">{{ video.title }}</h3>
+      <h3 class="video-title" :title="isPrivacyMode && !isPeeking ? 'Judul Terproteksi' : video.title">
+        <span v-if="isPrivacyMode && !isPeeking" class="privacy-censored-dots">••••••••••••••••••••</span>
+        <span v-else>{{ video.title }}</span>
+      </h3>
       <div class="meta-bottom">
         <span v-if="video.views" class="meta-views">
           <Eye :size="12" />
@@ -137,6 +144,19 @@ function onImgError(event) {
 
 .video-card:hover .video-title {
   color: var(--kura-accent);
+}
+
+.privacy-active .video-title {
+  filter: blur(6px);
+  user-select: none;
+  opacity: 0.65;
+}
+
+.privacy-censored-dots {
+  letter-spacing: 2px;
+  filter: blur(1.5px);
+  opacity: 0.6;
+  user-select: none;
 }
 
 .thumb-container {

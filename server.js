@@ -826,10 +826,17 @@ app.get('/manifest.json', (_req, res) => {
   res.type('application/manifest+json').sendFile(path.join(__dirname, 'src', 'web', 'manifest.json'));
 });
 
-app.use(express.static(DIST_DIR));
+app.use(express.static(DIST_DIR, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  },
+}));
 
 // SPA Fallback: All unhandled routes return dist/index.html
 app.use((_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(DIST_DIR, 'index.html'));
 });
 

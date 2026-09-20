@@ -49,7 +49,10 @@ const trendingVideos = computed(() => {
         </div>
 
         <div class="video-meta">
-          <h4 class="video-title" :title="v.title">{{ v.title }}</h4>
+          <h4 class="video-title" :title="isPrivacyMode ? 'Judul Terproteksi' : v.title">
+            <span v-if="isPrivacyMode" class="privacy-censored-dots">••••••••••••••••••••</span>
+            <span v-else>{{ v.title }}</span>
+          </h4>
           <span v-if="v.views" class="views-tag">
             <Eye :size="11" />
             {{ v.views }}
@@ -227,5 +230,12 @@ const trendingVideos = computed(() => {
   gap: 3px;
   font-size: 0.68rem;
   color: var(--kura-text-muted, #94a3b8);
+}
+
+.privacy-censored-dots {
+  letter-spacing: 2px;
+  filter: blur(1.5px);
+  opacity: 0.6;
+  user-select: none;
 }
 </style>

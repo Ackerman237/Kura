@@ -11,6 +11,10 @@ const props = defineProps({
     type: String,
     default: 'htv',
   },
+  isPrivacyMode: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['select-video']);
@@ -20,6 +24,7 @@ const emit = defineEmits(['select-video']);
   <div v-if="video" class="cinema-hero-billboard" @click="emit('select-video', video)">
     <div
       class="hero-ambient-backdrop"
+      :class="{ 'privacy-blur': isPrivacyMode }"
       :style="{ backgroundImage: `url(${video.thumb || video.poster || ''})` }"
       aria-hidden="true"
     ></div>
@@ -35,7 +40,10 @@ const emit = defineEmits(['select-video']);
           <span class="spotlight-pill">PREMIERE SPOTLIGHT</span>
         </div>
 
-        <h2 class="hero-title" :title="video.title">{{ video.title }}</h2>
+        <h2 class="hero-title" :title="isPrivacyMode ? 'Judul Terproteksi' : video.title">
+          <span v-if="isPrivacyMode" class="privacy-censored-dots">••••••••••••••••••••</span>
+          <span v-else>{{ video.title }}</span>
+        </h2>
 
         <div class="hero-stats-row">
           <span v-if="video.views" class="stat-item">
@@ -55,7 +63,10 @@ const emit = defineEmits(['select-video']);
         </button>
       </div>
 
-      <div class="hero-poster-preview">
+      <div
+        class="hero-poster-preview"
+        :style="isPrivacyMode ? 'filter: blur(24px) brightness(0.7); overflow: hidden;' : ''"
+      >
         <img :src="video.thumb || video.poster || ''" :alt="video.title" class="poster-img" />
       </div>
     </div>
@@ -230,5 +241,19 @@ const emit = defineEmits(['select-video']);
   .hero-title {
     font-size: 1.2rem;
   }
+}
+
+.privacy-censored-dots {
+  letter-spacing: 2px;
+  filter: blur(1.5px);
+  opacity: 0.6;
+  user-select: none;
+}
+
+.poster-img.privacy-blur,
+.hero-poster-preview.privacy-blur .poster-img,
+.hero-ambient-backdrop.privacy-blur {
+  filter: blur(20px) brightness(0.7) !important;
+  transform: scale(1.1) !important;
 }
 </style>
