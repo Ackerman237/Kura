@@ -8,3 +8,4 @@ npm-debug.log*
 .proxy-cache.json
 .proxy-cache.json.tmp
 dist/
+downloads/

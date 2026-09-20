@@ -15,23 +15,27 @@ Dokumen ini memetakan milestone dan prioritas pengembangan project ke depan.
 
 ---
 
-## 🚀 Milestone 2: Frontend Reader & Streaming Client (Tahap Berikutnya 🟡)
-- [ ] **UI Manga Reader**:
+## 🚀 Milestone 2: Frontend Reader & Streaming Client (Selesai ✅)
+- [x] **UI Manga Reader**:
   - Tampilan baca manga vertikal (*webtoon-style infinite scroll*) & horizontal (*single/double page*).
   - Mode fullscreen, pengingat halaman terakhir (*reading progress tracking*).
   - Pre-fetching gambar chapter berikutnya di background untuk transisi mulus.
-- [ ] **UI Video Streaming Player**:
+- [x] **UI Video Streaming Player**:
   - Embed player responsive dengan pemilih kualitas (*1080p/720p/480p*).
-  - Episode selector drawer dan bookmarking video favorit.
-- [ ] **Modern Aesthetic & UX**:
-  - Dark mode premium, micro-interactions, layout grid adaptif (mobile, tablet, desktop).
+  - Player frame proxy anti-popunder sandbox isolasi Tier-2.
+  - Switcher server alternatif dan daftar tautan unduh offline.
+- [x] **Modern Aesthetic & UX**:
+  - Dark mode premium, Pan-CJK typography tokens, micro-interactions, layout grid adaptif (mobile, tablet, desktop).
 
 ---
 
-## 🔮 Milestone 3: PWA & Performance Enhancements (Masa Depan ⚪)
-- [ ] **PWA & Offline Capability**:
-  - Service Worker untuk caching aset statis dan cover image.
-  - Download chapter manga untuk dibaca saat offline (*IndexedDB / CacheStorage*).
+## 🔮 Milestone 3: PWA & Performance Enhancements (Selesai ✅)
+- [x] **PWA & Offline Capability**:
+  - Web App Manifest (`manifest.json`) untuk installasi standalone aplikasi di Android/iOS/Desktop.
+  - Service Worker (`sw.js`) dengan strategi *Stale-While-Revalidate* dan offline app shell caching.
+  - Download chapter manga ke **IndexedDB** untuk dibaca kapan saja tanpa koneksi internet.
+- [x] **Pustaka Saya (My Library View)**:
+  - Hub terpusat riwayat baca (*Continue Reading*), daftar chapter tersimpan offline, dan bookmark favorit.
 - [ ] **Unified Media Aggregator**:
   - Universal search endpoint yang menggabungkan hasil manga dan anime dalam satu query.
 - [ ] **Distributed Cache Support**:

@@ -1,0 +1,18 @@
+{
+  "name": "Kura — Self-Hosted Manga & Cinema",
+  "short_name": "Kura",
+  "description": "Private, zero-tracking self-hosted manga reader & video streaming aggregator.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "icons": [
+    {
+      "src": "/assets/branding/kura-logo-crest.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

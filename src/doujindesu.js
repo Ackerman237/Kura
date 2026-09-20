@@ -106,6 +106,7 @@ export async function scrapeMangaList({
   genre = '',
   sort = 'latest_chapter',
   limit = 24,
+  withMeta = false,
 } = {}) {
   const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
   const safeLimit = assertInt(limit, { min: 1, max: 100, name: 'limit', defaultValue: 24 });
@@ -122,7 +123,28 @@ export async function scrapeMangaList({
 
   const data = await apiGet(`/manga?${params.toString()}`);
   const list = Array.isArray(data) ? data : data?.data || data?.results || [];
-  return list.map((item) => mapListItem(item, state.baseUrl)).filter(Boolean);
+  const items = list.map((item) => mapListItem(item, state.baseUrl)).filter(Boolean);
+
+  const rawTotal = typeof data?.total === 'number' ? data.total : (data?.pagination?.total || 0);
+  const total = rawTotal || (items.length === safeLimit ? Math.max(safePage * safeLimit + safeLimit * 10, 2400) : (safePage - 1) * safeLimit + items.length);
+  const totalPages = Math.max(1, Math.ceil(total / safeLimit));
+
+  if (withMeta) {
+    return {
+      items,
+      page: safePage,
+      limit: safeLimit,
+      total,
+      totalPages,
+      hasNext: safePage < totalPages,
+    };
+  }
+
+  items.total = total;
+  items.totalPages = totalPages;
+  items.page = safePage;
+  items.limit = safeLimit;
+  return items;
 }
 
 /**

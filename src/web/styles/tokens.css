@@ -1,88 +1,287 @@
 /* ==========================================================================
    KURA (蔵) DESIGN SYSTEM TOKENS
-   Standardized 60-30-10 Palette, 8pt Spatial Grid, Concentric Radius,
-   and Noto Sans Pan-CJK Superfamily Typography
+   Standardized Multi-Theme Palette (Sumi Charcoal, Cinema Amber, AMOLED),
+   8pt Spatial Grid, Concentric Radius, Glassmorphism, and GPU Motion Curves
    ========================================================================== */
 
 :root {
-  /* --- 1. Color Palette (60-30-10 Rule & Dark Mode Sumi/Washi) --- */
-  --kura-bg: #17181C;             /* 60% Background: Warm Sumi Charcoal */
-  --kura-surface: #22242A;        /* 30% Surface: Cards, Navbars, Drawers */
-  --kura-surface-hover: #2B2E35;  /* Interactive card hover */
-  --kura-surface-active: #333740; /* Interactive active / pressed */
-  --kura-accent: #E8613C;         /* 10% Primary Accent: Vermilion Shu-iro */
-  --kura-accent-hover: #F0714E;   /* Primary button hover */
-  --kura-accent-active: #D45431;  /* Primary button pressed */
+  /* --- 1. Color Palette (Sumi Charcoal Default) --- */
+  --kura-bg: #0E0F12;             /* Viewport Base: Deep Midnight Charcoal */
+  --kura-surface: #17181C;        /* Card & Sidebar Surface */
+  --kura-surface-hover: #22242A;  /* Interactive Hover */
+  --kura-surface-active: #2B2E36; /* Interactive Pressed */
+  --kura-surface-glass: rgba(23, 24, 28, 0.85);
+  --kura-dock-glass: rgba(18, 19, 23, 0.97);
 
-  /* Text & Content (WCAG AAA Compliance) */
-  --kura-text-primary: #ECE8E1;   /* Washi Paper Warm White (14.5:1 on bg) */
-  --kura-text-muted: #A8A59F;     /* Secondary / Metadata text (7.2:1 on bg) */
-  --kura-text-inverse: #17181C;   /* Dark text on vermilion button (5.2:1 AA) */
+  /* Primary Brand Accent (Kura Amber-Orange) */
+  --kura-accent: #FF6B00;
+  --kura-accent-hover: #FF8533;
+  --kura-accent-active: #E05E00;
+  --kura-accent-muted: rgba(255, 107, 0, 0.15);
+  --kura-accent-glow: rgba(255, 107, 0, 0.18);
+  --kura-accent-border: rgba(255, 107, 0, 0.35);
 
-  /* Borders & Dividers */
-  --kura-border-subtle: #33363E;  /* Hairline divider / decorative separator */
-  --kura-border-strong: #5A5F6D;  /* Control borders (Inputs/Sliders, 3.1:1 AA) */
+  /* Typography & Text */
+  --kura-text-primary: #F4F4F6;   /* Clean Crisp White */
+  --kura-text-muted: #9CA3AF;     /* Subtitle & Metadata Gray */
+  --kura-text-dim: #636674;       /* Timestamps & Placeholder */
+  --kura-text-inverse: #0E0F12;
 
-  /* Semantic Feedback Colors */
-  --kura-success: #34D399;        /* Soft emerald mint */
-  --kura-warning: #FBBF24;        /* Warm amber */
-  --kura-danger: #F87171;         /* Coral crimson */
-  --kura-info: #60A5FA;           /* Sky blue */
+  /* Hairlines & Borders */
+  --kura-border-subtle: rgba(255, 255, 255, 0.07);
+  --kura-border-strong: rgba(255, 255, 255, 0.15);
+  --kura-border-focus: rgba(255, 107, 0, 0.5);
 
-  /* --- 2. Typography (Noto Sans Pan-CJK Superfamily) --- */
-  --kura-font-sans: 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Semantic Feedback */
+  --kura-success: #10B981;
+  --kura-warning: #F59E0B;
+  --kura-danger: #EF4444;
+  --kura-info: #3B82F6;
+
+  /* --- 2. Typography --- */
+  --kura-font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --kura-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --kura-font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 
-  /* Font Scale & Line Heights */
-  --text-xs: 0.75rem;     /* 12px / line-height: 1.4 */
-  --text-sm: 0.8125rem;   /* 13px / line-height: 1.4 */
-  --text-base: 0.9375rem; /* 15px / line-height: 1.6 */
-  --text-md: 1.0rem;      /* 16px / line-height: 1.4 */
-  --text-lg: 1.125rem;    /* 18px / line-height: 1.4 */
-  --text-xl: 1.25rem;     /* 20px / line-height: 1.3 */
-  --text-2xl: 1.5rem;     /* 24px / line-height: 1.3 */
-  --text-3xl: 2.25rem;    /* 36px / line-height: 1.2 */
+  --text-2xs: 0.625rem;   /* 10px / Micro badge */
+  --text-xs: 0.6875rem;   /* 11px / Chapter badge, duration */
+  --text-sm: 0.8125rem;   /* 13px / Card title, nav label */
+  --text-base: 0.875rem;  /* 14px / Body, synopsis */
+  --text-md: 1.0rem;      /* 16px / Subheading */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px / Section title */
+  --text-2xl: 1.5rem;     /* 24px / Screen title */
 
-  /* --- 3. Spatial System (8pt Framework with 4pt subdivisions) --- */
-  --space-1: 4px;         /* Micro spacing: gap icon-to-label, badge padding */
-  --space-2: 8px;         /* Compact: chip padding, small gap */
-  --space-3: 12px;        /* Medium-compact: form field padding */
-  --space-4: 16px;        /* Base unit: card padding, mobile screen margin */
-  --space-6: 24px;        /* Medium: section margin, desktop grid gap */
-  --space-8: 32px;        /* Large: container spacing */
-  --space-12: 48px;       /* Touch target standard / navigation bar height */
-  --space-16: 64px;       /* Macro section divider */
+  /* --- 3. Spatial System --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
 
-  /* --- 4. Concentric Radius System --- */
-  --radius-sm: 4px;
-  --radius-md: 8px;       /* Controls, buttons, inner poster image */
-  --radius-lg: 12px;      /* Outer card container (8px + 4px padding) */
-  --radius-xl: 16px;      /* Modals, drawers */
-  --radius-pill: 9999px;  /* Badges, pill tags */
+  /* --- 4. Concentric Radius --- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;      /* Cards, buttons */
+  --radius-lg: 14px;      /* Modals */
+  --radius-xl: 20px;      /* Bottom sheets */
+  --radius-pill: 9999px;  /* Badges, dock */
 
-  /* --- 5. Shadows & Elevation --- */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6);
+  /* --- 5. Elevation & Shadows --- */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 14px 36px -4px rgba(0, 0, 0, 0.65);
+  --shadow-dock: 0 12px 32px -4px rgba(0, 0, 0, 0.85);
 
-  /* --- 6. Transitions & Motion --- */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* --- 6. GPU Motion Curves --- */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --duration-tap: 120ms;
+  --duration-fast: 160ms;
+  --duration-normal: 220ms;
+  --duration-sheet: 260ms;
 
-  /* Layout */
-  --header-height: 60px;
-  --max-content-width: 1280px;
+  /* --- 7. Layout Shell Sizing --- */
+  --header-height: 56px;
+  --sidebar-width-expanded: 240px;
+  --sidebar-width-collapsed: 68px;
+  --mobile-dock-height: 58px;
+  --max-content-width: 1360px;
 }
 
-/* --- Cinema Mode (Warmer Atmosphere for Video Player) --- */
+/* ==========================================================================
+   THEME 2: Cinema Mode (Warm Ambient Atmosphere for Video Stream)
+   ========================================================================== */
 [data-theme="cinema"] {
-  --kura-bg: #1C1714;             /* Warm Espresso Charcoal */
-  --kura-surface: #2A221D;        /* Warm Surface */
-  --kura-surface-hover: #362D27;
-  --kura-accent: #F0A93A;         /* Cinema Amber */
-  --kura-accent-hover: #F8B64E;
-  --kura-text-primary: #F3EBDD;   /* Warm Cream */
-  --kura-text-muted: #B8A791;
-  --kura-border-subtle: #3E332A;
-  --kura-border-strong: #645548;
+  --kura-bg: #110D0A;
+  --kura-surface: #1C1714;
+  --kura-surface-hover: #26201B;
+  --kura-surface-active: #332B25;
+  --kura-surface-glass: rgba(28, 23, 20, 0.9);
+  --kura-dock-glass: rgba(24, 19, 16, 0.98);
+
+  --kura-accent: #F59E0B;         /* Warm Amber */
+  --kura-accent-hover: #FBBF24;
+  --kura-accent-active: #D97706;
+  --kura-accent-glow: rgba(245, 158, 11, 0.18);
+
+  --kura-text-primary: #FBF7F0;
+  --kura-text-muted: #A8A29E;
+  --kura-text-dim: #78716C;
+  --kura-border-subtle: rgba(255, 200, 150, 0.08);
+  --kura-border-strong: rgba(255, 200, 150, 0.18);
+  --kura-border-focus: rgba(245, 158, 11, 0.5);
 }
+
+/* ==========================================================================
+   THEME 3: AMOLED True Black (Pure OLED Black & Battery Saver)
+   ========================================================================== */
+[data-theme="amoled"] {
+  --kura-bg: #000000;
+  --kura-surface: #0A0A0C;
+  --kura-surface-hover: #141416;
+  --kura-surface-active: #1C1C20;
+  --kura-surface-glass: rgba(10, 10, 12, 0.85);
+  --kura-dock-glass: rgba(0, 0, 0, 0.95);
+
+  --kura-accent: #FF7A1A;
+  --kura-accent-hover: #FF9447;
+  --kura-accent-active: #E66200;
+  --kura-accent-glow: rgba(255, 122, 26, 0.22);
+
+  --kura-text-primary: #FFFFFF;
+  --kura-text-muted: #A1A1AA;
+  --kura-text-dim: #71717A;
+  --kura-border-subtle: rgba(255, 255, 255, 0.12);
+  --kura-border-strong: rgba(255, 255, 255, 0.24);
+  --kura-border-focus: rgba(255, 122, 26, 0.6);
+}
+
+/* ==========================================================================
+   THEME 4: YORU (Midnight Atelier / Deep Indigo & Matcha Jade)
+   ========================================================================== */
+[data-theme="yoru"] {
+  --kura-bg: #090D14;
+  --kura-surface: #101622;
+  --kura-surface-hover: #182233;
+  --kura-surface-active: #212F45;
+  --kura-surface-glass: rgba(16, 22, 34, 0.88);
+  --kura-dock-glass: rgba(12, 17, 26, 0.98);
+
+  --kura-accent: #10B981;         /* Matcha Jade */
+  --kura-accent-hover: #34D399;
+  --kura-accent-active: #059669;
+  --kura-accent-glow: rgba(16, 185, 129, 0.20);
+
+  --kura-text-primary: #F0FDF4;
+  --kura-text-muted: #94A3B8;
+  --kura-text-dim: #64748B;
+  --kura-border-subtle: rgba(16, 185, 129, 0.10);
+  --kura-border-strong: rgba(16, 185, 129, 0.22);
+  --kura-border-focus: rgba(16, 185, 129, 0.55);
+}
+
+/* ==========================================================================
+   THEME 5: SAKURA (Deep Wine & Sakura Blossom Rose)
+   ========================================================================== */
+[data-theme="sakura"] {
+  --kura-bg: #140A10;
+  --kura-surface: #20111A;
+  --kura-surface-hover: #2E1826;
+  --kura-surface-active: #3D2033;
+  --kura-surface-glass: rgba(32, 17, 26, 0.88);
+  --kura-dock-glass: rgba(20, 10, 16, 0.98);
+
+  --kura-accent: #EC4899;         /* Sakura Pink */
+  --kura-accent-hover: #F472B6;
+  --kura-accent-active: #DB2777;
+  --kura-accent-glow: rgba(236, 72, 153, 0.22);
+
+  --kura-text-primary: #FDF2F8;
+  --kura-text-muted: #BE185D;
+  --kura-text-dim: #9D174D;
+  --kura-border-subtle: rgba(236, 72, 153, 0.12);
+  --kura-border-strong: rgba(236, 72, 153, 0.25);
+  --kura-border-focus: rgba(236, 72, 153, 0.6);
+}
+
+/* ==========================================================================
+   THEME 6: CYBERPUNK (Neo-Tokyo Dark Violet & Laser Yellow)
+   ========================================================================== */
+[data-theme="cyberpunk"] {
+  --kura-bg: #0C071E;
+  --kura-surface: #170F38;
+  --kura-surface-hover: #231754;
+  --kura-surface-active: #312173;
+  --kura-surface-glass: rgba(23, 15, 56, 0.88);
+  --kura-dock-glass: rgba(12, 7, 30, 0.98);
+
+  --kura-accent: #FACC15;         /* Neon Yellow */
+  --kura-accent-hover: #FDE047;
+  --kura-accent-active: #EAB308;
+  --kura-accent-glow: rgba(250, 204, 21, 0.25);
+
+  --kura-text-primary: #FAF5FF;
+  --kura-text-muted: #C084FC;
+  --kura-text-dim: #7E22CE;
+  --kura-border-subtle: rgba(250, 204, 21, 0.15);
+  --kura-border-strong: rgba(250, 204, 21, 0.30);
+  --kura-border-focus: rgba(250, 204, 21, 0.6);
+}
+
+/* ==========================================================================
+   THEME 7: NORD (Nordic Glacier & Ice Blue)
+   ========================================================================== */
+[data-theme="nord"] {
+  --kura-bg: #0B111A;
+  --kura-surface: #141E2E;
+  --kura-surface-hover: #1D2C42;
+  --kura-surface-active: #273A57;
+  --kura-surface-glass: rgba(20, 30, 46, 0.88);
+  --kura-dock-glass: rgba(11, 17, 26, 0.98);
+
+  --kura-accent: #38BDF8;         /* Glacier Sky */
+  --kura-accent-hover: #7DD3FC;
+  --kura-accent-active: #0284C7;
+  --kura-accent-glow: rgba(56, 189, 248, 0.22);
+
+  --kura-text-primary: #F0F9FF;
+  --kura-text-muted: #94A3B8;
+  --kura-text-dim: #64748B;
+  --kura-border-subtle: rgba(56, 189, 248, 0.12);
+  --kura-border-strong: rgba(56, 189, 248, 0.24);
+  --kura-border-focus: rgba(56, 189, 248, 0.6);
+}
+
+/* ==========================================================================
+   THEME 8: SEPIA (Vintage Paper & Bronze Amber)
+   ========================================================================== */
+[data-theme="sepia"] {
+  --kura-bg: #15100B;
+  --kura-surface: #201912;
+  --kura-surface-hover: #2D2319;
+  --kura-surface-active: #3C2F22;
+  --kura-surface-glass: rgba(32, 25, 18, 0.88);
+  --kura-dock-glass: rgba(21, 16, 11, 0.98);
+
+  --kura-accent: #D97706;         /* Bronze Amber */
+  --kura-accent-hover: #F59E0B;
+  --kura-accent-active: #B45309;
+  --kura-accent-glow: rgba(217, 119, 6, 0.22);
+
+  --kura-text-primary: #FEF3C7;
+  --kura-text-muted: #B45309;
+  --kura-text-dim: #78350F;
+  --kura-border-subtle: rgba(217, 119, 6, 0.12);
+  --kura-border-strong: rgba(217, 119, 6, 0.24);
+  --kura-border-focus: rgba(217, 119, 6, 0.6);
+}
+
+/* ==========================================================================
+   THEME 9: CUSTOM USER THEME (Dynamic CSS Variables from LocalStorage)
+   ========================================================================== */
+[data-theme="custom"] {
+  --kura-bg: var(--custom-bg, #0E0F12);
+  --kura-surface: var(--custom-surface, #17181C);
+  --kura-surface-hover: var(--custom-surface-hover, #22242A);
+  --kura-surface-active: var(--custom-surface-active, #2B2E36);
+  --kura-surface-glass: var(--custom-surface-glass, rgba(23, 24, 28, 0.85));
+  --kura-dock-glass: var(--custom-dock-glass, rgba(18, 19, 23, 0.97));
+
+  --kura-accent: var(--custom-accent, #FF6B00);
+  --kura-accent-hover: var(--custom-accent-hover, #FF8533);
+  --kura-accent-active: var(--custom-accent-active, #E05E00);
+  --kura-accent-muted: var(--custom-accent-muted, color-mix(in srgb, var(--custom-accent, #FF6B00) 18%, transparent));
+  --kura-accent-glow: var(--custom-accent-glow, color-mix(in srgb, var(--custom-accent, #FF6B00) 25%, transparent));
+  --kura-accent-border: color-mix(in srgb, var(--custom-accent, #FF6B00) 40%, transparent);
+
+  --kura-text-primary: var(--custom-text, #F4F4F6);
+  --kura-text-muted: var(--custom-muted, #9CA3AF);
+  --kura-text-dim: var(--custom-dim, #636674);
+  --kura-border-subtle: var(--custom-border, rgba(255, 255, 255, 0.07));
+  --kura-border-strong: var(--custom-border-strong, rgba(255, 255, 255, 0.18));
+  --kura-border-focus: var(--custom-border-focus, var(--custom-accent, #FF6B00));
+}
+

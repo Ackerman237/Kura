@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { Star } from 'lucide-vue-next';
 
 const props = defineProps({
   manga: {
@@ -10,7 +11,6 @@ const props = defineProps({
 
 defineEmits(['select']);
 
-// Derive flag SVG path from manga type
 const flagSrc = computed(() => {
   const t = (props.manga.type || '').toLowerCase();
   if (t === 'manhwa') return '/assets/flags/kr.svg';
@@ -23,21 +23,31 @@ const typeLabel = computed(() => {
   const t = (props.manga.type || 'manga').toLowerCase();
   return t.toUpperCase();
 });
+
+function onImgError(event) {
+  const currentSrc = event.target.src || '';
+  if (currentSrc.startsWith('http') && !currentSrc.includes('/api/image-proxy')) {
+    event.target.src = `/api/image-proxy?url=${encodeURIComponent(currentSrc)}`;
+  } else {
+    event.target.style.opacity = '0';
+  }
+}
 </script>
 
 <template>
   <article class="manga-card" @click="$emit('select', manga)">
-    <!-- Poster Container with Concentric Radius -->
+    <!-- Poster Container with 3:4.5 aspect ratio -->
     <div class="poster-wrap">
       <img
-        :src="manga.thumb"
+        :src="manga.thumb || manga.cover_url || ''"
         :alt="manga.title"
         class="poster-img"
         loading="lazy"
         decoding="async"
+        @error="onImgError"
       />
 
-      <!-- Country Flag Badge (JP / KR / CN) -->
+      <!-- Country Flag Badge -->
       <div v-if="flagSrc" class="flag-badge" :title="`Asal: ${typeLabel}`">
         <img :src="flagSrc" :alt="typeLabel" class="flag-icon" />
       </div>
@@ -50,21 +60,19 @@ const typeLabel = computed(() => {
         Ch. {{ manga.latestChapter }}
       </span>
 
-      <!-- Scrim gradient for text contrast -->
+      <!-- Scrim gradient -->
       <div class="scrim-overlay"></div>
     </div>
 
     <!-- Info Block -->
     <div class="card-info">
       <h3 class="manga-title" :title="manga.title">{{ manga.title }}</h3>
-      
-      <!-- CJK Alternate Title (Kanji, Hangul, Hanzi) -->
-      <p v-if="manga.altTitle" class="manga-alttitle" :title="manga.altTitle">
-        {{ manga.altTitle }}
-      </p>
 
       <div class="meta-row">
-        <span v-if="manga.rating" class="rating-badge">★ {{ manga.rating }}</span>
+        <span v-if="manga.rating" class="rating-badge">
+          <Star :size="12" class="star-icon" />
+          {{ manga.rating }}
+        </span>
         <span v-if="manga.status" class="status-text">{{ manga.status }}</span>
       </div>
     </div>
@@ -77,25 +85,32 @@ const typeLabel = computed(() => {
   flex-direction: column;
   background-color: var(--kura-surface);
   border: 1px solid var(--kura-border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  padding: 6px;
   cursor: pointer;
-  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal),
+              box-shadow var(--duration-normal),
+              background-color var(--duration-normal);
   user-select: none;
 }
 
 .manga-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px) scale(1.01);
   border-color: var(--kura-accent);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
   background-color: var(--kura-surface-hover);
+}
+
+.manga-card:hover .manga-title {
+  color: var(--kura-accent);
 }
 
 .poster-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4.2;
-  border-radius: var(--radius-md); /* Concentric: 12px outer - 4px padding = 8px */
+  aspect-ratio: 3 / 4.5;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background-color: #121316;
 }
@@ -104,7 +119,7 @@ const typeLabel = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-normal);
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .manga-card:hover .poster-img {
@@ -114,16 +129,16 @@ const typeLabel = computed(() => {
 /* Country Flag Badge */
 .flag-badge {
   position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
-  width: 22px;
-  height: 22px;
+  top: 6px;
+  left: 6px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--radius-pill);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   z-index: 2;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
 }
 
 .flag-icon {
@@ -135,37 +150,43 @@ const typeLabel = computed(() => {
 /* Type Pill */
 .type-pill {
   position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  background-color: rgba(23, 24, 28, 0.85);
-  backdrop-filter: blur(4px);
+  top: 6px;
+  right: 6px;
+  background-color: rgba(14, 15, 18, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--kura-text-primary);
-  font-size: var(--text-xs);
+  font-size: var(--text-2xs);
   font-weight: 700;
   padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   border: 1px solid var(--kura-border-subtle);
   z-index: 2;
+  letter-spacing: 0.04em;
 }
 
 /* Chapter Tag */
 .chapter-tag {
   position: absolute;
-  bottom: var(--space-2);
-  left: var(--space-2);
-  background-color: var(--kura-accent);
-  color: var(--kura-text-inverse);
+  bottom: 6px;
+  right: 6px;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #FFA048;
   font-size: var(--text-xs);
+  font-family: var(--kura-font-mono);
   font-weight: 700;
   padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(255, 160, 72, 0.3);
   z-index: 2;
 }
 
 .scrim-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(23, 24, 28, 0) 60%, rgba(23, 24, 28, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(14, 15, 18, 0) 65%, rgba(14, 15, 18, 0.85) 100%);
   pointer-events: none;
 }
 
@@ -173,8 +194,8 @@ const typeLabel = computed(() => {
 .card-info {
   display: flex;
   flex-direction: column;
-  padding: var(--space-2) var(--space-1) var(--space-1);
-  gap: 2px;
+  padding: 8px 4px 4px;
+  gap: 4px;
 }
 
 .manga-title {
@@ -186,33 +207,31 @@ const typeLabel = computed(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* Pan-CJK Alt Title */
-.manga-alttitle {
-  font-size: var(--text-xs);
-  color: var(--kura-text-muted);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: var(--kura-font-sans);
+  transition: color var(--duration-fast);
 }
 
 .meta-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-top: 4px;
-  font-size: var(--text-xs);
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: var(--text-2xs);
 }
 
 .rating-badge {
   color: var(--kura-warning);
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.star-icon {
+  fill: currentColor;
 }
 
 .status-text {
-  color: var(--kura-text-muted);
+  color: var(--kura-text-dim);
+  text-transform: capitalize;
 }
 </style>

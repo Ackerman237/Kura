@@ -1,0 +1,29 @@
+services:
+  kura:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kura-app
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      # Opsional: Jika menggunakan proxy rotasi eksternal
+      # - PROXY_ROTATION_ENABLED=true
+      # - PROXY_TEST_URL=https://httpbin.org/ip
+      # Opsional: Kredensial khusus provider tertentu bila diperlukan
+      # - DOUJIN_APP_SECRET=
+      # - DOUJIN_SALT=
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
