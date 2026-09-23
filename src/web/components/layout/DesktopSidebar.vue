@@ -403,8 +403,25 @@ const navItems = [
   transform: scale(1.15);
 }
 
+
 .theme-dot.active {
   border-color: var(--kura-text-primary);
   transform: scale(1.2);
 }
+
+/* === Tablet-specific sidebar behavior (768px–1023px) === */
+/* On tablet widths, the sidebar uses compressed layout */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Theme dots: smaller touch target is acceptable on desktop pointer */
+  .theme-dot {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Nav items: ensure all have label via title tooltip (already set in template) */
+  .nav-item {
+    min-height: 48px; /* slightly taller for tablet finger use */
+  }
+}
+
 </style>

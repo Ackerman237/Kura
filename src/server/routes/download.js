@@ -1,10 +1,12 @@
 import express from 'express';
 import path from 'path';
-import { createWriteStream, mkdirSync } from 'fs';
+import { createWriteStream, mkdirSync, promises as fsPromises } from 'fs';
 import { randomUUID } from 'crypto';
 import { scrapeEpornerDetail } from '../../eporner.js';
 import { scrapeHentaiSources } from '../../sources/hentaitv/downloader.js';
 import { scrapeNekoSources } from '../../sources/nekopoi/downloader.js';
+import { fetchThroughProxy } from '../../proxy.js';
+import { isSafeExternalUrl } from '../../security.js';
 
 const router = express.Router();
 
@@ -88,6 +90,11 @@ router.get('/stream', async (req, res) => {
     return res.status(403).send(`Host '${parsedUrl.hostname}' tidak diizinkan untuk diunduh`);
   }
 
+  const isSafe = await isSafeExternalUrl(parsedUrl.href);
+  if (!isSafe) {
+    return res.status(403).send('Target video host tidak diizinkan (private/loopback address)');
+  }
+
   try {
     const safeFilename = (filename || 'kura-video.mp4')
       .replace(/[/\\:*?"<>|]/g, '_')
@@ -103,9 +110,12 @@ router.get('/stream', async (req, res) => {
     };
     if (rangeHeader) upstreamHeaders.Range = rangeHeader;
 
-    const upstreamRes = await fetch(rawUrl, {
+    const isProxyNeeded = parsedUrl.hostname.includes('eporner.com') || parsedUrl.hostname.includes('nekopoi');
+    const fetchFn = isProxyNeeded ? fetchThroughProxy : fetch;
+
+    const upstreamRes = await fetchFn(rawUrl, {
       headers: upstreamHeaders,
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(60000),
     });
 
     if (!upstreamRes.ok && upstreamRes.status !== 206) {
@@ -118,7 +128,11 @@ router.get('/stream', async (req, res) => {
     const acceptRanges = upstreamRes.headers.get('accept-ranges') || 'bytes';
 
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    if (req.query.inline === '1') {
+      res.setHeader('Content-Disposition', 'inline');
+    } else {
+      res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    }
     res.setHeader('Accept-Ranges', acceptRanges);
     res.setHeader('Cache-Control', 'no-store');
     if (contentLength) res.setHeader('Content-Length', contentLength);
@@ -167,6 +181,11 @@ router.post('/save-to-disk', express.json(), async (req, res) => {
     return res.status(403).json({ error: `Host '${parsedUrl.hostname}' tidak diizinkan` });
   }
 
+  const isSafe = await isSafeExternalUrl(parsedUrl.href);
+  if (!isSafe) {
+    return res.status(403).json({ error: 'Target host tidak diizinkan (private/loopback address)' });
+  }
+
   const safeFilename = filename.replace(/[/\\:*?"<>|]/g, '_').trim();
   const safeSubdir = subdir ? subdir.replace(/[*?"<>|]/g, '_').trim() : '';
 
@@ -176,7 +195,10 @@ router.post('/save-to-disk', express.json(), async (req, res) => {
     : BASE_DOWNLOAD_DIR;
   const finalPath = path.join(finalDir, safeFilename);
 
-  if (!finalPath.startsWith(BASE_DOWNLOAD_DIR)) {
+  const resolvedBase = path.resolve(BASE_DOWNLOAD_DIR);
+  const resolvedFinal = path.resolve(finalPath);
+
+  if (!resolvedFinal.startsWith(resolvedBase + path.sep) && resolvedFinal !== resolvedBase) {
     return res.status(403).json({ error: 'Path output tidak diizinkan' });
   }
 
@@ -228,6 +250,9 @@ router.post('/save-to-disk', express.json(), async (req, res) => {
       const job = diskJobs.get(jobId);
       if (job) { job.status = 'error'; job.error = err.message; }
       console.error('[Save-to-Disk]', err.message);
+      try {
+        await fsPromises.unlink(finalPath);
+      } catch (_) {}
     }
   })();
 });

@@ -105,19 +105,36 @@ const trendingComics = computed(() => {
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 8px;
+  padding-left: max(0px, var(--safe-area-left, 0px));
+  padding-right: max(0px, var(--safe-area-right, 0px));
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .trending-card {
   position: relative;
   flex-shrink: 0;
-  width: 140px;
+  width: clamp(110px, 35vw, 160px); /* fluid width: 110px on 320px, 160px on wide */
   display: flex;
   flex-direction: column;
   gap: 8px;
   cursor: pointer;
   transition: transform 0.2s ease;
+  touch-action: manipulation;
 }
+
+@media (min-width: 768px) {
+  .trending-card {
+    width: clamp(130px, 16vw, 180px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .trending-card {
+    width: 160px;
+  }
+}
+
 
 .trending-card:hover {
   transform: translateY(-4px);

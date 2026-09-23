@@ -259,6 +259,8 @@ const handleShare = () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .nav-action-btn {
@@ -285,5 +287,33 @@ const handleShare = () => {
 .nav-action-btn.is-bookmarked {
   color: var(--kura-accent, #e5a93c);
   border-color: rgba(229, 169, 60, 0.4);
+}
+
+@media (max-width: 640px) {
+  .detail-nav-bar {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .back-btn {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .back-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nav-action-btn {
+    min-height: 44px;
+    padding-inline: 10px;
+  }
+
+  .nav-action-btn span {
+    display: none;
+  }
 }
 </style>

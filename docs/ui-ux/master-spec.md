@@ -1,6 +1,6 @@
 # Master UI/UX Specification: Kura
 
-Dokumen ini adalah cetak biru teknis resmi untuk perombakan UI/UX Kura (aplikasi self-hosted pembaca manga dan streaming video) berdasarkan audit menyeluruh, ekstraksi pola modern (MangaDex, Tachiyomi, YouTube, 21st.dev), serta 22 dokumen spesifikasi arsitektur Noctra.
+Dokumen ini adalah cetak biru teknis resmi untuk perombakan UI/UX Kura (aplikasi self-hosted pembaca manga dan streaming video) berdasarkan audit menyeluruh, ekstraksi pola modern (MangaDex, Tachiyomi, YouTube, 21st.dev), serta 22 dokumen spesifikasi arsitektur Kura.
 
 ---
 
@@ -144,9 +144,9 @@ Implementasi menggunakan CSS Custom Properties murni tanpa dependensi runtime be
 
 ---
 
-## 6. Sistem Dev-Mode / Masking Sensor NSFW (Blueprint Noctra)
+## 6. Sistem Dev-Mode / Masking Sensor NSFW (Blueprint Kura)
 
-Sesuai spesifikasi `Dokumentasi-Noctra/placeholder-svg/`:
+Sesuai spesifikasi `Dokumentasi-Kura/placeholder-svg/`:
 
 ### A. Aset Masking Lokal
 1. `placeholder-cover.svg` (Aspek rasio 3:4.5) → Menggantikan sampul manga/komik.

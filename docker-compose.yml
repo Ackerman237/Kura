@@ -10,20 +10,59 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4000
-      # Opsional: Jika menggunakan proxy rotasi eksternal
-      # - PROXY_ROTATION_ENABLED=true
-      # - PROXY_TEST_URL=https://httpbin.org/ip
-      # Opsional: Kredensial khusus provider tertentu bila diperlukan
-      # - DOUJIN_APP_SECRET=
-      # - DOUJIN_SALT=
+
+      # ── Doujindesu (WAJIB diisi) ─────────────────────────────────────────────
+      # Tanpa kedua nilai ini, semua request ke Doujindesu akan ditolak upstream.
+      - DOUJIN_APP_SECRET=${DOUJIN_APP_SECRET}
+      - DOUJIN_SALT=${DOUJIN_SALT}
+
+      # ── Eporner Proxy Pool ───────────────────────────────────────────────────
+      # auto  : gunakan pool proxy publik (direkomendasikan, bypass ISP/datacenter block)
+      # direct: koneksi langsung tanpa proxy
+      # manual: gunakan proxy pribadi via EPORNER_PROXY=http://host:port
+      - EPORNER_PROXY_MODE=auto
+      # Fallback ke koneksi langsung jika semua proxy pool gagal
+      - EPORNER_PROXY_FALLBACK=direct
+
+      # ── Tuning Resource untuk VM 1 GB ────────────────────────────────────────
+      # Turunkan dari default 60 agar warm-up proxy tidak memicu OOM
+      - PROXY_PROBE_CONCURRENCY=10
+
+      # ── Path Storage (harus sesuai dengan volume mount di bawah) ─────────────
+      - KURA_DOWNLOAD_DIR=/app/downloads
+      - PROXY_CACHE_FILE=/app/data/.proxy-cache.json
+
+      # ── Override URL provider (opsional, uncomment jika domain berubah) ──────
+      # - DOUJIN_BASE_URL=https://doujin.desu.xxx
+      # - NEKO_BASE_URL=https://nekopoi.care
+      # - HENTAI_BASE_URL=https://hentai.tv
+      # - EPORNER_BASE_URL=https://www.eporner.com
+
+      # ── Debug (aktifkan hanya saat troubleshooting) ───────────────────────────
+      # - PROXY_DEBUG=1
+
+    volumes:
+      # Persistent storage untuk file yang diunduh user via "Save to Disk"
+      - kura-downloads:/app/downloads
+      # Persistent storage untuk cache proxy yang sudah diverifikasi
+      # Mencegah warm-up ulang dari nol setiap kali container restart
+      - kura-data:/app/data
+
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
+
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  kura-downloads:
+    driver: local
+  kura-data:
+    driver: local

@@ -369,7 +369,7 @@ function resetDefaults() {
 }
 
 .reader-settings-card {
-  width: 540px;
+  width: min(540px, 100%);
   max-width: 100%;
   max-height: 85vh;
   background: var(--kura-surface, #14151a);

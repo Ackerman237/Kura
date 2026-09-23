@@ -444,7 +444,11 @@ onMounted(() => {
   }
 
   .settings-title {
-    font-size: 1.45rem;
+    font-size: 1.3rem;
+  }
+
+  .settings-subtitle {
+    font-size: 0.8rem;
   }
 
   .settings-tabs-wrapper {
@@ -458,21 +462,50 @@ onMounted(() => {
   }
 
   .segment-tab-btn {
-    height: 35px;
-    padding: 0 6px;
-    gap: 5px;
-    font-size: 0.72rem;
+    height: 36px;
+    padding: 0 4px;
+    gap: 4px;
+    font-size: 0;        /* sembunyikan label teks via font-size */
+    flex-direction: column;
+    justify-content: center;
   }
 
+  /* Hanya tampilkan ikon di mobile — cukup untuk navigasi 3 tab */
   .tab-title {
+    display: none;
+  }
+
+  .tab-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Active state: tampilkan label singkat di bawah ikon */
+  .segment-tab-btn.active {
+    height: 40px;
+    gap: 2px;
+  }
+
+  .segment-tab-btn.active .tab-title {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 70px;
+    text-align: center;
   }
 }
 
-@media (max-width: 440px) {
-  .segment-tab-btn .tab-title {
-    font-size: 0.68rem;
+@media (max-width: 380px) {
+  .settings-title {
+    font-size: 1.15rem;
+  }
+
+  .settings-subtitle {
+    display: none;
   }
 }
 </style>

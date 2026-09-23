@@ -45,7 +45,12 @@ const handleCardClick = () => {
   <article
     class="video-card"
     :class="{ 'privacy-active': isPrivacyMode && !isPeeking }"
+    role="button"
+    tabindex="0"
+    :aria-label="isPrivacyMode && !isPeeking ? 'Video Terproteksi' : video.title"
     @click="handleCardClick"
+    @keydown.enter="handleCardClick"
+    @keydown.space.prevent="handleCardClick"
   >
     <!-- Thumbnail Canvas with 16:9 aspect ratio -->
     <div class="thumb-container" @click="handleThumbClick">
@@ -129,13 +134,17 @@ const handleCardClick = () => {
   user-select: none;
 }
 
-.video-card:hover {
+.video-card:hover,
+.video-card:focus-visible {
   transform: translateY(-3px) scale(1.01);
   border-color: var(--kura-accent);
   box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+  outline: 2px solid var(--kura-accent);
+  outline-offset: 2px;
 }
 
-.video-card:hover .video-title {
+.video-card:hover .video-title,
+.video-card:focus-visible .video-title {
   color: var(--kura-accent);
 }
 

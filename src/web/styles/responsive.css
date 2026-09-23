@@ -1,27 +1,135 @@
 /**
- * Kura Responsive Layout System & Mobile Navigation Rules
+ * ============================================================
+ * KURA RESPONSIVE-FIRST SYSTEM
+ * Mobile-first (320px base → 1920px+ scale-up)
+ * Viewport matrix: 320 | 360 | 390 | 430 | 768 | 1024 | 1280 | 1440 | 1920px
+ * ============================================================
+ *
+ * Section index:
+ *  1. Root overrides & safe-area bridge
+ *  2. Container & layout shell
+ *  3. Navbar / AppHeader
+ *  4. Sidebar (desktop)
+ *  5. Mobile bottom dock
+ *  6. Hero / Billboard
+ *  7. Card & grid system
+ *  8. Horizontal scroll rails
+ *  9. List view
+ * 10. Typography fluid scale
+ * 11. Buttons & touch targets
+ * 12. Forms & inputs
+ * 13. Images & media
+ * 14. Modal / dialog / bottom sheet
+ * 15. Tabs
+ * 16. Badges & chips
+ * 17. Pagination
+ * 18. Tables
+ * 19. Footer
+ * 20. Loading / skeleton state
+ * 21. Empty state
+ * 22. Error state
+ * 23. Sticky / fixed element compensation
+ * 24. Spacing utilities (responsive)
+ * 25. Width / height utilities
+ * 26. Overflow guard
+ * 27. Text wrapping
+ * 28. Interaction & focus visibility
  */
 
+/* ============================================================
+   1. ROOT OVERRIDES & SAFE-AREA BRIDGE
+   ============================================================ */
 :root {
   --mobile-dock-height: 64px;
   --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Page bottom pad = dock + safe area + breathing room */
+  --page-bottom-clearance: calc(var(--mobile-dock-height) + var(--mobile-safe-bottom) + 16px);
 }
 
-/* Page container safe dock padding on mobile */
-@media (max-width: 768px) {
-  .page-bottom-dock-pad {
-    padding-bottom: calc(var(--mobile-dock-height) + var(--mobile-safe-bottom) + 16px) !important;
-  }
-
-  /* Grid adaptations */
-  .kura-responsive-grid {
-    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)) !important;
-    gap: 12px !important;
+@media (min-width: 768px) {
+  :root {
+    --page-bottom-clearance: var(--space-8, 32px);
   }
 }
 
-/* 2-Row Layout for Mobile Header (< 768px) */
+/* ============================================================
+   2. CONTAINER & LAYOUT SHELL
+   ============================================================ */
+
+/* Base container: mobile-first fluid with safe-area sides */
+.container {
+  width: 100%;
+  max-width: var(--max-content-width, 1360px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: max(var(--container-px-mobile, 12px), var(--safe-area-left, 0px));
+  padding-right: max(var(--container-px-mobile, 12px), var(--safe-area-right, 0px));
+}
+
+@media (min-width: 480px) {
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--container-px-tablet, 24px);
+    padding-right: var(--container-px-tablet, 24px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    padding-left: var(--container-px-desktop, 32px);
+    padding-right: var(--container-px-desktop, 32px);
+  }
+}
+
+/* Prevent any horizontal overflow at root */
+html, body {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+/* ============================================================
+   3. NAVBAR / APP HEADER
+   ============================================================ */
+
+/* 320px: compact single-row header, squeeze actions */
+@media (max-width: 359px) {
+  .kura-topbar {
+    padding: 0 8px !important;
+  }
+
+  .kura-topbar .topbar-inner {
+    gap: 6px !important;
+  }
+
+  /* Hide "SFW" text label on very narrow screens */
+  .action-label {
+    display: none !important;
+  }
+
+  /* Tighter action pill at 320px */
+  .action-pill {
+    padding: 5px !important;
+    gap: 0 !important;
+  }
+
+  /* Smaller brand kanji at 320px */
+  .brand-kanji {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 1rem !important;
+  }
+}
+
+/* 320–768px: 2-row mobile header */
 @media (max-width: 768px) {
+  /* Ensure header wraps cleanly */
   .kura-topbar.topbar-mobile-2row {
     height: auto !important;
     padding: 8px 12px 10px !important;
@@ -43,5 +151,998 @@
 
   .kura-topbar.topbar-mobile-2row .topbar-row-search {
     width: 100%;
+  }
+
+  /* Ensure touch targets in header: minimum 44px */
+  .icon-action-btn,
+  .user-avatar-btn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  /* Action label hide on mobile */
+  .action-label {
+    display: none;
+  }
+}
+
+/* Sticky header must account for safe-area-top (notch) */
+.kura-topbar {
+  padding-top: max(0px, var(--safe-area-top, 0px));
+}
+
+/* ============================================================
+   4. SIDEBAR (DESKTOP)
+   ============================================================ */
+
+/* Sidebar is hidden on mobile, shown on ≥768px via v-if in App.vue */
+/* This just ensures the sidebar itself is accessible and has proper sizing */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Tablet: default to collapsed sidebar (68px) */
+  .kura-sidebar:not(.collapsed) {
+    width: var(--sidebar-width-collapsed, 68px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .kura-sidebar {
+    width: var(--sidebar-width-expanded, 240px);
+  }
+}
+
+/* Sidebar nav items: always meet touch target on desktop */
+.kura-sidebar .nav-item {
+  min-height: var(--touch-target-min, 44px);
+}
+
+/* ============================================================
+   5. MOBILE BOTTOM DOCK
+   ============================================================ */
+
+/* Page content bottom padding so dock never overlaps content */
+.page-bottom-dock-pad {
+  padding-bottom: var(--page-bottom-clearance) !important;
+}
+
+/* Dock itself: safe-area-bottom */
+.kura-mobile-dock {
+  bottom: max(8px, calc(8px + var(--mobile-safe-bottom))) !important;
+  padding-left: max(12px, var(--safe-area-left, 0px));
+  padding-right: max(12px, var(--safe-area-right, 0px));
+}
+
+/* 320px: very narrow dock, reduce item padding */
+@media (max-width: 359px) {
+  .dock-container {
+    min-width: 240px !important;
+    padding: 3px 4px !important;
+    gap: 2px !important;
+  }
+
+  .dock-item {
+    padding: 5px 8px !important;
+    min-width: 40px;
+  }
+
+  .dock-item.active {
+    padding: 5px 10px !important;
+  }
+}
+
+/* 360–430px: standard mobile dock */
+@media (min-width: 360px) and (max-width: 430px) {
+  .dock-container {
+    max-width: 400px !important;
+  }
+}
+
+/* Dock items: touch targets ≥44px height */
+.dock-item {
+  min-height: 44px;
+}
+
+/* Landscape + short screen: hide dock to reclaim vertical space */
+@media (orientation: landscape) and (max-height: 540px) {
+  .kura-mobile-dock {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   6. HERO / BILLBOARD
+   ============================================================ */
+
+/* Hero image: always fixed aspect ratio to prevent CLS */
+.hero-cover-frame,
+.hero-backdrop {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .hero-cover-frame,
+  .hero-backdrop {
+    max-height: 560px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero-cover-frame,
+  .hero-backdrop {
+    max-height: 640px;
+  }
+}
+
+/* Hero text: fluid sizing to avoid overflow on 320px */
+.hero-title {
+  font-size: var(--text-fluid-2xl, clamp(1.25rem, 4.5vw, 1.5rem));
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  text-wrap: balance;
+}
+
+.hero-subtitle {
+  font-size: var(--text-fluid-sm, clamp(0.75rem, 2vw, 0.8125rem));
+}
+
+/* ============================================================
+   7. CARD & GRID SYSTEM
+   ============================================================ */
+
+/* Base responsive grid: mobile-first */
+.kura-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* 360px */
+@media (min-width: 360px) {
+  .kura-responsive-grid {
+    gap: 12px;
+  }
+}
+
+/* 480px: small phone landscape / large phone */
+@media (min-width: 480px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+/* 640px */
+@media (min-width: 640px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+/* 768px: tablet */
+@media (min-width: 768px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+/* 1024px: laptop */
+@media (min-width: 1024px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* 1280px: desktop */
+@media (min-width: 1280px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* 1440px: large desktop */
+@media (min-width: 1440px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 22px;
+  }
+}
+
+/* 1920px+: ultrawide */
+@media (min-width: 1920px) {
+  .kura-responsive-grid {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+/* Comic card: always maintain 2:3 aspect ratio on grid view */
+.kura-comic-card .cover-container,
+.cover-container[style*="aspect-ratio"] {
+  aspect-ratio: 2 / 3;
+}
+
+/* Ensure no card ever grows too wide on widescreen */
+.kura-comic-card {
+  max-width: 240px; /* prevent enormous cards on ultrawide */
+}
+
+.kura-responsive-grid .kura-comic-card {
+  max-width: none; /* within grid, let grid control size */
+}
+
+/* ============================================================
+   8. HORIZONTAL SCROLL RAILS (Trending, Continue Reading)
+   ============================================================ */
+
+.kura-scroll-rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  padding-left: max(12px, var(--safe-area-left, 0px));
+  padding-right: max(12px, var(--safe-area-right, 0px));
+  /* Smooth momentum scroll on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+}
+
+.kura-scroll-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Rail item min/max sizing */
+.kura-scroll-rail-item {
+  flex-shrink: 0;
+  width: clamp(120px, 35vw, 180px);
+}
+
+@media (min-width: 768px) {
+  .kura-scroll-rail-item {
+    width: clamp(140px, 20vw, 200px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .kura-scroll-rail-item {
+    width: clamp(160px, 14vw, 220px);
+  }
+}
+
+/* ============================================================
+   9. LIST VIEW
+   ============================================================ */
+
+/* List view cards: prevent overflow on narrow screens */
+.kura-comic-card.view-list {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* At 320px: reduce thumbnail to prevent overflow */
+@media (max-width: 359px) {
+  .view-list .cover-container {
+    width: 56px !important;
+    height: 84px !important;
+  }
+
+  .view-list .comic-title {
+    font-size: var(--text-sm, 0.8125rem) !important;
+  }
+}
+
+/* ============================================================
+   10. TYPOGRAPHY FLUID SCALE
+   ============================================================ */
+
+/* Apply fluid typography to key heading elements */
+h1 { font-size: var(--text-fluid-hero); }
+h2 { font-size: var(--text-fluid-2xl); }
+h3 { font-size: var(--text-fluid-xl); }
+h4 { font-size: var(--text-fluid-lg); }
+h5 { font-size: var(--text-fluid-md); }
+h6 { font-size: var(--text-fluid-base); }
+
+/* Asian title wrapping — use overflow-wrap for CJK characters */
+.manga-title,
+.comic-title,
+.video-title {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Section headings: balanced line wrapping */
+.section-heading,
+.view-heading,
+.releases-title {
+  text-wrap: balance;
+}
+
+/* Body text: natural wrapping */
+.synopsis,
+.comic-synopsis,
+.description {
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   11. BUTTONS & TOUCH TARGETS
+   ============================================================ */
+
+/* All interactive elements: minimum 44px touch target on mobile */
+@media (max-width: 768px) {
+  button,
+  [role="button"],
+  a,
+  .nav-item,
+  .dock-item,
+  .filter-tab,
+  .header-link,
+  .browse-all-btn {
+    min-height: var(--touch-target-min, 44px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Exception: decorative / non-interactive elements */
+  .theme-dot {
+    min-height: unset;
+    display: block;
+  }
+}
+
+/* Bookmark button in card: expand touch area without visual change */
+.bookmark-btn {
+  /* Use padding to expand the touch target */
+  padding: 10px !important;
+  margin: -10px !important; /* negative margin to keep visual position */
+  /* Fallback: minimum visual size */
+  min-width: 36px;
+  min-height: 36px;
+}
+
+@media (max-width: 768px) {
+  .bookmark-btn {
+    padding: 12px !important;
+    margin: -12px !important;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Icon action buttons in header: 44px on mobile */
+@media (max-width: 768px) {
+  .icon-action-btn,
+  .user-avatar-btn,
+  .action-pill {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Small adjustment for action-pill gap */
+  .action-pill {
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   12. FORMS & INPUTS
+   ============================================================ */
+
+/* All inputs/selects: ≥44px height on mobile */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="url"],
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px !important; /* Prevent iOS zoom-in on focus */
+    border-radius: var(--radius-md, 10px);
+  }
+}
+
+/* Search bar: fluid width */
+.search-bar,
+.kura-search-bar {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .search-bar,
+  .kura-search-bar {
+    max-width: 440px;
+  }
+}
+
+/* Prevent number input spinner from breaking layout */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ============================================================
+   13. IMAGES & MEDIA
+   ============================================================ */
+
+/* All images: block, constrained, never overflow */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Poster/cover images: always honor aspect-ratio */
+.poster-img,
+.cover-img,
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Video thumbnails: 16:9 aspect ratio, prevent CLS */
+.video-thumbnail,
+.video-thumb-container {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--kura-surface);
+}
+
+/* Manga reader images: full width, auto height */
+.reader-page-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 900px; /* prevent too-wide on ultrawide */
+  margin: 0 auto;
+}
+
+/* ============================================================
+   14. MODAL / DIALOG / BOTTOM SHEET
+   ============================================================ */
+
+/* Mobile: modals become full-width bottom sheets */
+@media (max-width: 768px) {
+  .kura-modal,
+  .kura-dialog {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: var(--radius-xl, 20px) var(--radius-xl, 20px) 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-bottom: calc(16px + var(--mobile-safe-bottom));
+  }
+}
+
+/* Desktop: centered overlay */
+@media (min-width: 768px) {
+  .kura-modal,
+  .kura-dialog {
+    max-width: min(600px, 90vw);
+    max-height: 80vh;
+    border-radius: var(--radius-lg, 14px);
+    overflow-y: auto;
+  }
+}
+
+/* Overlay backdrop */
+.kura-modal-overlay,
+.kura-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .kura-modal-overlay,
+  .kura-dialog-overlay {
+    align-items: center;
+  }
+}
+
+/* ============================================================
+   15. TABS
+   ============================================================ */
+
+/* Tabs: horizontal scroll on narrow viewports */
+.kura-tabs-list,
+.tab-list {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px; /* prevent bottom cut-off */
+}
+
+.kura-tabs-list::-webkit-scrollbar,
+.tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tab items: minimum touch target */
+.kura-tab,
+.tab-item {
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+@media (max-width: 768px) {
+  .kura-tab,
+  .tab-item {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+}
+
+/* ============================================================
+   16. BADGES & CHIPS
+   ============================================================ */
+
+/* Badges should not overflow their parent */
+.kura-badge,
+.badge,
+.genre-tag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Filter chips: scroll horizontally on mobile */
+.filter-pills-bar,
+.genre-chips-bar,
+.type-chips-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.filter-pills-bar::-webkit-scrollbar,
+.genre-chips-bar::-webkit-scrollbar,
+.type-chips-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Genre filter row in header: keep flex but scroll */
+.genres-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: hidden;
+}
+
+/* ============================================================
+   17. PAGINATION
+   ============================================================ */
+
+/* Pagination container: scrollable on very narrow viewports */
+.kura-pagination-bar {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.kura-pagination-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Stack pagination controls on small screens */
+@media (max-width: 479px) {
+  .kura-pagination-bar {
+    flex-direction: column !important;
+    align-items: center;
+    gap: 8px !important;
+  }
+
+  /* Quick jump: hide on 320px to prevent overflow */
+  .quick-jump-wrap {
+    display: none !important;
+  }
+
+  /* Page number strip: compact */
+  .page-number-btn {
+    min-width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+/* Prev/Next arrows: always 44px touch target on mobile */
+@media (max-width: 768px) {
+  .nav-arrow-btn {
+    min-height: 44px !important;
+    padding: 0 12px !important;
+  }
+}
+
+/* ============================================================
+   18. TABLES
+   ============================================================ */
+
+/* Tables: horizontal scroll wrapper */
+.table-wrap,
+.kura-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 520px; /* ensures scroll kicks in before squishing */
+  width: 100%;
+}
+
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: var(--text-fluid-sm);
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  th, td {
+    padding: 12px 16px;
+    white-space: normal;
+  }
+}
+
+/* ============================================================
+   19. FOOTER
+   ============================================================ */
+
+.kura-footer {
+  padding: 24px max(12px, var(--safe-area-left, 0px));
+  padding-bottom: calc(24px + var(--mobile-safe-bottom));
+}
+
+@media (min-width: 768px) {
+  .kura-footer {
+    padding: 32px 24px;
+  }
+}
+
+/* Footer grid: single column on mobile, multi-column on desktop */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================================
+   20. LOADING / SKELETON STATE
+   ============================================================ */
+
+/* Skeleton grid follows the same responsive grid */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* Comic skeleton: preserve 2:3 aspect ratio */
+.comic-skeleton-cover {
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-md);
+  background: var(--kura-surface);
+  overflow: hidden;
+}
+
+/* Video skeleton: preserve 16:9 */
+.video-skeleton-cover {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--kura-surface);
+  overflow: hidden;
+}
+
+/* ============================================================
+   21. EMPTY STATE
+   ============================================================ */
+
+.empty-state,
+.kura-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: clamp(32px, 10vw, 64px) 16px;
+  text-align: center;
+  border: 1px dashed var(--kura-border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--kura-text-muted);
+}
+
+.empty-state-icon {
+  opacity: 0.4;
+}
+
+.empty-state-title {
+  font-size: var(--text-fluid-lg);
+  font-weight: 600;
+  color: var(--kura-text-primary);
+}
+
+.empty-state-description {
+  font-size: var(--text-fluid-sm);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   22. ERROR STATE
+   ============================================================ */
+
+.error-state,
+.kura-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: clamp(32px, 10vw, 64px) 16px;
+  text-align: center;
+  border: 1px dashed var(--kura-danger, #EF4444);
+  border-radius: var(--radius-lg);
+  color: var(--kura-danger, #EF4444);
+}
+
+.error-state-title {
+  font-size: var(--text-fluid-lg);
+  font-weight: 700;
+}
+
+.error-state-message {
+  font-size: var(--text-fluid-sm);
+  color: var(--kura-text-muted);
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+.retry-btn,
+.error-retry-btn {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  background: var(--kura-surface);
+  border: 1px solid var(--kura-danger, #EF4444);
+  color: var(--kura-text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.retry-btn:hover,
+.error-retry-btn:hover {
+  background: var(--kura-danger, #EF4444);
+  color: #fff;
+}
+
+/* ============================================================
+   23. STICKY / FIXED ELEMENT COMPENSATION
+   ============================================================ */
+
+/* Content areas that need to push below sticky header */
+.main-content-area,
+.kura-main-canvas > * {
+  /* No explicit top padding here; header is sticky-top, page scrolls below it */
+}
+
+/* Reader mode: full-screen, no dock, no header offsets */
+.full-screen-reader {
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Download queue drawer: account for safe area on mobile */
+.download-drawer,
+.kura-drawer {
+  padding-bottom: calc(16px + var(--mobile-safe-bottom));
+}
+
+/* ============================================================
+   24. SPACING UTILITIES (RESPONSIVE)
+   ============================================================ */
+
+/* Responsive gap utilities */
+.gap-responsive {
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .gap-responsive {
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .gap-responsive {
+    gap: 24px;
+  }
+}
+
+/* Section spacing */
+.section-gap {
+  margin-bottom: clamp(24px, 5vw, 48px);
+}
+
+/* ============================================================
+   25. WIDTH / HEIGHT UTILITIES
+   ============================================================ */
+
+/* Full-bleed on mobile, constrained on desktop */
+.full-bleed {
+  width: 100%;
+}
+
+/* Prevent images/embeds from busting layout */
+.fluid-media {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+/* ============================================================
+   26. OVERFLOW GUARD
+   ============================================================ */
+
+/* Global overflow protection: text should never burst containers */
+.overflow-guard {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Flex children that should not stretch beyond parent */
+.flex-min-zero {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ============================================================
+   27. TEXT WRAPPING
+   ============================================================ */
+
+/* Enforce wrapping on narrow viewports */
+@media (max-width: 430px) {
+  .kura-topbar,
+  .topbar-actions {
+    flex-wrap: nowrap; /* actions should stay in one row */
+    overflow: hidden;
+  }
+}
+
+/* Long titles: break anywhere to prevent horizontal overflow */
+.break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ============================================================
+   28. INTERACTION & FOCUS VISIBILITY
+   ============================================================ */
+
+/* Focus-visible: always show keyboard focus ring */
+:focus-visible {
+  outline: 2px solid var(--kura-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs, 4px);
+}
+
+/* Remove default focus ring but preserve :focus-visible */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Hover states: subtle feedback on desktop, no hover on touch */
+@media (hover: hover) and (pointer: fine) {
+  .kura-comic-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .kura-glass-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Active tap state: scale feedback for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .kura-comic-card:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  .dock-item:active {
+    transform: scale(0.92);
+  }
+}
+
+/* Reduced motion: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  .kura-comic-card,
+  .kura-glass-card,
+  .dock-item,
+  .nav-item,
+  .browse-all-btn {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
   }
 }

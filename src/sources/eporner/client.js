@@ -49,6 +49,7 @@ export async function fetchEpornerJson(url, config) {
  * @returns {Promise<string>}
  */
 export async function fetchEpornerHtml(url, config) {
+  const isVideoPage = url.includes('/video-');
   const res = await fetchThroughProxy(
     url,
     {
@@ -57,10 +58,18 @@ export async function fetchEpornerHtml(url, config) {
         Accept: 'text/html',
         'Accept-Language': 'en-US,en;q=0.9',
         Referer: REFERER,
+        Cookie: 'age_verified=1; age_confirmed=1; warn=1; epsamples=1',
       },
       signal: AbortSignal.timeout(config.timeoutMs),
     },
-    { validate: validators.html('eporner') }
+    {
+      validate: isVideoPage
+        ? async (r) => {
+            const text = (await r.text()).toLowerCase();
+            return text.includes('eporner') && text.includes('/dload/');
+          }
+        : validators.html('eporner'),
+    }
   );
 
   if (!res.ok) {

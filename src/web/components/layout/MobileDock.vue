@@ -6,6 +6,7 @@
         :key="tab.id"
         class="dock-item"
         :class="{ active: currentTab === tab.id }"
+        :aria-label="tab.label"
         @click="$emit('navigate', tab.id)"
       >
         <div class="dock-icon-box">
@@ -76,7 +77,7 @@ const tabs = [
 
 .dock-container {
   pointer-events: auto;
-  width: auto;
+  width: min(100vw - 22px, 380px);
   min-width: 260px;
   max-width: 380px;
   height: 48px;
@@ -101,6 +102,8 @@ const tabs = [
   gap: 6px;
   padding: 6px 12px;
   height: 38px;
+  flex: 1 1 0;
+  min-width: 0;
   border-radius: var(--radius-pill);
   color: var(--kura-text-muted);
   border: 1px solid transparent;
@@ -120,6 +123,7 @@ const tabs = [
   border-color: var(--kura-accent-border, rgba(255, 107, 0, 0.35));
   box-shadow: 0 3px 12px var(--kura-accent-glow, rgba(255, 107, 0, 0.18));
   padding: 6px 15px;
+  flex: 1.18 1 0;
 }
 
 .dock-icon-box {
@@ -147,6 +151,7 @@ const tabs = [
   font-weight: 700;
   letter-spacing: 0.02em;
   animation: fadeIn 0.18s ease-out;
+  white-space: nowrap;
 }
 
 @keyframes fadeIn {
@@ -160,9 +165,45 @@ const tabs = [
   }
 }
 
+/* 320px: very narrow dock */
+@media (max-width: 359px) {
+  .dock-container {
+    min-width: 0;
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    padding: 3px 4px;
+    gap: 2px;
+  }
+
+  .dock-item {
+    padding: 5px 8px;
+    height: 40px;
+    min-height: 40px; /* relaxed on very narrow */
+    flex: 1;
+  }
+
+  .dock-item.active {
+    padding: 5px 10px;
+    flex: 1.1;
+  }
+
+  .dock-label {
+    font-size: 10px;
+  }
+}
+
+/* Standard mobile: 360–768px */
+@media (min-width: 360px) and (max-width: 768px) {
+  .dock-container {
+    max-width: min(400px, calc(100vw - 24px));
+  }
+}
+
+/* Landscape + short screen: hide dock to reclaim vertical space */
 @media (orientation: landscape) and (max-height: 540px) {
   .kura-mobile-dock {
     display: none !important;
   }
 }
+
 </style>

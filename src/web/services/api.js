@@ -19,6 +19,10 @@ export function setDevModeActive(active) {
   localStorage.setItem('kura_dev_mode', active ? 'true' : 'false');
 }
 
+export async function fetchRuntimeConfig({ forceRefresh = false } = {}) {
+  return await fetchJson('/health', { forceRefresh }, 'system');
+}
+
 async function fetchJson(endpoint, options = {}, category = 'default') {
   const isDev = isDevModeActive();
   const prefix = isDev ? '/mode-pengembangan/api' : '/api';

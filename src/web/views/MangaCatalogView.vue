@@ -395,7 +395,7 @@ onMounted(async () => {
 }
 
 .catalog-search-wrap {
-  min-width: 280px;
+  min-width: 0;
   max-width: 400px;
   width: 100%;
 }
@@ -462,6 +462,7 @@ onMounted(async () => {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem;
+  min-width: 0;
 }
 
 .pill-group {
@@ -571,39 +572,128 @@ onMounted(async () => {
   gap: 2rem;
 }
 
-/* 100% Symmetrical Grid (2, 3, 4, 6 columns dividing 24 exactly) */
+/* 100% Symmetrical Grid — full 9-viewport matrix */
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
+/* 360px */
+@media (min-width: 360px) {
+  .catalog-grid {
+    gap: 12px;
+  }
+}
+
+/* 480px: 3 col */
+@media (min-width: 480px) {
+  .catalog-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+/* 640px */
 @media (min-width: 640px) {
   .catalog-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
+    gap: 16px;
   }
 }
 
+/* 768px: tablet — 4 col */
+@media (min-width: 768px) {
+  .catalog-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+}
+
+/* 1024px: laptop — 4 col */
 @media (min-width: 1024px) {
   .catalog-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
+    gap: 20px;
   }
 }
 
+/* 1280px: desktop — 5 col */
+@media (min-width: 1280px) {
+  .catalog-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+  }
+}
+
+/* 1440px: large desktop — 6 col */
 @media (min-width: 1440px) {
   .catalog-grid {
     grid-template-columns: repeat(6, 1fr);
-    gap: 1.5rem;
+    gap: 22px;
   }
 }
 
+/* 1920px+: ultrawide — 8 col */
+@media (min-width: 1920px) {
+  .catalog-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 24px;
+  }
+}
+
+/* Mobile filter: hide divider on small screens */
 @media (max-width: 640px) {
   .filter-divider {
     display: none;
   }
+
+  /* Prevent iOS zoom on input focus (font-size must be ≥ 16px) */
+  .search-input {
+    font-size: 16px !important;
+  }
+
+  /* Mobile search box: 44px height for touch */
+  .search-box {
+    min-height: 44px;
+  }
+
+  /* catalog view: tighter padding on mobile */
+  .kura-catalog-view {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  /* catalog hero bar: tighter */
+  .catalog-hero-bar {
+    padding: 1rem;
+  }
+
+  .catalog-search-wrap {
+    max-width: 100%;
+  }
+
+  /* filter pills: scrollable horizontally */
+  .filter-pills-row {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .filter-pills-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* make filter pill touch targets meet 44px */
+  .filter-pill-btn {
+    min-height: 36px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 }
+
 
 .active-chips-strip {
   display: flex;

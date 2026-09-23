@@ -47,14 +47,14 @@ export async function scrapeNekoList(page = 1) {
   const html = await fetchNekoHtml(path, state);
   const videos = parseCards(html, state.baseUrl);
   const hasNext = html.includes(`/page/${safePage + 1}/`);
-  return { videos, hasNext };
+  return { videos, hasNext, page: safePage, total: null };
 }
 
 /**
  * Fetch videos by category (e.g. hentai, jav, 2d-animation).
  * @param {string} category - category slug
  * @param {number} [page=1]
- * @returns {Promise<{videos: Array, hasNext: boolean}>}
+ * @returns {Promise<{videos: Array, hasNext: boolean, page: number, total: null}>}
  */
 export async function scrapeNekoCategory(category, page = 1) {
   const safeCategory = assertSlug(category, 'category');
@@ -64,7 +64,12 @@ export async function scrapeNekoCategory(category, page = 1) {
       ? `/category/${encodeURIComponent(safeCategory)}/`
       : `/category/${encodeURIComponent(safeCategory)}/page/${safePage}/`;
   const html = await fetchNekoHtml(path, state);
-  return { videos: parseCards(html, state.baseUrl), hasNext: html.includes(`/page/${safePage + 1}/`) };
+  return {
+    videos: parseCards(html, state.baseUrl),
+    hasNext: html.includes(`/page/${safePage + 1}/`),
+    page: safePage,
+    total: null,
+  };
 }
 
 /**
@@ -114,7 +119,7 @@ export async function scrapeNekoGenres() {
  * Fetch videos from a genre page.
  * @param {string} slug - genre slug
  * @param {number} [page=1]
- * @returns {Promise<{videos: Array, hasNext: boolean}>}
+ * @returns {Promise<{videos: Array, hasNext: boolean, page: number, total: null}>}
  */
 export async function scrapeNekoGenre(slug, page = 1) {
   const safeSlug = assertSlug(slug, 'slug');
@@ -126,7 +131,7 @@ export async function scrapeNekoGenre(slug, page = 1) {
   const html = await fetchNekoHtml(path, state);
   const videos = parseCards(html, state.baseUrl);
   const hasNext = html.includes(`/genres/${encodeURIComponent(safeSlug)}/page/${safePage + 1}/`);
-  return { videos, hasNext };
+  return { videos, hasNext, page: safePage, total: null };
 }
 
 /**

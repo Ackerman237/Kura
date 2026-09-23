@@ -133,7 +133,7 @@ const emit = defineEmits(['toggle-bookmark', 'share']);
 
 .title-wrap {
   flex: 1;
-  min-width: 260px;
+  min-width: 0;
 }
 
 .video-main-title {
@@ -156,6 +156,7 @@ const emit = defineEmits(['toggle-bookmark', 'share']);
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .meta-btn {

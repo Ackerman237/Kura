@@ -228,8 +228,9 @@ function formatSize(bytes) {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px 8px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 8px;
 }
-.dp-title { font-size: 0.78rem; font-weight: 700; color: var(--kura-text-primary, #fff); }
+.dp-title { font-size: 0.78rem; font-weight: 700; color: var(--kura-text-primary, #fff); min-width: 0; }
 .dp-add-all {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 0.7rem; font-weight: 600;
@@ -240,6 +241,21 @@ function formatSize(bytes) {
   transition: all 0.15s ease;
 }
 .dp-add-all:hover { background: rgba(229,169,60,0.2); }
+
+@media (max-width: 480px) {
+  .dp-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dp-title {
+    flex: 1 1 100%;
+  }
+
+  .dp-add-all {
+    min-height: 36px;
+  }
+}
 
 .dp-source-list { padding: 8px 0; }
 .dp-source-row {

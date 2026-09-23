@@ -30,6 +30,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
+# Install curl for DoH fallback in image proxy and player frame routes
+RUN apk add --no-cache curl
+
 # Install production dependencies only
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force

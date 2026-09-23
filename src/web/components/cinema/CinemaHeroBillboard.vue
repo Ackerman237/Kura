@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Play, Tv, Eye, Star } from 'lucide-vue-next';
+import { resolveProxyUrl } from '../../utils/media.js';
 
 const props = defineProps({
   video: {
@@ -25,7 +26,7 @@ const emit = defineEmits(['select-video']);
     <div
       class="hero-ambient-backdrop"
       :class="{ 'privacy-blur': isPrivacyMode }"
-      :style="{ backgroundImage: `url(${video.thumb || video.poster || ''})` }"
+      :style="{ backgroundImage: `url(${resolveProxyUrl(video.thumb || video.poster || '')})` }"
       aria-hidden="true"
     ></div>
     <div class="hero-backdrop-scrim"></div>
@@ -231,15 +232,50 @@ const emit = defineEmits(['select-video']);
 
 @media (max-width: 640px) {
   .hero-content {
-    padding: 20px;
-    flex-direction: column;
+    padding: 14px;
+    flex-direction: row;
+    gap: 12px;
     align-items: flex-start;
   }
+
+  /* Thumbnail: kiri, kecil, 16:9 */
   .hero-poster-preview {
-    display: none;
+    flex-shrink: 0;
+    width: 110px;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-sm, 6px);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    align-self: flex-start;
+    order: -1;
+    display: block;
   }
+
+  /* Meta: kanan */
+  .hero-meta {
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+  }
+
   .hero-title {
-    font-size: 1.2rem;
+    font-size: 0.92rem;
+    line-height: 1.3;
+    -webkit-line-clamp: 3;
+  }
+
+  .hero-tag-row {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .play-hero-cta {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 0.78rem;
+    width: 100%;
+    justify-content: center;
   }
 }
 

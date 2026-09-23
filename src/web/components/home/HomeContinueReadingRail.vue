@@ -115,12 +115,16 @@ onMounted(() => {
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 6px;
+  padding-left: max(0px, var(--safe-area-left, 0px));
+  padding-right: max(0px, var(--safe-area-right, 0px));
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .continue-card {
   flex-shrink: 0;
-  width: 220px;
+  /* Fluid: 180px on 320px, up to 240px on wide screens */
+  width: clamp(160px, 55vw, 240px);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -130,7 +134,16 @@ onMounted(() => {
   border-radius: var(--radius-md, 8px);
   cursor: pointer;
   transition: all 0.2s ease;
+  touch-action: manipulation;
+  min-height: 44px; /* minimum touch target height */
 }
+
+@media (min-width: 768px) {
+  .continue-card {
+    width: clamp(200px, 25vw, 260px);
+  }
+}
+
 
 .continue-card:hover {
   border-color: var(--kura-accent, #e5a93c);

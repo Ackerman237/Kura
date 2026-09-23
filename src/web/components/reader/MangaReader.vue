@@ -22,6 +22,8 @@ import {
 } from 'lucide-vue-next';
 import ReaderSettingsModal from './ReaderSettingsModal.vue';
 
+import { useReaderEngine } from '../../composables/useReaderEngine.js';
+
 const props = defineProps({
   mangaSlug: {
     type: String,
@@ -66,82 +68,8 @@ const fitMode = ref('width'); // 'width' | 'height' | 'original'
 const currentPage = ref(1);
 let hideTimer = null;
 
-// Reader Settings & Auto-Play Engine
-const isSettingsOpen = ref(false);
-const showThumbScrubber = ref(false);
-const isAutoPlaying = ref(false);
-
-const DEFAULT_SETTINGS = {
-  maxWidthPreset: '1000px',
-  customMaxWidth: 1000,
-  zoomScale: 100,
-  fitMode: 'width',
-  readerMode: 'strip',
-  direction: 'ltr',
-  autoScrollSpeed: 30,
-  pagedInterval: 5,
-  comfortFilter: 'normal',
-};
-
-const readerSettings = ref({ ...DEFAULT_SETTINGS });
-
-function loadSavedSettings() {
-  try {
-    const raw = localStorage.getItem('kura_reader_settings');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      readerSettings.value = { ...DEFAULT_SETTINGS, ...parsed };
-      if (parsed.readerMode) mode.value = parsed.readerMode;
-      if (parsed.fitMode) fitMode.value = parsed.fitMode;
-    }
-  } catch (_) {}
-}
-
-let autoPlayFrame = null;
-let pagedAutoTimer = null;
-
-function startAutoPlay() {
-  isAutoPlaying.value = true;
-  if (mode.value === 'strip') {
-    let lastTime = performance.now();
-    const scrollStep = (time) => {
-      if (!isAutoPlaying.value) return;
-      const delta = (time - lastTime) / 1000;
-      lastTime = time;
-      const distance = (readerSettings.value.autoScrollSpeed || 30) * delta;
-      const containerEl = containerProps?.ref?.value;
-      if (containerEl) {
-        containerEl.scrollTop += distance;
-      } else {
-        window.scrollBy(0, distance);
-      }
-      autoPlayFrame = requestAnimationFrame(scrollStep);
-    };
-    autoPlayFrame = requestAnimationFrame(scrollStep);
-  } else {
-    if (pagedAutoTimer) clearInterval(pagedAutoTimer);
-    pagedAutoTimer = setInterval(() => {
-      if (!isAutoPlaying.value) return;
-      nextPaged();
-    }, (readerSettings.value.pagedInterval || 5) * 1000);
-  }
-}
-
-function stopAutoPlay() {
-  isAutoPlaying.value = false;
-  if (autoPlayFrame) cancelAnimationFrame(autoPlayFrame);
-  if (pagedAutoTimer) clearInterval(pagedAutoTimer);
-  autoPlayFrame = null;
-  pagedAutoTimer = null;
-}
-
-function toggleAutoPlay() {
-  if (isAutoPlaying.value) {
-    stopAutoPlay();
-  } else {
-    startAutoPlay();
-  }
-}
+// Fullscreen API
+const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
 function goToPage(page) {
   currentPage.value = page;
@@ -149,9 +77,6 @@ function goToPage(page) {
     scrollTo(page - 1);
   }
 }
-
-// Fullscreen API
-const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
 // Track reading progress
 const persistProgress = (page) => {
@@ -243,6 +168,20 @@ const prevPaged = () => {
   }
 };
 
+// Reader Engine (Settings, Auto-Play & Persistence)
+const {
+  readerSettings,
+  isAutoPlaying,
+  isSettingsOpen,
+  showThumbScrubber,
+  toggleAutoPlay,
+} = useReaderEngine({
+  mode,
+  fitMode,
+  containerRef: containerProps?.ref,
+  onNextPaged: nextPaged,
+});
+
 // Page Slider Jump
 const onSliderChange = (e) => {
   const page = parseInt(e.target.value, 10);
@@ -306,13 +245,11 @@ const handleKeydown = (e) => {
 };
 
 onMounted(() => {
-  loadSavedSettings();
   window.addEventListener('keydown', handleKeydown);
   resetHideTimer();
 });
 
 onUnmounted(() => {
-  stopAutoPlay();
   window.removeEventListener('keydown', handleKeydown);
   if (hideTimer) clearTimeout(hideTimer);
 });

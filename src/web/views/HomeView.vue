@@ -70,8 +70,9 @@ const displayComics = computed(() => {
 .kura-home-view {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: clamp(20px, 5vw, 40px);
   padding-top: 20px;
-  padding-bottom: 56px;
+  padding-bottom: var(--page-bottom-clearance, 80px);
 }
+
 </style>

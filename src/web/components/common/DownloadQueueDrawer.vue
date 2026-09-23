@@ -177,8 +177,8 @@ const allDone = computed(() => queue.value.length > 0 && queue.value.every((i) =
 }
 
 .queue-drawer {
-  width: 420px;
-  max-width: 100vw;
+  width: min(420px, 100%);
+  max-width: 100%;
   max-height: calc(100vh - 80px);
   background: #17181e;
   border: 1px solid rgba(255,255,255,0.1);
@@ -193,6 +193,8 @@ const allDone = computed(() => queue.value.length > 0 && queue.value.every((i) =
   padding: 16px 16px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
+  gap: 10px;
+  min-width: 0;
 }
 .drawer-title-group {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -211,7 +213,7 @@ const allDone = computed(() => queue.value.length > 0 && queue.value.every((i) =
 .count-pill.queued { background: rgba(99,102,241,0.2); color: #818cf8; }
 .count-pill.done { background: rgba(52,211,153,0.15); color: #34d399; }
 
-.drawer-actions { display: flex; align-items: center; gap: 6px; }
+.drawer-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .ctrl-btn {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 5px 10px; border-radius: 6px;
@@ -224,6 +226,21 @@ const allDone = computed(() => queue.value.length > 0 && queue.value.every((i) =
 .ctrl-btn:hover { background: rgba(255,255,255,0.1); }
 .ctrl-btn.ghost { background: transparent; border-color: transparent; color: var(--kura-text-muted, #94a3b8); }
 .ctrl-btn.close-btn { padding: 5px 7px; }
+
+@media (max-width: 480px) {
+  .drawer-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .drawer-title-group {
+    flex: 1 1 100%;
+  }
+
+  .drawer-actions {
+    width: 100%;
+  }
+}
 
 .drawer-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;

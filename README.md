@@ -8,7 +8,7 @@
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge" alt="GPL-3.0 License" /></a>
     <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-%E2%89%A518.17-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" /></a>
-    <img src="https://img.shields.io/badge/Tests-178%20Passing-34D399?style=for-the-badge&logo=node.js&logoColor=white" alt="Tests" />
+    <img src="https://img.shields.io/badge/Tests-195%20Passing-34D399?style=for-the-badge&logo=node.js&logoColor=white" alt="Tests" />
     <img src="https://img.shields.io/badge/PWA-Ready-9333EA?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
     <img src="https://img.shields.io/badge/Security-SSRF%20%26%20CSP%20Guarded-E8613C?style=for-the-badge" alt="Security" />
   </p>
@@ -117,7 +117,7 @@ cd self-hosted-manga-and-anime
 docker compose up -d
 ```
 
-Open `http://localhost:3000` in your web browser.
+Open `http://localhost:4000` in your web browser.
 
 ---
 
@@ -146,7 +146,7 @@ npm run build:web
 npm start
 ```
 
-Visit `http://localhost:3000` to start using Kura.
+Visit `http://localhost:4000` to start using Kura.
 
 ---
 
@@ -155,7 +155,7 @@ Visit `http://localhost:3000` to start using Kura.
 Kura includes a comprehensive test suite covering scrapers, security policies, and parsers:
 
 ```bash
-# Execute all 164 unit & integration tests
+# Execute the unit and integration tests under `test/`
 npm test
 ```
 

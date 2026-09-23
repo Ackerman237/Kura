@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { RefreshCw, Maximize2, Minimize2, Tv, Server, ArrowLeft } from 'lucide-vue-next';
+import { fetchRuntimeConfig } from '../../services/api.js';
 
 const props = defineProps({
   video: {
@@ -26,6 +27,27 @@ const emit = defineEmits(['back']);
 const isTheaterMode = ref(false);
 const frameKey = ref(0);
 const selectedServerIdx = ref(0);
+const directEmbedHosts = ref(['nhplayer.com', 'playmogo.com', 'streampoi.com']);
+
+const matchesDirectEmbedHost = (url = '') => {
+  const target = String(url || '').toLowerCase();
+  return directEmbedHosts.value.some((host) => target.includes(String(host).toLowerCase()));
+};
+
+onMounted(async () => {
+  try {
+    const config = await fetchRuntimeConfig({ forceRefresh: true });
+    const hosts = Array.isArray(config?.directEmbedHosts)
+      ? config.directEmbedHosts
+      : ['nhplayer.com', 'playmogo.com', 'streampoi.com'];
+
+    directEmbedHosts.value = hosts
+      .map((host) => String(host).trim().toLowerCase())
+      .filter(Boolean);
+  } catch (error) {
+    console.warn('[WatchPlayerContainer] Failed to load direct embed hosts, keeping defaults.', error);
+  }
+});
 
 // Reset server index on video change
 watch(
@@ -40,12 +62,27 @@ watch(
 const availableServers = computed(() => {
   if (!props.detail) return [];
 
-  // NekoPoi players array
+  // NekoPoi players array: prioritize stable HLS streams (e.g. streampoi)
   if (Array.isArray(props.detail.players) && props.detail.players.length > 0) {
-    return props.detail.players.map((url, idx) => ({
-      name: `Server ${idx + 1}`,
+    const sorted = [...props.detail.players].sort((a, b) => {
+      const aIsStream = a.includes('streampoi');
+      const bIsStream = b.includes('streampoi');
+      if (aIsStream && !bIsStream) return -1;
+      if (!aIsStream && bIsStream) return 1;
+      return 0;
+    });
+
+    return sorted.map((url, idx) => ({
+      name: `Server ${idx + 1}${url.includes('streampoi') ? ' (HLS Stabil)' : ''}`,
       url,
     }));
+  }
+
+  // Eporner embed URL (routes through sanitized player-frame to avoid ISP / referer blocking)
+  if (props.provider === 'tube' || props.video?.source === 'eporner') {
+    const slug = props.video.slug || props.video.id || '';
+    const embedUrl = props.detail?.embedUrl || `https://www.eporner.com/embed/${slug}/`;
+    return [{ name: 'Server 1 (Embed Stream)', url: embedUrl }];
   }
 
   // HentaiTV or generic embed URL
@@ -58,32 +95,48 @@ const availableServers = computed(() => {
 });
 
 // Check if direct MP4 stream is available (e.g. Eporner detail.src)
+// Proxied via /api/video/download/stream to bypass ISP SNI blocks and enforce upstream referer
 const directMp4Sources = computed(() => {
-  if (props.detail?.src && Array.isArray(props.detail.src) && props.detail.src.length > 0) {
-    return props.detail.src;
+  if (Array.isArray(props.detail?.src) && props.detail.src.length > 0) {
+    return props.detail.src.map((s) => ({
+      label: s.label || 'MP4',
+      url: `/api/video/download/stream?url=${encodeURIComponent(s.url)}&inline=1`,
+      type: 'video/mp4',
+    }));
   }
   return null;
 });
 
-// Trusted direct player hosts recognized for video stream integration (nhplayer.com, playmogo, streampoi)
-const playerAllowedHosts = ['nhplayer.com', 'playmogo.com', 'streampoi.com'];
-
 const isDirectPlayer = computed(() => {
   if (availableServers.value.length === 0) return false;
   const activeUrl = (availableServers.value[selectedServerIdx.value] || availableServers.value[0])?.url || '';
-  return playerAllowedHosts.some((h) => activeUrl.includes(h));
+  return matchesDirectEmbedHost(activeUrl);
 });
 
 const iframeSrc = computed(() => {
   if (availableServers.value.length > 0) {
     const activeServer = availableServers.value[selectedServerIdx.value] || availableServers.value[0];
     const targetUrl = activeServer.url;
+
+    if (matchesDirectEmbedHost(targetUrl)) {
+      return targetUrl;
+    }
+
     const slug = props.video.slug || props.video.id || '';
     return `/api/video/player-frame?url=${encodeURIComponent(targetUrl)}&slug=${encodeURIComponent(slug)}`;
   }
 
+  // Fallback: construct URL from provider and detail data
   const slug = props.video.slug || props.video.id || '';
-  return `/api/video/player-frame?provider=${props.provider}&slug=${encodeURIComponent(slug)}`;
+  let baseUrl = '';
+  if (props.provider === 'neko') {
+    baseUrl = `https://nekopoi.care/${slug}/`;
+  } else if (props.provider === 'htv') {
+    baseUrl = `https://hentai.tv/${slug}/`;
+  } else if (props.provider === 'tube') {
+    baseUrl = `https://www.eporner.com/embed/${slug}/`;
+  }
+  return `/api/video/player-frame?url=${encodeURIComponent(baseUrl)}&slug=${encodeURIComponent(slug)}`;
 });
 
 const reloadPlayer = () => {
@@ -272,8 +325,11 @@ const toggleTheater = () => {
 .provider-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   pointer-events: auto;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
 }
 
 .provider-pill {
@@ -295,7 +351,11 @@ const toggleTheater = () => {
   display: flex;
   align-items: center;
   gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 200px;
 }
+.server-selector-group::-webkit-scrollbar { display: none; }
 
 .server-btn {
   display: inline-flex;
@@ -311,6 +371,16 @@ const toggleTheater = () => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+}
+
+.server-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .server-btn:hover {

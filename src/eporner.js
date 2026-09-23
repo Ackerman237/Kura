@@ -47,8 +47,11 @@ export function configureEporner(opts = {}) {
 async function scrapeEpornerSources(id) {
   try {
     const html = await fetchEpornerHtml(`${state.htmlBase}/video-${id}/`, state);
+    console.log(`[Eporner Scraper] html length for ${id}: ${html.length}, includes dload: ${html.includes('/dload/')}`);
+    console.log(`[Eporner Scraper] HTML snippet for ${id}:`, html.slice(0, 800));
     return parseEpornerSources(html, state.htmlBase);
-  } catch {
+  } catch (err) {
+    console.error(`[Eporner Scraper] scrapeEpornerSources failed for ${id}:`, err.message);
     return [];
   }
 }
@@ -110,7 +113,9 @@ export async function scrapeEpornerDetail(id) {
       .filter((s) => s.url);
   }
   if (src.length === 0) {
+    console.log(`[Eporner Detail] v.src was empty, calling scrapeEpornerSources for ${id}...`);
     src = await scrapeEpornerSources(id);
+    console.log(`[Eporner Detail] scrapeEpornerSources returned ${src.length} sources for ${id}`);
   }
 
   const detail = {
@@ -120,7 +125,9 @@ export async function scrapeEpornerDetail(id) {
     src,
     description: v.description || '',
   };
-  setCache(cacheKey, detail, state.cacheTtl);
+  if (src.length > 0) {
+    setCache(cacheKey, detail, state.cacheTtl);
+  }
   return detail;
 }
 

@@ -55,7 +55,8 @@ app.use((_req, res) => {
 
 // Server Initialization & Graceful Shutdown
 let server;
-if (process.env.NODE_ENV !== 'test') {
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === __filename;
+if (isDirectRun && process.env.NODE_ENV !== 'test') {
   server = app.listen(PORT, () => {
     console.log(`[Kura] Server aktif berjalan di http://localhost:${PORT}`);
   });

@@ -388,64 +388,124 @@ onUnmounted(() => {
 
 @media (max-width: 640px) {
   .hero-content {
-    padding: 16px;
-    flex-direction: column;
-    gap: 14px;
-    align-items: stretch;
+    padding: 14px;
+    flex-direction: row;
+    gap: 12px;
+    align-items: flex-start;
   }
-  .hero-meta-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
-    text-align: center;
-  }
+
+  /* Cover: kiri, kecil, proporsional 2:3 */
   .hero-poster-column {
-    display: flex;
-    align-self: center;
-    width: 110px;
-    max-width: 110px;
+    flex-shrink: 0;
+    width: 80px;
     aspect-ratio: 2 / 3;
     border-radius: var(--radius-md, 8px);
     overflow: hidden;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    align-self: flex-start;
+    order: -1;
   }
-  .hero-title {
-    font-size: 1.22rem;
-    line-height: 1.35;
-    text-align: center;
+
+  /* Meta: kanan, ambil sisa lebar */
+  .hero-meta-column {
+    flex: 1;
+    min-width: 0;
+    gap: 7px;
+    align-items: flex-start;
+    text-align: left;
   }
+
   .hero-badge-row {
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
   }
+
+  .hero-title {
+    font-size: 0.98rem;
+    line-height: 1.3;
+    text-align: left;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Sembunyikan synopsis di mobile, hemat ruang */
   .hero-synopsis {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    font-size: 0.8rem;
-    text-align: center;
-    margin: 0;
+    display: none;
   }
+
+  /* Genre chips: baris horizontal scroll */
   .hero-genres-wrap {
-    justify-content: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 5px;
+    scrollbar-width: none;
   }
+  .hero-genres-wrap::-webkit-scrollbar { display: none; }
+
   .hero-actions-row {
     width: 100%;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    gap: 6px;
   }
+
   .hero-cta-btn {
-    width: 100%;
+    flex: 1;
     justify-content: center;
-    padding: 10px 16px;
-    font-size: 0.84rem;
+    height: 44px; /* 44px touch target */
+    padding: 0 12px;
+    font-size: 0.76rem;
   }
+
   .carousel-nav-arrows {
-    bottom: 12px;
-    right: 12px;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .arrow-btn {
+    width: 36px;  /* minimum touch target */
+    height: 36px;
   }
 }
+
+/* 320px: extra tight layout */
+@media (max-width: 359px) {
+  .hero-content {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .hero-poster-column {
+    width: 64px;
+  }
+
+  .hero-badge-row {
+    gap: 4px;
+  }
+
+  .spotlight-tag {
+    font-size: 0.6rem;
+  }
+
+  .hero-title {
+    font-size: 0.88rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .hero-genres-wrap {
+    display: none; /* hide genres at 320px to save space */
+  }
+
+  .hero-cta-btn {
+    height: 40px;
+    padding: 0 8px;
+    font-size: 0.7rem;
+  }
+
+  .arrow-btn {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 </style>

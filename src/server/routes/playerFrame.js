@@ -1,12 +1,42 @@
 import express from 'express';
+import { Readable } from 'stream';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { fetchThroughProxy } from '../../proxy.js';
+import { safeHttpUrl, isSafeExternalUrl } from '../../security.js';
+import { safeFetch, readTextLimited, MAX_RESPONSE_BYTES_HTML } from '../../http.js';
 
 const execFileAsync = promisify(execFile);
 const router = express.Router();
 
+const ALLOWED_PLAYER_HOSTS = [
+  'nhplayer.com',
+  'playmogo.com',
+  'streampoi.com',
+  'eporner.com',
+  'www.eporner.com',
+  'streamtape.com',
+  'doodstream.com',
+  'dood.re',
+  'mega.nz',
+  'yandex.ru',
+  'ok.ru',
+  'hentai.tv',
+  'nekopoi.care',
+  'doujindesu.tv',
+];
+
+function isHostAllowed(hostname) {
+  if (!hostname || typeof hostname !== 'string') return false;
+  const h = hostname.toLowerCase();
+  return ALLOWED_PLAYER_HOSTS.some((allowed) => h === allowed || h.endsWith(`.${allowed}`));
+}
+
 async function curlGetText(url, referer) {
   try {
+    const isSafe = await isSafeExternalUrl(url);
+    if (!isSafe) return null;
+
     const args = [
       '-s',
       '-L',
@@ -24,7 +54,7 @@ async function curlGetText(url, referer) {
       args.push('-H', `Referer: ${referer}`);
     }
     args.push(url);
-    const { stdout } = await execFileAsync('curl.exe', args, { maxBuffer: 10 * 1024 * 1024 });
+    const { stdout } = await execFileAsync('curl', args, { maxBuffer: MAX_RESPONSE_BYTES_HTML });
     return stdout;
   } catch (err) {
     console.warn(`[curl fallback warning] ${err.message}`);
@@ -53,6 +83,13 @@ const AD_DOMAINS = [
   'onclickperf.com',
   'highperformancegate.com',
   'monetag.com',
+  'bowsguaka.cfd',
+  'df6pt2obl092n.cloudfront.net',
+  'dobytowsy.com',
+  'runative-syndicate.com',
+  'tollwayrealive.cyou',
+  'pxltag.com',
+  'uuidksinc.net',
 ];
 
 const INLINE_AD_PATTERNS = [
@@ -64,9 +101,15 @@ const INLINE_AD_PATTERNS = [
   /"AGFzbQE/i,
   /ad_url/i,
   /openPopup/i,
+  /adblock/i,
+  /AdBlock/i,
+  /block adblock/i,
+  /ad blockers/i,
+  /please disable adblock/i,
+  /adblocker/i,
 ];
 
-function stripAdScripts(rawHtml) {
+function stripAdScripts(rawHtml, originHost = '') {
   let html = rawHtml;
 
   // 1. Remove script tags with src matching known ad networks
@@ -90,12 +133,25 @@ function stripAdScripts(rawHtml) {
   html = html.replace(/DisableDevtool/gi, '__disabled_detector__');
   html = html.replace(/popundersPerIP/gi, '__disabled_popunder__');
 
+  // 4. For providers whose CDNs are blocked by local ISPs (like Eporner), rewrite asset domains to pass-through proxy
+  if (originHost && originHost.includes('eporner.com')) {
+    html = html.replace(/https?:\/\/(static-[a-z0-9\-]+\.eporner\.com|static\.eporner\.com)/gi, '/api/pf/$1');
+    html = html.replace(/https?:\/\/www\.eporner\.com/gi, '/api/pf/www.eporner.com');
+    html = html.replace(/https?:\/\/([a-z0-9\-]+\.eporner\.com)/gi, '/api/pf/$1');
+  }
+
   return html;
 }
 
 function generatePlayerShim(targetUrl, originHost) {
+  const safeTargetUrl = JSON.stringify(targetUrl).slice(1, -1).replace(/</g, '\\u003c');
+  const safeOriginHost = JSON.stringify(originHost).slice(1, -1).replace(/</g, '\\u003c');
+  const baseHref = originHost.includes('eporner.com')
+    ? `/api/pf/www.eporner.com/`
+    : targetUrl.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   return `
-    <base href="${targetUrl}">
+    <base href="${baseHref}">
     <style>
       html, body {
         background-color: #000000 !important;
@@ -109,7 +165,14 @@ function generatePlayerShim(targetUrl, originHost) {
       video { width: 100% !important; height: 100% !important; object-fit: contain !important; }
       iframe { width: 100% !important; height: 100% !important; border: 0 !important; }
       .frame { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
-      .header, .servers, .alert, .adbox, #adbox, .ads, [class*="ad-banner"] { display: none !important; }
+      .header, .servers, .alert, .adbox, #adbox, .ads, [class*="ad-banner"], #header, #footer, .top-banner, .under-player-ads { display: none !important; }
+      #EPvideo, .video-js, #player, .player {
+        width: 100% !important;
+        height: 100% !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+      }
       .play {
         position: absolute;
         z-index: 10;
@@ -145,12 +208,15 @@ function generatePlayerShim(targetUrl, originHost) {
       /* Hide floating ad banners and click-jack transparent overlays */
       [id*="ad_"], [class*="ad_"], [class*="banner"], [id*="banner"],
       [class*="popup"]:not([class*="player"]), [id*="popup"]:not([id*="player"]),
+      [data-cl-overlay], div[class*="ovwr"], div[class*="overlay"]:not(.vjs-overlay),
       div[style*="z-index: 999999"], div[style*="z-index:999999"],
       div[style*="z-index: 2147483647"], div[style*="z-index:2147483647"] {
         display: none !important;
         pointer-events: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
       }
     </style>
     <script>
@@ -158,13 +224,48 @@ function generatePlayerShim(targetUrl, originHost) {
         // 1. Spoof referrer & anti-adblock flags
         try {
           Object.defineProperty(document, 'referrer', {
-            get: function() { return '${targetUrl}'; },
+            get: function() { return '${safeTargetUrl}'; },
             configurable: true
           });
         } catch(e) {}
         window.hab = false;
         window.adblock = false;
         window.canRunAds = true;
+
+        // 1b. Mock analytics & ad tracking APIs to prevent Video.js player crashes (e.g. Doodstream/Playmogo)
+        window.sendGA = function() {};
+        window.ga = function() {};
+        window.gtag = function() {};
+        window._gaq = [];
+
+        // 1c. Mock localStorage, sessionStorage, and cookie for sandboxed frames
+        try {
+          var _mem = {};
+          var fakeStorage = {
+            getItem: function(k) { return _mem[k] || null; },
+            setItem: function(k, v) { _mem[k] = String(v); },
+            removeItem: function(k) { delete _mem[k]; },
+            clear: function() { _mem = {}; },
+            key: function(i) { return Object.keys(_mem)[i] || null; },
+            get length() { return Object.keys(_mem).length; }
+          };
+          Object.defineProperty(window, 'localStorage', {
+            get: function() { return fakeStorage; },
+            configurable: true
+          });
+          Object.defineProperty(window, 'sessionStorage', {
+            get: function() { return fakeStorage; },
+            configurable: true
+          });
+        } catch(e) {}
+        try {
+          var _cookies = '';
+          Object.defineProperty(document, 'cookie', {
+            get: function() { return _cookies; },
+            set: function(v) { _cookies = v; },
+            configurable: true
+          });
+        } catch(e) {}
 
         // 2. Kill popup and popunder APIs
         try {
@@ -180,7 +281,7 @@ function generatePlayerShim(targetUrl, originHost) {
           if (a) {
             var href = a.getAttribute('href') || '';
             var target = a.getAttribute('target') || '';
-            if (target === '_blank' || (href.startsWith('http') && !href.includes('${originHost}')) || href.startsWith('javascript:')) {
+            if (target === '_blank' || (href.startsWith('http') && !href.includes('${safeOriginHost}')) || href.startsWith('javascript:')) {
               ev.preventDefault();
               ev.stopPropagation();
               return false;
@@ -192,7 +293,7 @@ function generatePlayerShim(targetUrl, originHost) {
         document.addEventListener('submit', function(ev) {
           var form = ev.target;
           var action = form ? form.getAttribute('action') || '' : '';
-          if (action.startsWith('http') && !action.includes('${originHost}')) {
+          if (action.startsWith('http') && !action.includes('${safeOriginHost}')) {
             ev.preventDefault();
             ev.stopPropagation();
             return false;
@@ -210,32 +311,85 @@ router.get('/player-frame', async (req, res) => {
     return res.status(400).send('Parameter url diperlukan');
   }
 
+  const cleanUrl = safeHttpUrl(targetUrl);
+  if (!cleanUrl) {
+    return res.status(400).send('URL target tidak valid atau dilarang');
+  }
+
   try {
-    const parsed = new URL(targetUrl);
+    const parsed = new URL(cleanUrl);
     const originHost = parsed.hostname;
+
+    if (!isHostAllowed(originHost)) {
+      return res.status(403).send(`Host '${originHost}' tidak diizinkan untuk player frame`);
+    }
+
+    const isSafe = await isSafeExternalUrl(cleanUrl);
+    if (!isSafe) {
+      return res.status(403).send('Target host player tidak diizinkan (private/loopback address)');
+    }
+
     let html = null;
 
-    // Step 1: Try native fetch first
-    try {
-      const upstreamRes = await fetch(targetUrl, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-          Referer: targetUrl,
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        },
-      });
-      if (upstreamRes.ok) {
-        html = await upstreamRes.text();
+    // Step 0: For Eporner embeds, prioritize proxy pool to avoid ISP DNS-poisoning / TLS reset
+    if (originHost.includes('eporner.com')) {
+      try {
+        const proxyRes = await fetchThroughProxy(cleanUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+            Referer: 'https://www.eporner.com/',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+        if (proxyRes.ok) {
+          html = await readTextLimited(proxyRes, MAX_RESPONSE_BYTES_HTML);
+        }
+      } catch (err) {
+        console.warn(`[playerFrame] fetchThroughProxy error for eporner:`, err.message);
       }
-    } catch (_) {}
+    }
 
-    // Step 2: Fallback to curl.exe if blocked (Cloudflare 403 TLS fingerprint)
+    // Step 1: Try safe fetch if not already loaded
+    if (!html) {
+      try {
+        const upstreamRes = await safeFetch(cleanUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+            Referer: cleanUrl,
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          },
+        });
+        if (upstreamRes.ok) {
+          html = await readTextLimited(upstreamRes, MAX_RESPONSE_BYTES_HTML);
+        }
+      } catch (_) {}
+    }
+
+    // Step 2: Fallback to curl if blocked (Cloudflare 403 TLS fingerprint)
     if (!html || html.includes('Cloudflare') || html.includes('Checking your browser')) {
-      const curlHtml = await curlGetText(targetUrl, targetUrl);
+      const curlHtml = await curlGetText(cleanUrl, cleanUrl);
       if (curlHtml) {
         html = curlHtml;
       }
+    }
+
+    // Step 3: Fallback to proxy pool if still blocked
+    if (!html) {
+      try {
+        const proxyRes = await fetchThroughProxy(cleanUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+            Referer: cleanUrl,
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+        if (proxyRes.ok) {
+          html = await readTextLimited(proxyRes, MAX_RESPONSE_BYTES_HTML);
+        }
+      } catch (_) {}
     }
 
     if (!html) {
@@ -243,10 +397,10 @@ router.get('/player-frame', async (req, res) => {
     }
 
     // Step 3: Strip ads and anti-adblock traps
-    html = stripAdScripts(html);
+    html = stripAdScripts(html, originHost);
 
     // Step 4: Inject stealth and guard shims
-    const guardShim = generatePlayerShim(targetUrl, originHost);
+    const guardShim = generatePlayerShim(cleanUrl, originHost);
     if (html.includes('<head>')) {
       html = html.replace('<head>', `<head>${guardShim}`);
     } else if (html.includes('</head>')) {
@@ -269,32 +423,58 @@ router.get('/player-frame', async (req, res) => {
 // Mounted at /api/pf/:host
 router.use('/pf/:host', async (req, res) => {
   const host = req.params.host;
+  if (!isHostAllowed(host)) {
+    return res.status(403).send(`Host '${host}' tidak diizinkan untuk pass-through`);
+  }
+
   const subpath = req.url.startsWith('/') ? req.url.slice(1) : req.url;
   const targetUrl = `https://${host}/${subpath}`;
 
+  const isSafe = await isSafeExternalUrl(targetUrl);
+  if (!isSafe) {
+    return res.status(403).send('Target pass-through host tidak diizinkan (private/loopback address)');
+  }
+
   try {
-    const upstreamRes = await fetch(targetUrl, {
+    const fetchFn = (host.includes('eporner.com') || host.includes('nekopoi'))
+      ? fetchThroughProxy
+      : safeFetch;
+
+    const reqHeaders = {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      Referer: `https://${host}/`,
+      Origin: `https://${host}`,
+      Accept: req.headers.accept || '*/*',
+    };
+    if (req.headers.range) {
+      reqHeaders.Range = req.headers.range;
+    }
+
+    const upstreamRes = await fetchFn(targetUrl, {
       method: req.method,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-        Referer: `https://${host}/`,
-        Origin: `https://${host}`,
-        Accept: req.headers.accept || '*/*',
-      },
+      headers: reqHeaders,
     });
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', '*');
 
-    const contentType = upstreamRes.headers.get('content-type') || 'application/octet-stream';
-    res.setHeader('Content-Type', contentType);
+    for (const h of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control']) {
+      const val = upstreamRes.headers.get(h);
+      if (val) res.setHeader(h, val);
+    }
 
-    const buffer = await upstreamRes.arrayBuffer();
-    return res.status(upstreamRes.status).send(Buffer.from(buffer));
+    res.status(upstreamRes.status);
+    if (upstreamRes.body) {
+      Readable.fromWeb(upstreamRes.body).pipe(res);
+    } else {
+      res.end();
+    }
   } catch (err) {
-    return res.status(502).send(`Pass-through error: ${err.message}`);
+    if (!res.headersSent) {
+      return res.status(502).send(`Pass-through error: ${err.message}`);
+    }
   }
 });
 

@@ -5,6 +5,7 @@ import Badge from './Badge.vue';
 import CountryFlag from './CountryFlag.vue';
 import { getComicCover } from '../../utils/media.js';
 import { getComicTypeMeta } from '../../utils/comicType.js';
+import { normalizeStatus, normalizeStatusClass, normalizeStatusLabel } from '../../utils/status.js';
 import { useImageFallback } from '../../composables/useImageFallback.js';
 import { usePrivacyPeek } from '../../composables/usePrivacyPeek.js';
 
@@ -56,7 +57,12 @@ const handleCardClick = () => {
       `view-${viewMode}`,
       { 'privacy-active': isPrivacyMode && !isPeeking }
     ]"
+    role="button"
+    tabindex="0"
+    :aria-label="isPrivacyMode && !isPeeking ? 'Komik Terproteksi' : comic.title"
     @click="handleCardClick"
+    @keydown.enter="handleCardClick"
+    @keydown.space.prevent="handleCardClick"
   >
     <!-- Real Manga Poster Cover Container -->
     <div class="cover-container" @click="handleCoverClick">
@@ -135,8 +141,8 @@ const handleCardClick = () => {
           <Clock :size="11" />
           {{ comic.releasedAt || comic.upload_date || 'Terbaru' }}
         </span>
-        <span v-if="comic.status" class="status-indicator" :class="comic.status.toLowerCase()">
-          {{ comic.status === 'Completed' ? 'Tamat' : 'Berjalan' }}
+        <span v-if="comic.status" class="status-indicator" :class="normalizeStatusClass(comic.status)">
+          {{ normalizeStatusLabel(comic.status) }}
         </span>
       </div>
 
@@ -163,10 +169,13 @@ const handleCardClick = () => {
   user-select: none;
 }
 
-.kura-comic-card:hover {
+.kura-comic-card:hover,
+.kura-comic-card:focus-visible {
   transform: translateY(-4px);
   border-color: var(--kura-border-strong);
   box-shadow: var(--shadow-md);
+  outline: 2px solid var(--kura-accent);
+  outline-offset: 2px;
 }
 
 /* ================= Grid View ================= */
@@ -446,11 +455,29 @@ const handleCardClick = () => {
   border: none;
   color: var(--kura-text-dim);
   cursor: pointer;
-  padding: 2px;
+  /* Expand touch target without changing visual size */
+  padding: 10px;
+  margin: -10px;
   border-radius: 4px;
   flex-shrink: 0;
+  min-width: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all var(--duration-fast);
+  touch-action: manipulation;
 }
+
+@media (max-width: 768px) {
+  .bookmark-btn {
+    padding: 12px;
+    margin: -12px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 
 .bookmark-btn:hover {
   color: var(--kura-accent);
@@ -492,6 +519,21 @@ const handleCardClick = () => {
 .status-indicator.completed {
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.1);
+}
+
+.status-indicator.hiatus {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.status-indicator.cancelled {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+}
+
+.status-indicator.unknown {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
 }
 
 .genres-row {

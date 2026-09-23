@@ -62,11 +62,17 @@ defineExpose({ focus, inputRef });
     <!-- Search Input Field -->
     <input
       ref="inputRef"
-      type="text"
+      type="search"
       class="search-input"
       :value="modelValue"
       :placeholder="placeholder"
       aria-label="Pencarian"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="none"
+      spellcheck="false"
+      enterkeyhint="search"
+      inputmode="search"
       @input="handleInput"
     />
 
@@ -95,6 +101,7 @@ defineExpose({ focus, inputRef });
   display: flex;
   align-items: center;
   width: 100%;
+  min-width: 0;
   height: 38px;
   background: var(--kura-surface, rgba(22, 24, 30, 0.75));
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
@@ -186,5 +193,31 @@ defineExpose({ focus, inputRef });
   .search-shortcut-pill {
     display: none;
   }
+
+  /* 44px height on mobile for touch target compliance */
+  .kura-search-bar {
+    height: 44px;
+  }
+
+  /* 16px font prevents iOS from zooming in on focus */
+  .search-input {
+    font-size: 16px;
+  }
+
+  .search-input::placeholder {
+    font-size: 15px;
+  }
+
+  /* Bigger clear button touch area on mobile */
+  .search-clear-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .search-submit-btn {
+    width: 36px;
+    height: 36px;
+  }
 }
+
 </style>

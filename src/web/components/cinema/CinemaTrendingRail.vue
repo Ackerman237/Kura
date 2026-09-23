@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Flame, Play, Clock, Eye } from 'lucide-vue-next';
+import { resolveProxyUrl } from '../../utils/media.js';
 
 const props = defineProps({
   videos: {
@@ -46,7 +47,7 @@ const handleImageError = (e) => {
 
         <div class="thumb-container" :class="{ 'privacy-blur': isPrivacyMode }">
           <img
-            :src="v.thumb || v.poster || ''"
+            :src="resolveProxyUrl(v.thumb || v.poster || '')"
             :alt="v.title"
             class="thumb-img"
             loading="lazy"

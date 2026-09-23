@@ -497,7 +497,7 @@ const activeRelatedVideos = computed(() => {
   }
   const curSlug = selectedVideo.value?.slug || selectedVideo.value?.id;
   const curProv = selectedVideo.value?.provider || videoProvider.value || 'htv';
-  return videoList.value.filter((v) => {
+  return (videoList.value || []).filter((v) => {
     const slug = v.slug || v.id;
     const prov = v.provider || curProv;
     return slug !== curSlug && (!v.provider || prov === curProv);
@@ -848,7 +848,8 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding-bottom: calc(var(--mobile-dock-height) + 24px);
+  /* Mobile: pad below the floating dock */
+  padding-bottom: var(--page-bottom-clearance, calc(var(--mobile-dock-height) + 24px));
   transition: margin-left var(--duration-normal) var(--ease-spring);
 }
 
@@ -856,6 +857,7 @@ onMounted(async () => {
   margin-left: 0 !important;
   padding-bottom: 0 !important;
 }
+
 
 @media (min-width: 768px) {
   .kura-main-canvas {

@@ -166,7 +166,20 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
+}
+
+/* On narrow viewports, stack header controls below title */
+@media (max-width: 479px) {
+  .releases-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .header-title-box {
@@ -177,21 +190,25 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
 
 .icon-accent {
   color: var(--kura-accent, #e5a93c);
+  flex-shrink: 0;
 }
 
 .releases-title {
   font-family: var(--kura-font-heading, sans-serif);
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
   font-weight: 700;
   color: var(--kura-text-primary, #ffffff);
   margin: 0;
+  text-wrap: balance;
 }
 
 .header-controls {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
+
 
 .type-chips-pill {
   display: flex;
@@ -201,6 +218,13 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   border-radius: var(--radius-pill, 9999px);
   padding: 3px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.type-chips-pill::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-tab {
@@ -213,7 +237,22 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   border-radius: var(--radius-pill, 9999px);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  /* Touch target: visual padding + minimum height */
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  touch-action: manipulation;
 }
+
+@media (max-width: 768px) {
+  .filter-tab {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+}
+
 
 .filter-tab:hover {
   color: #ffffff;
@@ -238,14 +277,22 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
   color: var(--kura-text-muted, #94a3b8);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+  .view-btn {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .view-btn:hover {
@@ -257,12 +304,30 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   color: var(--kura-accent, #e5a93c);
 }
 
+/* === COMIC GRID: Mobile-first responsive matrix === */
 .comics-render-grid {
   display: grid;
+  /* Base (320–359px): 2 compact columns */
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
+/* 360px: 2 col, slightly wider gap */
+@media (min-width: 360px) {
+  .comics-render-grid {
+    gap: 12px;
+  }
+}
+
+/* 480px: 3 col */
+@media (min-width: 480px) {
+  .comics-render-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+/* 640px: 3 col, bigger gap */
 @media (min-width: 640px) {
   .comics-render-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -270,6 +335,7 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   }
 }
 
+/* 768px: tablet — 4 col */
 @media (min-width: 768px) {
   .comics-render-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -277,17 +343,44 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   }
 }
 
-@media (min-width: 1200px) {
+/* 1024px: laptop — 5 col */
+@media (min-width: 1024px) {
+  .comics-render-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* 1280px: desktop — 6 col */
+@media (min-width: 1280px) {
   .comics-render-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 20px;
   }
 }
 
+/* 1440px: large desktop — 7 col */
+@media (min-width: 1440px) {
+  .comics-render-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 22px;
+  }
+}
+
+/* 1920px+: ultrawide — 9 col */
+@media (min-width: 1920px) {
+  .comics-render-grid {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+/* List view: always single column */
 .comics-render-grid.view-list {
   grid-template-columns: 1fr !important;
-  gap: 12px;
+  gap: 10px;
 }
+
 
 .empty-state {
   padding: 48px;

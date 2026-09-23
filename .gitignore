@@ -11,3 +11,6 @@ dist/
 downloads/
 cookie.txt
 scripts/test-video-investigation.mjs
+.playwright-screenshots/
+scripts/audit-screenshots/
+kiro-cli.exe

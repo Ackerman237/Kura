@@ -98,7 +98,7 @@ const curated21stPalettes = [
 
 .palettes-21st-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 

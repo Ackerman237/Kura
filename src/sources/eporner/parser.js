@@ -23,7 +23,16 @@ export function fmtViews(n) {
  */
 export function mapVideo(v) {
   if (!v || typeof v !== 'object') return null;
-  const thumb = v.default_thumb?.src || (Array.isArray(v.thumbs) && v.thumbs[0]?.src) || '';
+  // Prioritize default_thumb, then thumbs array, then fallback to url-based thumbnail
+  let thumb = '';
+  if (v.default_thumb && v.default_thumb.src) {
+    thumb = v.default_thumb.src;
+  } else if (Array.isArray(v.thumbs) && v.thumbs[0] && v.thumbs[0].src) {
+    thumb = v.thumbs[0].src;
+  } else if (v.url) {
+    // Fallback: construct thumbnail URL from video ID if no thumb available
+    thumb = `https://www.eporner.com/thumbs/${v.id}_s.jpg`;
+  }
   const tags =
     typeof v.keywords === 'string'
       ? v.keywords.split(',').map((s) => s.trim()).filter(Boolean)
@@ -118,9 +127,12 @@ export function parseEpornerListing(html) {
     let thumb = '';
     if (imgMatch) {
       const imgTag = imgMatch[0];
+      // Try data-src first (lazy-loaded images), then src
       const dataSrc = imgTag.match(/data-src="([^"]+)"/);
       const src = imgTag.match(/src="([^"]+)"/);
-      const raw = dataSrc ? dataSrc[1] : src ? src[1] : '';
+      // Also check for thumbnail-specific patterns
+      const thumbMatch = imgTag.match(/data-thumb="([^"]+)"/) || imgTag.match(/thumb="([^"]+)"/);
+      const raw = thumbMatch ? thumbMatch[1] : (dataSrc ? dataSrc[1] : (src ? src[1] : ''));
       if (raw && !raw.startsWith('data:')) {
         thumb = safeHttpUrl(raw);
       }

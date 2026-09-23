@@ -40,17 +40,11 @@ const emit = defineEmits(['select-provider']);
 </template>
 
 <style scoped>
+/* ── Desktop: grid card ─────────────────────────────────────────── */
 .studio-switcher-bar {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-}
-
-@media (min-width: 640px) {
-  .studio-switcher-bar {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
 }
 
 @media (min-width: 960px) {
@@ -71,6 +65,8 @@ const emit = defineEmits(['select-provider']);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .studio-tab-card:hover {
@@ -116,5 +112,45 @@ const emit = defineEmits(['select-provider']);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── Mobile: horizontal scrollable pill tabs ────────────────────── */
+@media (max-width: 639px) {
+  .studio-switcher-bar {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    /* Fade kanan sebagai scroll hint */
+    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+  .studio-switcher-bar::-webkit-scrollbar { display: none; }
+
+  .studio-tab-card {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill, 9999px);
+    height: 36px;
+  }
+
+  /* Sembunyikan desc di mobile pill — terlalu ramai */
+  .tab-desc {
+    display: none;
+  }
+
+  .tab-name {
+    font-size: 0.78rem;
+  }
+
+  .tab-indicator-dot {
+    width: 6px;
+    height: 6px;
+  }
 }
 </style>

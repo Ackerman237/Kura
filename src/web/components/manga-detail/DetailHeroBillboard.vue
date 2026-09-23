@@ -4,6 +4,7 @@ import { Star, Play, Bookmark, Clock, User, Tag } from 'lucide-vue-next';
 import CountryFlag from '../common/CountryFlag.vue';
 import Badge from '../common/Badge.vue';
 import { getComicTypeMeta } from '../../utils/comicType.js';
+import { normalizeStatusClass, normalizeStatusLabel } from '../../utils/status.js';
 import { useImageFallback } from '../../composables/useImageFallback.js';
 
 const props = defineProps({
@@ -68,8 +69,8 @@ const typeMeta = computed(() => getComicTypeMeta(props.manga.type));
               <CountryFlag :type="manga.type" size="xs" />
               <Badge :variant="typeMeta.variant" size="xs" pill>{{ typeMeta.label }}</Badge>
             </div>
-            <span v-if="manga.status" class="status-pill" :class="manga.status.toLowerCase()">
-              {{ String(manga.status).toLowerCase().includes('complete') || String(manga.status).toLowerCase().includes('tamat') ? 'Completed' : String(manga.status).toLowerCase().includes('hiatus') ? 'Hiatus' : 'Ongoing' }}
+            <span v-if="manga.status" class="status-pill" :class="normalizeStatusClass(manga.status)">
+              {{ normalizeStatusLabel(manga.status) }}
             </span>
           </div>
         </div>
@@ -278,6 +279,24 @@ const typeMeta = computed(() => getComicTypeMeta(props.manga.type));
   border: 1px solid rgba(56, 189, 248, 0.4);
 }
 
+.status-pill.hiatus {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.status-pill.cancelled {
+  background: rgba(248, 113, 113, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+.status-pill.unknown {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
 .meta-column {
   flex: 1;
   display: flex;
@@ -448,26 +467,85 @@ const typeMeta = computed(() => getComicTypeMeta(props.manga.type));
 
 @media (max-width: 768px) {
   .hero-content-container {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    text-align: left;
   }
+
+  /* Cover: kiri, lebih kecil */
   .poster-column {
-    width: 170px;
+    flex-shrink: 0;
+    width: 100px;
   }
+
+  /* Meta: kanan, ambil sisa lebar */
+  .meta-column {
+    flex: 1;
+    min-width: 0;
+    gap: 10px;
+  }
+
+  /* Judul: clamp agar judul panjang otomatis lebih kecil */
+  .manga-title {
+    font-size: clamp(0.88rem, 4vw, 1.25rem);
+    line-height: 1.3;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .manga-alt-title {
+    font-size: 0.72rem;
+  }
+
+  /* Stat strip: lebar penuh di mobile */
   .stat-strip {
-    margin: 0 auto;
+    margin: 0;
+    width: 100%;
+    padding: 6px 10px;
+    gap: 10px;
+    justify-content: flex-start;
   }
+
+  .stat-value {
+    font-size: 0.95rem;
+  }
+
+  /* Author credits: single column */
+  .author-credits-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    font-size: 0.74rem;
+  }
+
+  /* Genre chips: horizontal scroll di mobile */
   .genres-wrap {
-    justify-content: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+    mask-image: linear-gradient(to right, black 88%, transparent 100%);
   }
+  .genres-wrap::-webkit-scrollbar { display: none; }
+
+  .genre-chip {
+    flex-shrink: 0;
+  }
+
+  /* CTA: column full width */
   .cta-actions-row {
     flex-direction: column;
     width: 100%;
+    gap: 8px;
   }
-  .primary-cta-btn, .secondary-cta-btn {
+
+  .primary-cta-btn,
+  .secondary-cta-btn {
     width: 100%;
     justify-content: center;
+    height: 38px;
+    font-size: 0.8rem;
   }
 }
 </style>

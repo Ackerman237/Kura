@@ -13,7 +13,7 @@ export const PLACEHOLDERS = {
  */
 export function getComicCover(comic) {
   if (!comic || typeof comic !== 'object') return PLACEHOLDERS.COVER;
-  return (
+  const raw = (
     comic.mangaCover ||
     comic.thumb ||
     comic.cover ||
@@ -22,6 +22,7 @@ export function getComicCover(comic) {
     comic.thumbnail ||
     PLACEHOLDERS.COVER
   );
+  return resolveProxyUrl(raw);
 }
 
 /**
@@ -29,13 +30,14 @@ export function getComicCover(comic) {
  */
 export function getVideoThumb(video) {
   if (!video || typeof video !== 'object') return PLACEHOLDERS.THUMBNAIL;
-  return (
+  const raw = (
     video.thumb ||
     video.thumbnail ||
     video.poster ||
     video.image ||
     PLACEHOLDERS.THUMBNAIL
   );
+  return resolveProxyUrl(raw);
 }
 
 /**

@@ -42,11 +42,10 @@ const emit = defineEmits([
 ]);
 
 const searchBarRef = ref(null);
-const { activeDownloads, queuedDownloads } = useDownloadQueue();
+const { activeCount, queuedCount } = useDownloadQueue();
 
 const downloadBadge = computed(() => {
-  return (activeDownloads.value ? activeDownloads.value.length : 0) +
-         (queuedDownloads.value ? queuedDownloads.value.length : 0);
+  return (activeCount.value || 0) + (queuedCount.value || 0);
 });
 
 // Shortcut handler (Ctrl+K or Command+K)
@@ -232,6 +231,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 24px;
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .brand-item {
@@ -240,6 +240,13 @@ onUnmounted(() => {
   gap: 8px;
   cursor: pointer;
   user-select: none;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.brand-title-wrap {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .brand-kanji {
@@ -317,6 +324,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  max-width: 100%;
+  justify-content: flex-end;
 }
 
 .action-pill {
@@ -333,6 +342,7 @@ onUnmounted(() => {
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: all 0.15s ease;
+  max-width: 100%;
 }
 
 .action-pill:hover {
@@ -429,10 +439,14 @@ onUnmounted(() => {
 
   .topbar-row-top {
     justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    width: 100%;
   }
 
   .topbar-row-search {
     width: 100%;
+    min-width: 0;
   }
 
   .action-label {
@@ -440,7 +454,76 @@ onUnmounted(() => {
   }
 
   .action-pill {
-    padding: 6px;
+    padding: 0 10px;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  /* Ensure icon buttons meet 44px touch target */
+  .icon-action-btn,
+  .user-avatar-btn {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Brand group: tighter on narrow */
+  .header-brand-group {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  /* Actions: don't shrink below touch minimum */
+  .topbar-actions {
+    flex-shrink: 0;
+    gap: 4px;
+    min-width: 0;
   }
 }
+
+@media (max-width: 430px) {
+  .brand-title-wrap {
+    max-width: 72px;
+  }
+
+  .brand-name {
+    letter-spacing: 0.04em;
+  }
+
+  .topbar-actions {
+    gap: 2px;
+  }
+
+  .action-pill {
+    padding-inline: 8px;
+  }
+}
+
+/* 320px–359px extreme narrow */
+@media (max-width: 359px) {
+  .kura-topbar.topbar-mobile-2row {
+    padding: 6px 8px 8px !important;
+  }
+
+  .brand-kanji {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.95rem !important;
+  }
+
+  .topbar-actions {
+    gap: 2px;
+  }
+
+  .brand-title-wrap {
+    max-width: 60px;
+  }
+
+  .icon-action-btn,
+  .user-avatar-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
 </style>

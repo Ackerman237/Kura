@@ -1,0 +1,20 @@
+# Test Scenarios: Kura Scraper Review Skill
+
+This document defines the 10 mandatory evaluation test scenarios used to validate that `kura-scraper-review` correctly identifies scraper defects, security vulnerabilities, and runtime failures.
+
+---
+
+## Scenario Matrix & Expected Detections
+
+| # | Test Scenario | Simulated Defect / Injected Failure Condition | Expected Skill Audit Detection & Evidence |
+|---|---|---|---|
+| **1** | **Provider Timeout** | Upstream provider endpoint hangs or delays response beyond 15s without an `AbortSignal.timeout()`. | **Detection**: Flags unhandled request hang.<br>**Rule**: Violation of *Reliability Rule 2 (Explicit Request Timeouts)*.<br>**Evidence**: Identifies missing timeout option in fetcher. |
+| **2** | **Provider 403 (Cloudflare / WAF)** | Provider returns HTTP 403 Forbidden with Cloudflare challenge page. | **Detection**: Flags absence of anti-bot bypass or User-Agent rotation.<br>**Rule**: Violation of *Scrapfly Anti-bot Standard*.<br>**Evidence**: Logs 403 status and advises proxy rotation or header normalization. |
+| **3** | **Provider Malformed HTML** | Upstream site returns truncated HTML with unclosed tags and invalid DOM syntax. | **Detection**: Flags parser crash or unhandled null returns.<br>**Rule**: Violation of *Architecture Rule 1 (Robust DOM Parsing)*.<br>**Evidence**: Tests parser with partial HTML fixture; requires safe optional chaining. |
+| **4** | **Selector Changed** | Upstream site updates CSS class from `.cover-thumb` to `.series-poster`. | **Detection**: Flags zero-length extraction and missing fallback selector.<br>**Rule**: Violation of *Extraction Reliability Rule 1 (Fallback Selector Chains)*.<br>**Evidence**: Reports `.cover-thumb` returning null; recommends fallback selector chain. |
+| **5** | **Provider A Fails while B Succeeds** | Provider `doujindesu` throws 500 error during unified feed query while `nekopoi` succeeds. | **Detection**: Flags unhandled `Promise.all` rejection crashing unified feed.<br>**Rule**: Violation of *Architecture Rule 3 (Provider Isolation & Sandboxing)*.<br>**Evidence**: Recommends `Promise.allSettled` to isolate partial provider failure. |
+| **6** | **Duplicate Result** | Scraper returns duplicate manga entries with different casing or trailing slashes in URLs. | **Detection**: Flags unnormalized URLs causing duplicate catalog cards.<br>**Rule**: Violation of *Data Correctness & URL Normalization*.<br>**Evidence**: Identifies duplicate IDs in search output; requires URL canonicalization. |
+| **7** | **Invalid Media URL** | Extractor returns relative image URL `"/images/cover.jpg"` or protocol-relative `"//cdn.site.com/pic.jpg"`. | **Detection**: Flags non-absolute media URL breaking frontend reader.<br>**Rule**: Violation of *Domain Model Schema (Absolute URL Requirement)*.<br>**Evidence**: Detects missing `new URL(cover, baseUrl).href` resolution. |
+| **8** | **Pagination Bug** | Scraper next-page parser loops infinitely on the last page or returns `page=NaN`. | **Detection**: Flags infinite pagination loop or missing terminal page condition.<br>**Rule**: Violation of *Extraction Reliability (Pagination Bounds)*.<br>**Evidence**: Detects missing `hasNextPage` check in pagination parser. |
+| **9** | **Unsafe Redirect** | Media proxy follows redirect from `https://trusted-cdn.com/image.jpg` to `http://169.254.169.254/latest/meta-data/`. | **Detection**: Flags dangerous blind redirect bypassing initial SSRF checks.<br>**Rule**: Violation of *Security Rule 2 (Redirect Re-Validation)*.<br>**Evidence**: Traces redirect chain to internal IP; mandates redirect hook re-validation. |
+| **10** | **SSRF / DNS Rebinding** | User submits proxy URL targeting `http://127.0.0.1:8080/admin` or domain resolving to `10.0.0.1`. | **Detection**: Flags missing IP blacklist validation before socket connect.<br>**Rule**: Violation of *Security Threat Model (SSRF Prevention)*.<br>**Evidence**: Identifies unblocked loopback/private IP range in `src/proxy.js`. |
