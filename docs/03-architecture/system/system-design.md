@@ -2,7 +2,7 @@
 
 ## 1. Pola Arsitektur 3-Layer
 
-Setiap provider scraper di dalam folder `src/sources/<provider>/` menerapkan pemisahan tanggung jawab yang tegas (Single Responsibility Principle) mengikuti pola yang diadopsi dari WibuDex:
+Setiap provider scraper di dalam folder `src/sources/<provider>/` menerapkan pemisahan tanggung jawab yang tegas (Single Responsibility Principle) dalam implementasi Kura. Pola WibuDex dicatat sebagai konteks historis, bukan sebagai dependency arsitektur aktif:
 
 ```text
 [ Consumer / Client Application ]

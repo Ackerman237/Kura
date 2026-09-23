@@ -138,7 +138,36 @@ Dokumen ini mendefinisikan seluruh fungsi publik yang diekspor oleh library `dou
 
 ---
 
-## 6. Client Services & Utilities
+## 6. Active HTTP Route Reference
+
+The SDK return types above are not identical to every HTTP response shape. The Express API is mounted from `server.js` and currently exposes:
+
+| Route | Purpose |
+| --- | --- |
+| `GET /api/manga/list` | Manga catalog with pagination metadata. |
+| `GET /api/manga/genres` | Manga genre list. |
+| `GET /api/manga/detail/:slug` | Manga detail and chapters. |
+| `GET /api/manga/chapter/:id` | Chapter images and metadata. |
+| `GET /api/video/trending?provider=:provider` | Provider-specific trending videos. |
+| `GET /api/video/neko/list` | NekoPoi catalog. |
+| `GET /api/video/neko/detail/:slug` | NekoPoi detail. |
+| `GET /api/video/htv/genres` | HentaiTV genres. |
+| `GET /api/video/htv/list` | HentaiTV catalog. |
+| `GET /api/video/htv/detail/:slug` | HentaiTV detail. |
+| `GET /api/video/tube/categories` | Eporner categories. |
+| `GET /api/video/tube/list` | Eporner catalog. |
+| `GET /api/video/tube/detail/:id` | Eporner detail. |
+| `GET /api/video/player-frame?url=:url` | Filtered player frame for non-direct hosts. |
+| `GET /api/video/download/sources` | Resolve supported video download sources. |
+| `GET /api/video/download/stream` | Stream an authorized video source. |
+| `POST /api/video/download/save-to-disk` | Start a server-disk video download. |
+| `GET /api/video/download/progress/:jobId` | Server-Sent Events progress for a download job. |
+| `GET /api/health` | Runtime health and configuration payload. |
+| `GET /api/image-proxy` | Validated external image proxy. |
+
+For manga list responses, the SDK returns an array by default. The HTTP route requests metadata and returns an object containing `items`, `page`, `limit`, `total`, `totalPages`, and `hasNext`.
+
+## 7. Client Services & Utilities
 
 ### `mergeUnifiedFeed(providerFetchers, timeoutMs)` (`src/web/services/unifiedFeed.js`)
 - **Parameter**:

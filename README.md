@@ -51,7 +51,7 @@ Engineered from the ground up with a **privacy-first and zero-annoyance philosop
 
 ### 🎬 Cinema & Video Streaming
 - **Multi-Provider Unified Feed (Semua Studio)**: Concurrently queries HentaiTV, NekoPoi, and Eporner with `Promise.allSettled`, deduplicating identical titles (`title + type`) with an intuitive source switcher.
-- **Direct Mount & Sandbox Shield**: Direct mounting for verified trusted hosts (`nhplayer.com`, `playmogo.com`, `streampoi.com`, `yandex.ru`) preventing PHP session loss, paired with automated ad-shielding for untrusted embeds.
+- **Direct Mount & Sandbox Shield**: Direct mounting is enabled by default for verified hosts (`nhplayer.com`, `playmogo.com`, `streampoi.com`). Other allowlisted hosts use the proxied player-frame path unless configured through `DIRECT_EMBED_HOSTS`, paired with sandboxing for untrusted embeds.
 - **DNS over HTTPS (DoH) Built-in**: Cloudflare DoH integration in `src/http.js` that effortlessly bypasses local ISP DNS poisoning (`internetpositif.id`) while enforcing strict SSRF and DNS Rebinding security.
 - **Full Refresh Persistence**: Complete URL state management (`?tab=video&view=video-watch&slug=...&provider=...`) with Service Worker `ignoreSearch: true` support.
 - **Provider-Isolated Recommendations**: Video recommendations stay strictly isolated to the currently active provider.
@@ -68,9 +68,9 @@ Engineered from the ground up with a **privacy-first and zero-annoyance philosop
 - **Zero Server Pressure**: Eliminates repeated upstream scraping calls and reduces bandwidth consumption to a minimum.
 
 ### 📥 IDM-Style Download Manager
-- **Dual-Mode Engine**: Choose between **Browser Direct Download** (saved directly to your device) or **Server Disk Storage** (streamed directly to host filesystem).
+- **Dual-Mode Engine**: Choose between **Browser Direct Download** (saved directly to your device) or **Server Disk Storage** for supported video sources.
 - **Live Queue Drawer**: Floating management drawer featuring Pause, Resume, Cancel, and Retry controls.
-- **Realtime SSE Telemetry**: Progress percentage, transfer rate, and download states pushed via Server-Sent Events (`/api/downloads/events`).
+- **Realtime SSE Telemetry**: Server-disk video download progress is exposed via Server-Sent Events at `/api/video/download/progress/:jobId`.
 - **Automated Archiving**: Manga chapters are automatically bundled into clean `.zip` archives.
 
 ### 💾 Local File Offline Hub
@@ -110,8 +110,8 @@ Run Kura in an isolated container with a single command:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Ackerman237/self-hosted-manga-and-anime.git
-cd self-hosted-manga-and-anime
+git clone https://github.com/Ackerman237/Kura.git
+cd Kura
 
 # Launch via Docker Compose
 docker compose up -d
@@ -130,13 +130,13 @@ Open `http://localhost:4000` in your web browser.
 #### 2. Installation & Launch
 ```bash
 # 1. Clone repository
-git clone https://github.com/Ackerman237/self-hosted-manga-and-anime.git
-cd self-hosted-manga-and-anime
+git clone https://github.com/Ackerman237/Kura.git
+cd Kura
 
 # 2. Copy environment configuration
 cp .env.example .env
 
-# 3. Install dependencies (zero production runtime dependencies)
+# 3. Install the declared Node.js and web-server dependencies
 npm install
 
 # 4. Build frontend client bundle
@@ -155,7 +155,7 @@ Visit `http://localhost:4000` to start using Kura.
 Kura includes a comprehensive test suite covering scrapers, security policies, and parsers:
 
 ```bash
-# Execute the unit and integration tests under `test/`
+# Execute the maintained unit and integration tests under `test/`
 npm test
 ```
 

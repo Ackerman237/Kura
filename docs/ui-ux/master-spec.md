@@ -44,6 +44,8 @@ Implementasi menggunakan CSS Custom Properties murni tanpa dependensi runtime be
 
 ### A. Palet Tema
 
+Tabel berikut merangkum tema inti. Implementasi aktif juga menyediakan `yoru`, `sakura`, `cyberpunk`, `nord`, `sepia`, dan `custom` melalui `src/web/styles/tokens.css`.
+
 | Token | Sumi Charcoal (Default) | Cinema Amber | AMOLED True Black | Keterangan |
 | :--- | :--- | :--- | :--- | :--- |
 | `--bg-base` | `#0E0F12` | `#110D0A` | `#000000` | Latar belakang viewport utama |
@@ -58,7 +60,9 @@ Implementasi menggunakan CSS Custom Properties murni tanpa dependensi runtime be
 | `--text-muted` | `#636674` | `#6E665E` | `#71717A` | Metadata waktu & teks non-aktif |
 
 ### B. Tipografi & Skala
-- **Font Utama**: `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`.
+- **Font Heading**: `Outfit` with system and CJK fallbacks, matching `--kura-font-heading` in `src/web/styles/tokens.css`.
+- **Font Body**: `Plus Jakarta Sans` with system and CJK fallbacks, matching `--kura-font-sans` in `src/web/styles/tokens.css`.
+- **Font Angka/Metrik**: `JetBrains Mono`, matching `--kura-font-mono`.
 - **Font Angka / Metrik**: Font monospace sistem (`JetBrains Mono`, `ui-monospace`, `monospace`) untuk indikator chapter (`Ch. 142`), resolusi video (`1080p`), dan durasi (`24:15`).
 - **Skala Ukuran**:
   - `text-2xs`: `10px` (Micro-tag genre & kategori).
@@ -126,10 +130,10 @@ Implementasi menggunakan CSS Custom Properties murni tanpa dependensi runtime be
 - **Daftar Chapter**: Kepadatan tinggi (tinggi baris `42px`), tombol sortir urutan (Asc/Desc), teks redup untuk chapter yang sudah selesai dibaca, serta tombol unduh offline IndexedDB.
 
 ### F. Layar Baca (Reader Engine)
-- **3 Mode Baca**:
+- **Mode Baca yang Diimplementasikan**:
   1. *Webtoon (Long Strip)*: Scroll vertikal rapat tanpa jeda.
   2. *Single Page*: Tampilan satu halaman dengan sentuhan kiri/kanan.
-  3. *Double Page*: Tampilan dua halaman bersisian untuk layar desktop/tablet.
+  3. *Double Page*: Planned; belum tersedia di implementasi aktif.
 - **Zonasi Sentuhan (Touch Zones)**:
   - 30% area tengah: Memunculkan/menyembunyikan toolbar atas dan bilah navigasi bawah.
   - 35% area kiri: Halaman sebelumnya.
@@ -156,7 +160,7 @@ Sesuai spesifikasi `Dokumentasi-Kura/placeholder-svg/`:
 ### B. Mekanisme Aktivasi
 - Diaktifkan melalui:
   1. Akses URL: `/mode-pengembangan`
-  2. Query string: `?dev=1` atau `?nsfw_mask=1`
+  2. Query string: `?dev=1`
   3. Tombol toggle switch di menu **Pengaturan (Settings)**.
 - Saat aktif:
   - Gambar tidak memanggil tautan NSFW asli dari penyedia web scraper eksternal.
@@ -171,13 +175,13 @@ Sesuai spesifikasi `Dokumentasi-Kura/placeholder-svg/`:
 - **Fase 3: Sintesis & Master Dokumen Spesifikasi** (SELESAI - Ditandai dengan dokumen ini)
 - **Fase 4: Fondasi Desain & Token Sistem** (BERIKUTNYA)
   - Pemasangan pustaka Lucide icons.
-  - Pembuatan file CSS tokens & utilitas tema.
+  - Pembuatan file CSS tokens & utilitas tema (implemented in `src/web/styles/`).
   - Implementasi aset SVG masking & dev-mode state toggle.
   - Pembuatan Shell Desktop (Sidebar) & Mobile (Floating Dock).
 - **Fase 5: Rekonstruksi View & Komponen** (BERIKUTNYA)
   - Pembaruan Grid Manga & Video.
   - Rekonstruksi Detail Modal & Bottom Sheet.
-  - Rekonstruksi Reader Engine (3 mode) & Video Theater (70/30).
+  - Rekonstruksi Reader Engine (2 mode aktif; double-page masih planned) & Video Theater (70/30).
   - Integrasi Pustaka & Meteran Kuota IndexedDB.
 - **Fase 6: Audit Akhir, Polish & Validasi Responsif** (BERIKUTNYA)
   - Uji performa 60 FPS pada profil RAM 8GB.

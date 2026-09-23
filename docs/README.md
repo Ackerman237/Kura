@@ -27,7 +27,7 @@ Dokumentasi Kura disusun dengan prinsip *Inverted Pyramid Taxonomy*: nama direkt
 
 Untuk menjaga integritas dan kebersihan dokumentasi saat project bertumbuh:
 
-1. **Prinsip Keep It Alive**: Setiap perubahan arsitektur atau penambahan scraper baru harus memperbarui dokumen terkait di `02-architecture/` dan `04-api-reference/`.
-2. **Rekam Keputusan (ADRs)**: Jika ada pilihan desain penting (misalnya mengganti library cache, menambah database/ORM, atau mengubah skema proxy), buat entri baru di `05-decisions/` dengan format: *Konteks $\rightarrow$ Keputusan $\rightarrow$ Konsekuensi*.
-3. **Keamanan**: Hasil temuan pentest, audit vulnerabilitas, atau CVE upstream baru dicatat ke dalam `03-security/`.
-4. **Roadmap**: Item yang belum dikerjakan hanya dicatat di `06-roadmap/roadmap-and-backlog.md` agar backlog tetap rapi dan terukur.
+1. **Prinsip Keep It Alive**: Setiap perubahan arsitektur atau penambahan scraper baru harus memperbarui dokumen terkait di `03-architecture/` dan `05-api/`.
+2. **Rekam Keputusan (ADRs)**: Jika ada pilihan desain penting (misalnya mengganti library cache, menambah database/ORM, atau mengubah skema proxy), buat entri baru di `06-decisions/` dengan format: *Konteks $\rightarrow$ Keputusan $\rightarrow$ Konsekuensi*.
+3. **Keamanan**: Hasil temuan pentest, audit vulnerabilitas, atau CVE upstream baru dicatat ke dalam `04-security/`.
+4. **Roadmap**: Item yang belum dikerjakan hanya dicatat di `07-roadmap/roadmap-and-backlog.md` agar backlog tetap rapi dan terukur.

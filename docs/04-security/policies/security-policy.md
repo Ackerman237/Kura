@@ -38,6 +38,6 @@ Dokumen detail temuan audit lengkap per fase dapat dilihat pada:
   - `assertInt(val, opts)`: Memaksa konversi integer yang valid dalam batas min-max.
   - `assertQuery(q, opts)`: Menghapus control characters dan membatasi panjang pencarian.
 
-### E. Rate Limiting & Anti-Abuse (T8)
+### E. Rate Limiting & Anti-Abuse (Additional Control)
 - **Inbound Protection**: `RateLimiter` sliding-window berbasis LRU memory untuk membatasi lonjakan request per IP konsumen.
 - **Outbound Protection**: `UpstreamThrottler` untuk mengatur jeda minimal antar-request ke host target dan menerapkan cooldown otomatis saat mendeteksi status HTTP 429 dari upstream.

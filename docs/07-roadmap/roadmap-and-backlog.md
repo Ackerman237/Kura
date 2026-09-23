@@ -11,15 +11,15 @@ Dokumen ini memetakan milestone dan prioritas pengembangan project ke depan.
 - [x] Sliding-window rate limiter & Upstream throttler.
 - [x] Proxy manager dengan multi-round racing.
 - [x] Refactoring arsitektur modular (Clean Code & SRP: Pure Parser, Client, Facade).
-- [x] 164 automated tests passing 100%.
+- [x] 195 automated Node tests passing 100% (`npm test`). Browser UI tests remain separate.
 
 ---
 
-## 🚀 Milestone 2: Frontend Reader & Streaming Client (Selesai ✅)
+## 🚀 Milestone 2: Frontend Reader & Streaming Client (Implemented / Partial)
 - [x] **UI Manga Reader**:
-  - Tampilan baca manga vertikal (*webtoon-style infinite scroll*) & horizontal (*single/double page*).
+  - Tampilan baca manga vertikal (*webtoon-style infinite scroll*) dan horizontal (*single page*). Double-page spread masih direncanakan.
   - Mode fullscreen, pengingat halaman terakhir (*reading progress tracking*).
-  - Pre-fetching gambar chapter berikutnya di background untuk transisi mulus.
+  - Prefetch chapter berikutnya: planned / usage belum terverifikasi di implementasi aktif.
 - [x] **UI Video Streaming Player**:
   - Embed player responsive dengan pemilih kualitas (*1080p/720p/480p*).
   - Player frame proxy anti-popunder sandbox isolasi Tier-2.
@@ -51,16 +51,16 @@ Dokumen ini memetakan milestone dan prioritas pengembangan project ke depan.
 
 ---
 
-## 📥 Milestone 5: IDM-Style Download Manager & Server Disk Engine (Selesai ✅)
+## 📥 Milestone 5: IDM-Style Download Manager & Server Disk Engine (Implemented / Partial)
 - [x] **Dual Mode Download**:
   - Mode Browser (Direct client download) & Mode Server Disk (Direct streaming ke filesystem host).
 - [x] **Persistent Queue Management**:
   - Antrian download ala IDM (status, pause, resume, cancel, retry).
-  - Floating Download Drawer dengan indikator progres realtime via SSE (`/api/downloads/events`).
+  - Floating Download Drawer dengan indikator progres via SSE (`/api/video/download/progress/:jobId`).
 - [x] **Multi-Provider Stream & Media Download**:
-  - Support download chapter manga (ZIP bundling otomatis).
-  - Support video download untuk Eporner (direct MP4), HentaiTV (HLS/ffmpeg stream saver), dan NekoPoi (direct link extractor).
-  - Custom file naming templates & presets di Settings.
+  - Download chapter manga (ZIP bundling otomatis): planned / belum terverifikasi.
+  - Video download Eporner direct MP4 dan provider lain: kemampuan bergantung pada source; HLS/ffmpeg saver belum tersedia di source aktif.
+  - Custom file naming templates & presets: planned / usage belum terverifikasi.
 
 ---
 

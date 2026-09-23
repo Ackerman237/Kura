@@ -1,18 +1,20 @@
-# Laporan Audit Frontend: Kondisi Arsitektur Eksisting
+# Laporan Audit Frontend: Kondisi Arsitektur Kura
 
-> **Status Audit**: Selesai (Fase 1)  
-> **Peran Auditor**: Senior Frontend Architect  
-> **Target Analisis**: Repositori aktif `self-hosted-manga-reader` dan prototipe basis `scraper-gagal/WibuDex`
+> **Status Audit**: Diperbarui berdasarkan repository Kura saat ini
+> **Peran Auditor**: Senior Frontend Architect
+> **Target Analisis**: Implementasi aktif Kura; WibuDex hanya digunakan sebagai konteks historis
 
 ---
 
-## 1. Selisih Konteks Repo vs Ekspektasi Pengguna
+## 1. Baseline Repository Aktif
 
-Sebelum masuk ke detail teknis, terdapat temuan audit mendasar mengenai kondisi repo:
+Repository aktif saat ini bukan lagi SDK scraper tanpa frontend. Baseline yang terverifikasi:
 
-- `[FAKTA]` Repositori kerja aktif (`d:\vkaxfyfimlgs\My Library\Scrapper Project\self-hosted-manga-reader`) saat ini **belum memiliki lapisan frontend**. Repositori ini berisi scraping engine SDK modular murni (*zero-dependency ESM*) dengan 164 unit tests yang dijalankan melalui `node --test` (bukan Vitest).
-- `[FAKTA]` Lapisan frontend, server Express, database SQLite, dan 116 tests Vitest yang disebutkan dalam brief pengguna sebenarnya berada pada direktori proyek prototipe sebelumnya: `D:\vkaxfyfimlgs\My Library\Scrapper Project\scraper-gagal\WibuDex`.
-- `[FAKTA]` Audit di bawah ini memeriksa implementasi nyata frontend pada basis kode `WibuDex/public` sebagai acuan empiris (*ground truth*) dari kode yang ingin dibangun ulang/dimigrasikan ke proyek **Kura (蔵)**.
+- `[FAKTA]` Kura memiliki frontend Vue 3/Vite di `src/web/`, server Express di `server.js`, dan 195 test Node yang lulus melalui `npm test`.
+- `[FAKTA]` Provider aktif berada di `src/sources/`, facade provider berada di `src/`, dan route HTTP berada di `src/server/routes/`.
+- `[KONTEKS HISTORIS]` WibuDex adalah prototype terdahulu yang menjadi salah satu sumber audit dan inspirasi migrasi. Detail implementasinya tidak boleh dianggap sebagai kondisi Kura saat ini.
+
+Bagian yang secara eksplisit menyebut `WibuDex/public` di bawah adalah catatan historis, bukan inventaris implementasi aktif Kura.
 
 ---
 
@@ -103,7 +105,7 @@ Pengukuran berkas statis pada `WibuDex/public` (ukuran sebelum kompresi gzip):
 `[FAKTA]` Dari sisi anggaran ukuran bundle (target: $\le 150\text{ KB}$ gzip), payload saat ini **sangat aman** (berkisar antara 7.5 KB hingga 38 KB gzip). Artinya, bottleneck aplikasi **bukanlah ukuran berkas JS/CSS**.
 
 ### 2.10 Kualitas, Pengujian, & Aksesibilitas
-- `[FAKTA]` **Cakupan Tes Frontend**: **0%**. 116 tests di WibuDex dan 164 tests di `self-hosted-manga-reader` 100% menguji backend API, scraper parser, dan utilitas enkripsi/keamanan. Tidak ada satupun test untuk interaksi DOM, reader scrolling, atau event handler UI.
+- `[FAKTA]` **Cakupan Tes Frontend**: Belum ada suite browser otomatis yang menjadi bagian dari `npm test`. Suite aktif berisi 195 test Node untuk API, scraper, parser, keamanan, dan utilitas. Interaksi DOM, reader scrolling, dan event handler UI masih memerlukan validasi browser terpisah.
 - `[FAKTA]` **Lokalisasi Teks**: Seluruh teks UI berbahasa Indonesia di-hardcode secara manual di dalam string template JS dan berkas HTML (misal: `"Memuat halaman..."`, `"Bab selanjutnya"`, `"Gagal memuat"`).
 - `[FAKTA]` **Aksesibilitas**: Kontras teks di `noctra-tokens.css` sebagian belum memenuhi WCAG AA untuk border input dan teks sekunder; penanganan fokus keyboard pada pembaca komik minim.
 
