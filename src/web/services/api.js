@@ -113,8 +113,11 @@ export async function fetchChapterImages(chapterId, { forceRefresh = false } = {
 // ---------------------------------------------------------------------------
 // Cinema Video APIs (NekoPoi, Hentai.tv, Eporner)
 // ---------------------------------------------------------------------------
-export async function fetchNekoList(page = 1, { forceRefresh = false } = {}) {
-  return await fetchJson(`/video/neko/list?page=${page}`, { forceRefresh }, 'home');
+export async function fetchNekoList(page = 1, { q = '', forceRefresh = false } = {}) {
+  const params = new URLSearchParams({ page: String(page) });
+  if (q && q.trim()) params.set('q', q.trim());
+  const category = q && q.trim() ? 'search' : 'home';
+  return await fetchJson(`/video/neko/list?${params.toString()}`, { forceRefresh }, category);
 }
 
 export async function fetchNekoDetail(slug, { forceRefresh = false } = {}) {

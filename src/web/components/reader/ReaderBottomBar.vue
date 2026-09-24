@@ -209,7 +209,7 @@ function handleSliderChange(e) {
   font-weight: 600;
   color: var(--kura-text-muted, #aaaaaa);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .mode-btn:hover {
@@ -232,7 +232,7 @@ function handleSliderChange(e) {
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--kura-text-muted, #aaaaaa);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .dock-icon-btn:hover {

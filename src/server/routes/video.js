@@ -40,7 +40,8 @@ router.get('/trending', async (req, res) => {
 router.get('/neko/list', async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
-    const data = await scrapeNekoList(page);
+    const query = req.query.q || '';
+    const data = await scrapeNekoList(page, query);
     res.json(data);
   } catch (err) {
     res.status(502).json({ error: err.message });

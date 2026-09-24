@@ -322,7 +322,7 @@ onMounted(() => {
   padding: 4px 12px;
   border-radius: var(--radius-pill, 9999px);
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
 }
 
 .about-shortcut-btn:hover {
@@ -334,10 +334,10 @@ onMounted(() => {
 .settings-title {
   font-family: var(--kura-font-heading, sans-serif);
   font-size: 1.85rem;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--kura-text-primary, #fff);
   margin: 0;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
   line-height: 1.2;
 }
 
@@ -384,7 +384,7 @@ onMounted(() => {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 

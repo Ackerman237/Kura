@@ -135,7 +135,7 @@ const handleShare = () => {
   font-weight: 600;
   cursor: pointer;
   padding: 4px 0;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .back-btn:hover {

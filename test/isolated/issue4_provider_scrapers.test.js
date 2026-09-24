@@ -28,3 +28,9 @@ test('Issue 4 - src/server/routes/video.js must provide a /trending endpoint sup
   const hasTrendingRoute = content.includes("'/trending'") || content.includes('"/trending"');
   assert.equal(hasTrendingRoute, true, 'video.js must have a /trending route for cross-provider trending feeds');
 });
+
+test('Issue 4 - NekoPoi search query must be forwarded to the server scraper route', () => {
+  const content = fs.readFileSync(videoRoutesPath, 'utf8');
+  assert.equal(content.includes('req.query.q'), true, 'NekoPoi route must read the server-side search query');
+  assert.equal(content.includes('scrapeNekoList(page, query)'), true, 'NekoPoi route must forward query to the scraper facade');
+});

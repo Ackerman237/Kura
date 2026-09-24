@@ -255,7 +255,7 @@ onUnmounted(() => {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   user-select: none;
 }
 
@@ -480,7 +480,7 @@ onUnmounted(() => {
   font-size: 0.74rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .genre-check-pill:hover {
@@ -549,7 +549,7 @@ onUnmounted(() => {
   font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .btn-reset:hover {
@@ -567,7 +567,7 @@ onUnmounted(() => {
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .btn-apply:hover {

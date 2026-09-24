@@ -34,6 +34,36 @@ body {
   overflow-x: clip;
 }
 
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--kura-font-sans);
+}
+
+code,
+kbd,
+pre,
+.kura-mono,
+.chapter-number,
+.release-time,
+.progress-meta,
+.stat-pill {
+  font-family: var(--kura-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--kura-font-heading);
+  text-wrap: balance;
+}
+
 /* Links & Interactive Elements */
 a {
   color: inherit;

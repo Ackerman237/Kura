@@ -236,7 +236,7 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   padding: 4px 10px;
   border-radius: var(--radius-pill, 9999px);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
   flex-shrink: 0;
   /* Touch target: visual padding + minimum height */
@@ -284,7 +284,7 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   color: var(--kura-text-muted, #94a3b8);
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   touch-action: manipulation;
 }
 
@@ -408,7 +408,7 @@ const isGridLoading = computed(() => props.isLoading || isTypeLoading.value);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .browse-all-btn:hover {

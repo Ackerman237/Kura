@@ -109,7 +109,7 @@ const tabs = [
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-spring);
+  transition: color var(--duration-fast) var(--ease-spring), background-color var(--duration-fast) var(--ease-spring), border-color var(--duration-fast) var(--ease-spring), box-shadow var(--duration-fast) var(--ease-spring), transform var(--duration-fast) var(--ease-spring), opacity var(--duration-fast) var(--ease-spring);
   white-space: nowrap;
 }
 

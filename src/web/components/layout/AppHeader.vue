@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { Eye, EyeOff, Palette, Download, User } from 'lucide-vue-next';
+import { Eye, EyeOff, Palette, Download, User, Globe2 } from 'lucide-vue-next';
 import { useDownloadQueue } from '../../services/download.js';
 import SearchBar from '../common/SearchBar.vue';
 
@@ -39,6 +39,7 @@ const emit = defineEmits([
   'toggle-privacy-mode',
   'cycle-theme',
   'toggle-download-queue',
+  'open-universal-search',
 ]);
 
 const searchBarRef = ref(null);
@@ -167,6 +168,16 @@ onUnmounted(() => {
             <span v-if="downloadBadge > 0" class="dl-badge">{{ downloadBadge }}</span>
           </button>
 
+          <!-- Cross-provider Universal Search -->
+          <button
+            type="button"
+            class="icon-action-btn universal-search-btn"
+            title="Pencarian Universal Manga dan Video"
+            @click="$emit('open-universal-search')"
+          >
+            <Globe2 :size="16" />
+          </button>
+
           <!-- Profile / About Navigation -->
           <button
             type="button"
@@ -208,7 +219,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0 16px;
   height: var(--header-height, 64px);
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .topbar-inner {
@@ -299,7 +310,7 @@ onUnmounted(() => {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--kura-text-muted, #aaaaaa);
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .header-link:hover {
@@ -341,7 +352,7 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   max-width: 100%;
 }
 
@@ -368,7 +379,7 @@ onUnmounted(() => {
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
   color: var(--kura-text-muted, #aaaaaa);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .icon-action-btn:hover {
@@ -388,7 +399,7 @@ onUnmounted(() => {
   border: 1px solid var(--kura-border-strong, rgba(255, 255, 255, 0.15));
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .user-avatar-btn:hover {

@@ -63,7 +63,7 @@ const emit = defineEmits(['click', 'dismiss']);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
 }
 
 .kura-chip:hover {

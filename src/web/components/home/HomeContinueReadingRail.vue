@@ -129,11 +129,11 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 8px;
-  background: var(--kura-surface, #14151a);
+  background: transparent;
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-sm, 6px);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
   touch-action: manipulation;
   min-height: 44px; /* minimum touch target height */
 }
@@ -146,8 +146,8 @@ onMounted(() => {
 
 
 .continue-card:hover {
+  background: var(--kura-surface, #14151a);
   border-color: var(--kura-accent, #e5a93c);
-  transform: translateY(-2px);
 }
 
 .continue-thumb-box {

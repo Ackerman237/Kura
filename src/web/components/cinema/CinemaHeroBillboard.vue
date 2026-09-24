@@ -206,7 +206,7 @@ const emit = defineEmits(['select-video']);
   border: none;
   cursor: pointer;
   width: fit-content;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .play-hero-cta:hover {

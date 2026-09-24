@@ -127,7 +127,7 @@ function updateColor(key, value) {
 .live-theme-card-preview {
   border: 2px solid; border-radius: 12px; padding: 16px;
   display: flex; align-items: center; gap: 14px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 .mock-poster {
   width: 56px; height: 76px; border-radius: 6px; flex-shrink: 0;

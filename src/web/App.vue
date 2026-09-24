@@ -13,6 +13,7 @@ import MangaCatalogView from './views/MangaCatalogView.vue';
 import MangaDetailView from './views/MangaDetailView.vue';
 import VideoWatchView from './views/VideoWatchView.vue';
 import CinemaHomeView from './views/CinemaHomeView.vue';
+import UniversalSearchView from './views/UniversalSearchView.vue';
 import AboutView from './views/AboutView.vue';
 import DownloadQueueDrawer from './components/common/DownloadQueueDrawer.vue';
 import KuraToast from './components/common/KuraToast.vue';
@@ -116,41 +117,56 @@ function navigateHistory(screen, payload = {}) {
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
+      url.searchParams.delete('q');
     } else if (screen === 'manga-detail') {
       url.searchParams.set('tab', 'manga');
       url.searchParams.set('view', 'manga-detail');
       if (payload.slug) url.searchParams.set('slug', payload.slug);
       url.searchParams.delete('chapter');
+      url.searchParams.delete('q');
     } else if (screen === 'manga-reader') {
       url.searchParams.set('tab', 'manga');
       url.searchParams.set('view', 'reader');
       if (payload.mangaSlug) url.searchParams.set('slug', payload.mangaSlug);
       if (payload.chapterId) url.searchParams.set('chapter', payload.chapterId);
       url.searchParams.delete('provider');
+      url.searchParams.delete('q');
     } else if (screen === 'video-home') {
       url.searchParams.set('tab', 'video');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
       if (payload.provider) url.searchParams.set('provider', payload.provider);
+      url.searchParams.delete('q');
     } else if (screen === 'video-watch') {
       url.searchParams.set('tab', 'video');
       url.searchParams.set('view', 'video-watch');
       if (payload.slug) url.searchParams.set('slug', payload.slug);
       if (payload.provider) url.searchParams.set('provider', payload.provider);
       url.searchParams.delete('chapter');
+      url.searchParams.delete('q');
+    } else if (screen === 'universal-search') {
+      url.searchParams.set('tab', 'search');
+      url.searchParams.set('view', 'universal-search');
+      if (payload.query) url.searchParams.set('q', payload.query);
+      url.searchParams.delete('slug');
+      url.searchParams.delete('chapter');
+      url.searchParams.delete('provider');
+      url.searchParams.delete('q');
     } else if (screen === 'library') {
       url.searchParams.set('tab', 'library');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
       url.searchParams.delete('provider');
+      url.searchParams.delete('q');
     } else if (screen === 'settings') {
       url.searchParams.set('tab', 'settings');
       url.searchParams.delete('view');
       url.searchParams.delete('slug');
       url.searchParams.delete('chapter');
       url.searchParams.delete('provider');
+      url.searchParams.delete('q');
     } else if (screen === 'about') {
       url.searchParams.set('tab', 'about');
       url.searchParams.delete('view');
@@ -247,27 +263,56 @@ const handleNavigate = (tab) => {
 };
 
 const handleSearch = () => {
+  const query = searchQuery.value.trim();
+  if (!query) return;
+
+  if (activeScreen.value === 'universal-search') return;
+
   if (currentTab.value === 'manga') {
-    if (activeScreen.value !== 'manga-home') {
-      activeScreen.value = 'manga-home';
-    }
+    if (activeScreen.value === 'manga-catalog') return;
+    activeScreen.value = 'manga-home';
     loadManga(1);
-  } else if (currentTab.value === 'video') {
-    if (activeScreen.value !== 'video-home') {
-      activeScreen.value = 'video-home';
-    }
-    loadVideos(1);
+    return;
   }
+
+  if (currentTab.value === 'catalog') {
+    activeScreen.value = 'manga-catalog';
+    return;
+  }
+
+  if (currentTab.value === 'video') {
+    activeScreen.value = 'video-home';
+  }
+};
+
+const openUniversalSearch = () => {
+  activeScreen.value = 'universal-search';
+  currentTab.value = 'manga';
+  navigateHistory('universal-search', { query: searchQuery.value.trim() });
 };
 
 const handleClearSearch = () => {
   searchQuery.value = '';
+  if (activeScreen.value === 'universal-search') {
+    currentTab.value = 'manga';
+    activeScreen.value = 'manga-home';
+    navigateHistory('manga-home');
+    loadManga(1);
+    return;
+  }
   handleSearch();
 };
 
 watch(searchQuery, () => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
   searchDebounceTimer = setTimeout(() => {
+    if (activeScreen.value === 'universal-search' && searchQuery.value.trim()) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', 'search');
+      url.searchParams.set('view', 'universal-search');
+      url.searchParams.set('q', searchQuery.value.trim());
+      history.replaceState({ screen: 'universal-search', query: searchQuery.value.trim() }, '', url.toString());
+    }
     handleSearch();
   }, 450);
 });
@@ -578,12 +623,17 @@ onMounted(async () => {
   const urlSlug = params.get('slug');
   const urlChapter = params.get('chapter');
   const urlProvider = params.get('provider');
+  const urlQuery = params.get('q');
 
   if (urlProvider) {
     videoProvider.value = urlProvider;
   }
 
-  if (urlTab === 'video' || urlView === 'video-watch') {
+  if (urlView === 'universal-search' && urlQuery) {
+    currentTab.value = 'manga';
+    searchQuery.value = urlQuery;
+    activeScreen.value = 'universal-search';
+  } else if (urlTab === 'video' || urlView === 'video-watch') {
     currentTab.value = 'video';
     if (urlView === 'video-watch' && urlSlug) {
       openVideoPlayer({
@@ -657,6 +707,10 @@ onMounted(async () => {
     } else if (state.screen === 'video-watch') {
       currentTab.value = 'video';
       activeScreen.value = 'video-watch';
+    } else if (state.screen === 'universal-search') {
+      currentTab.value = 'manga';
+      searchQuery.value = state.query || '';
+      activeScreen.value = 'universal-search';
     } else if (state.screen === 'manga-reader') {
       currentTab.value = 'manga';
       activeScreen.value = 'manga-reader';
@@ -716,14 +770,27 @@ onMounted(async () => {
         @navigate="handleNavigate"
         @search="handleSearch"
         @clear-search="handleClearSearch"
+        @open-universal-search="openUniversalSearch"
         @toggle-privacy-mode="isPrivacyMode = !isPrivacyMode"
         @cycle-theme="cycleTheme"
         @toggle-download-queue="showDownloadQueue = !showDownloadQueue"
       />
 
+      <!-- SCREEN 0: UNIVERSAL SEARCH (MANGA + ALL VIDEO PROVIDERS) -->
+      <UniversalSearchView
+        v-if="activeScreen === 'universal-search'"
+        :query="searchQuery"
+        :is-privacy-mode="isPrivacyMode"
+        :bookmarked-ids="bookmarkedIds"
+        @select-comic="openMangaDetail"
+        @toggle-bookmark="toggleBookmark"
+        @select-video="openVideoPlayer"
+        @clear-search="handleClearSearch"
+      />
+
       <!-- SCREEN 1: MANGA / KOMIK HOMEPAGE -->
       <HomeView
-        v-if="activeScreen === 'manga-home'"
+        v-else-if="activeScreen === 'manga-home'"
         :is-privacy-mode="isPrivacyMode"
         :bookmarked-ids="bookmarkedIds"
         :live-comics="mangaList"
@@ -737,6 +804,7 @@ onMounted(async () => {
         v-else-if="activeScreen === 'manga-catalog'"
         :is-privacy-mode="isPrivacyMode"
         :bookmarked-ids="bookmarkedIds"
+        :initial-search-query="searchQuery"
         @select-comic="openMangaDetail"
         @toggle-bookmark="toggleBookmark"
       />
@@ -774,6 +842,7 @@ onMounted(async () => {
       <CinemaHomeView
         v-else-if="activeScreen === 'video-home'"
         :is-privacy-mode="isPrivacyMode"
+        :initial-search-query="searchQuery"
         @select-video="openVideoPlayer"
       />
 
@@ -923,7 +992,7 @@ onMounted(async () => {
   background: var(--kura-surface);
   color: var(--kura-text-secondary);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   white-space: nowrap;
 }
 
@@ -1022,7 +1091,7 @@ onMounted(async () => {
   background: var(--kura-surface);
   color: var(--kura-text-primary);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .page-btn:hover:not(:disabled) {

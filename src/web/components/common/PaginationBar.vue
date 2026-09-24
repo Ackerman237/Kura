@@ -203,7 +203,7 @@ const handleJumpSubmit = () => {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   white-space: nowrap;
 }
 
@@ -248,7 +248,7 @@ const handleJumpSubmit = () => {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .page-number-btn:hover:not(:disabled):not(.active) {
@@ -331,7 +331,7 @@ const handleJumpSubmit = () => {
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .jump-go-btn:hover:not(:disabled) {

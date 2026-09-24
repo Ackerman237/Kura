@@ -121,7 +121,7 @@ const presetThemes = [
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .theme-card:hover {

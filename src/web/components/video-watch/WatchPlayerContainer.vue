@@ -254,7 +254,7 @@ const toggleTheater = () => {
   background: #000000;
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
   box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.85);
-  transition: all 0.25s ease;
+  transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
 }
 
 .player-aspect-frame {
@@ -370,7 +370,7 @@ const toggleTheater = () => {
   font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
   flex-shrink: 0;
   max-width: 120px;
@@ -414,7 +414,7 @@ const toggleTheater = () => {
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .ctrl-icon-btn:hover {

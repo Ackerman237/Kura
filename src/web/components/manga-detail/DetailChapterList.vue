@@ -240,7 +240,7 @@ const isCurrentReading = (ch) => {
   font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .sort-toggle-btn:hover {
@@ -266,17 +266,16 @@ const isCurrentReading = (ch) => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: var(--kura-surface, #14151a);
+  background: transparent;
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-sm, 6px);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .chapter-card-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--kura-surface, #14151a);
   border-color: var(--kura-accent, #e5a93c);
-  transform: translateX(3px);
 }
 
 .chapter-card-row.reading-active {
@@ -357,7 +356,7 @@ const isCurrentReading = (ch) => {
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
   color: var(--kura-text-muted, #94a3b8);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .download-action-btn:hover {

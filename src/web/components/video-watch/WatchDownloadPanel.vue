@@ -183,7 +183,7 @@ function formatSize(bytes) {
   color: var(--kura-text-secondary, #cbd5e1);
   font-family: var(--kura-font-sans, sans-serif);
   font-size: 0.75rem; font-weight: 600;
-  cursor: pointer; transition: all 0.2s ease;
+  cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 .meta-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .meta-btn.active {
@@ -238,7 +238,7 @@ function formatSize(bytes) {
   background: rgba(229,169,60,0.1);
   border: 1px solid rgba(229,169,60,0.2);
   padding: 3px 8px; border-radius: 4px; cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .dp-add-all:hover { background: rgba(229,169,60,0.2); }
 
@@ -292,7 +292,7 @@ function formatSize(bytes) {
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--kura-text-secondary, #cbd5e1);
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .dp-add-btn:hover:not(:disabled) {
   background: var(--kura-accent, #e5a93c);

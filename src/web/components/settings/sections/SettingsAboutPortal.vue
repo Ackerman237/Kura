@@ -40,7 +40,7 @@ const emit = defineEmits(['navigate']);
 .about-portal-card {
   cursor: pointer;
   border-color: rgba(229,169,60,0.2);
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 .about-portal-card:hover {
   border-color: var(--kura-accent, #e5a93c);

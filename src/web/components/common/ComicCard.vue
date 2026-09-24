@@ -465,7 +465,7 @@ const handleCardClick = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   touch-action: manipulation;
 }
 

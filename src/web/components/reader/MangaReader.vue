@@ -618,7 +618,7 @@ onUnmounted(() => {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), transform var(--duration-fast);
 }
 
 .icon-btn:hover {
@@ -693,7 +693,7 @@ onUnmounted(() => {
   font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast);
 }
 
 .toggle-btn.active {
@@ -803,7 +803,7 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   border-radius: var(--radius-sm);
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   z-index: 40;
 }
 
@@ -870,7 +870,7 @@ onUnmounted(() => {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   white-space: nowrap;
 }
 
@@ -981,7 +981,7 @@ onUnmounted(() => {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .end-btn.prev {
@@ -1111,7 +1111,7 @@ onUnmounted(() => {
   flex-shrink: 0;
   cursor: pointer;
   background: #000;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .scrubber-item:hover {

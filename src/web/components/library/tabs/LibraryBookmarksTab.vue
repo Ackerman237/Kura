@@ -138,7 +138,7 @@ const onImgError = (e, item) => {
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   border-radius: var(--radius-md, 8px);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .bookmark-card:hover {
@@ -225,7 +225,7 @@ const onImgError = (e, item) => {
   color: var(--kura-text-muted, #94a3b8);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .remove-btn:hover {

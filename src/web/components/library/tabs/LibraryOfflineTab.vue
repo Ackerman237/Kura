@@ -239,7 +239,7 @@ const onDrop = (e) => {
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   border-radius: var(--radius-md, 8px);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .offline-card:hover {
@@ -308,7 +308,7 @@ const onDrop = (e) => {
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .action-btn.delete {
@@ -342,7 +342,7 @@ const onDrop = (e) => {
   background: rgba(229, 169, 60, 0.03);
   padding: 24px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
   position: relative;
   overflow: hidden;
 }

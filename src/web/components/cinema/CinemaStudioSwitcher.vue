@@ -64,7 +64,7 @@ const emit = defineEmits(['select-provider']);
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
   min-width: 0;
 }
@@ -85,7 +85,7 @@ const emit = defineEmits(['select-provider']);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .studio-tab-card.active .tab-indicator-dot {

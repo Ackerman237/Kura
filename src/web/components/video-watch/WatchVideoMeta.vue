@@ -117,10 +117,10 @@ const emit = defineEmits(['toggle-bookmark', 'share']);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: var(--kura-surface, #14151a);
-  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: var(--radius-md, 8px);
-  padding: 16px 20px;
+  background: transparent;
+  border-top: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
+  padding: 16px 0;
 }
 
 .meta-header-row {
@@ -173,7 +173,7 @@ const emit = defineEmits(['toggle-bookmark', 'share']);
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .meta-btn:hover {

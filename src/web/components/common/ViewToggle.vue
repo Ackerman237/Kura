@@ -63,7 +63,7 @@ function setMode(mode) {
   color: var(--kura-text-muted);
   border-radius: calc(var(--radius-sm) - 2px);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
 }
 
 .toggle-btn:hover {

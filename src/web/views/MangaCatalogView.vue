@@ -18,6 +18,7 @@ import ComicSkeleton from '../components/common/ComicSkeleton.vue';
 import GenreFilterDropdown from '../components/common/GenreFilterDropdown.vue';
 import PaginationBar from '../components/common/PaginationBar.vue';
 import { fetchMangaList, fetchMangaGenres } from '../services/api.js';
+import { normalizeStatus } from '../utils/status.js';
 
 const props = defineProps({
   isPrivacyMode: {
@@ -32,12 +33,16 @@ const props = defineProps({
     type: String,
     default: 'all',
   },
+  initialSearchQuery: {
+    type: String,
+    default: '',
+  },
 });
 
 const emit = defineEmits(['select-comic', 'toggle-bookmark']);
 
 // State
-const searchQuery = ref('');
+const searchQuery = ref(props.initialSearchQuery || '');
 const activeType = ref(props.initialType || 'all');
 const activeStatus = ref('all');
 const activeSort = ref('latest_chapter'); // 'latest_chapter' | 'views' | 'rating'
@@ -116,7 +121,8 @@ const loadCatalog = async (page = 1) => {
 
 // Direct symmetrical view
 const displayComics = computed(() => {
-  return comics.value;
+  if (activeStatus.value === 'all') return comics.value;
+  return comics.value.filter((comic) => normalizeStatus(comic.status).toLowerCase() === activeStatus.value);
 });
 
 // Watchers
@@ -130,6 +136,15 @@ watch(searchQuery, () => {
     loadCatalog(1);
   }, 400);
 });
+
+watch(
+  () => props.initialSearchQuery,
+  (nextQuery) => {
+    const normalizedQuery = nextQuery || '';
+    if (normalizedQuery === searchQuery.value) return;
+    searchQuery.value = normalizedQuery;
+  }
+);
 
 const changePage = (newPage) => {
   if (newPage < 1) return;
@@ -380,10 +395,10 @@ onMounted(async () => {
 
 .catalog-title {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--kura-text-primary);
   margin: 0 0 0.35rem 0;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .catalog-desc {
@@ -408,7 +423,7 @@ onMounted(async () => {
   border: 1px solid var(--kura-border-subtle);
   border-radius: var(--radius-pill);
   padding: 0.5rem 0.85rem;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .search-box:focus-within {
@@ -451,10 +466,10 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  background: var(--kura-surface);
-  border: 1px solid var(--kura-border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1.15rem;
+  background: transparent;
+  border-top: 1px solid var(--kura-border-subtle);
+  border-bottom: 1px solid var(--kura-border-subtle);
+  padding: 0.85rem 0;
 }
 
 .filter-pills-row {
@@ -484,11 +499,11 @@ onMounted(async () => {
   border: 1px solid var(--kura-border-subtle);
   color: var(--kura-text-secondary);
   padding: 0.35rem 0.8rem;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .filter-pill-btn:hover {
@@ -498,10 +513,10 @@ onMounted(async () => {
 }
 
 .filter-pill-btn.active {
-  background: var(--kura-accent);
-  color: #ffffff;
+  background: var(--kura-accent-muted);
+  color: var(--kura-accent);
   border-color: var(--kura-accent);
-  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+  box-shadow: none;
 }
 
 .filter-pill-btn.sub-pill {
@@ -522,7 +537,7 @@ onMounted(async () => {
   font-weight: 600;
   cursor: pointer;
   margin-left: auto;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .reset-filters-btn:hover {
@@ -550,7 +565,7 @@ onMounted(async () => {
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .genre-chip-btn:hover {
@@ -797,7 +812,7 @@ onMounted(async () => {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .page-btn:hover:not(:disabled) {

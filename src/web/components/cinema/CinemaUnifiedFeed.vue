@@ -230,7 +230,7 @@ const getProviderBadge = (provider) => {
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
   color: var(--kura-text-muted, #9ca3af);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .type-pill:hover {

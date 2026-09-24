@@ -39,7 +39,7 @@ defineProps({
   letter-spacing: 0.02em;
   text-transform: uppercase;
   border-radius: var(--radius-xs);
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
   user-select: none;
   white-space: nowrap;
 }

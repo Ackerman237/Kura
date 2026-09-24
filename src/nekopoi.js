@@ -3,7 +3,7 @@
 // Preserves 100% backward compatibility for exports and configuration.
 
 import { getCache, setCache } from './cache.js';
-import { assertSlug, assertInt } from './security.js';
+import { assertSlug, assertInt, assertQuery } from './security.js';
 import {
   DEFAULT_BASE_URL,
   DEFAULT_USER_AGENT,
@@ -41,9 +41,11 @@ export function configureNeko(opts = {}) {
  * @param {number} [page=1] - page number (1 = home)
  * @returns {Promise<{videos: Array, hasNext: boolean}>}
  */
-export async function scrapeNekoList(page = 1) {
+export async function scrapeNekoList(page = 1, query = '') {
   const safePage = assertInt(page, { min: 1, max: 1000, name: 'page', defaultValue: 1 });
-  const path = safePage <= 1 ? '/' : `/page/${safePage}/`;
+  const safeQuery = query ? assertQuery(query, { maxLength: 100, name: 'query' }) : '';
+  const querySuffix = safeQuery ? `?s=${encodeURIComponent(safeQuery)}` : '';
+  const path = safePage <= 1 ? `/${querySuffix}` : `/page/${safePage}/${querySuffix}`;
   const html = await fetchNekoHtml(path, state);
   const videos = parseCards(html, state.baseUrl);
   const hasNext = html.includes(`/page/${safePage + 1}/`);

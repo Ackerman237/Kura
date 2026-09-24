@@ -221,7 +221,7 @@ const allDone = computed(() => queue.value.length > 0 && queue.value.every((i) =
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--kura-text-secondary, #cbd5e1);
   font-size: 0.72rem; font-weight: 600; cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .ctrl-btn:hover { background: rgba(255,255,255,0.1); }
 .ctrl-btn.ghost { background: transparent; border-color: transparent; color: var(--kura-text-muted, #94a3b8); }
@@ -321,7 +321,7 @@ const allDone = computed(() => queue.value.length > 0 && queue.value.every((i) =
   border: 1px solid rgba(255,255,255,0.08);
   color: var(--kura-text-muted, #94a3b8);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .item-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .item-btn.remove-btn:hover { background: rgba(248,113,113,0.2); color: #f87171; }

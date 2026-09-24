@@ -380,7 +380,7 @@ function clearReadingHistory() {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 8px 14px; border-radius: var(--radius-pill, 9999px);
   font-size: 0.78rem; font-weight: 700; cursor: pointer;
-  transition: all 0.15s ease; border: none; width: fit-content;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease; border: none; width: fit-content;
 }
 .bac-btn.export { background: var(--kura-accent, #e5a93c); color: #000; }
 .bac-btn.export:hover { opacity: 0.88; }
@@ -402,7 +402,7 @@ function clearReadingHistory() {
   padding: 6px 12px; border-radius: var(--radius-pill, 9999px);
   background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
   color: #f87171; font-size: 0.74rem; font-weight: 600; cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .clear-btn:hover { background: rgba(239,68,68,0.15); }
 .clear-btn.secondary { background: rgba(255,255,255,0.04); border-color: var(--kura-border-subtle); color: var(--kura-text-muted, #94a3b8); }
@@ -570,7 +570,7 @@ function clearReadingHistory() {
   font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .preset-pill-btn:hover {
@@ -665,7 +665,7 @@ function clearReadingHistory() {
   font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 .purge-btn:hover {

@@ -348,7 +348,7 @@ function toggleSubdir(type, key) {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--kura-text-muted, #94a3b8);
-  transition: all 0.15s ease; text-align: center;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease; text-align: center;
 }
 .mode-btn.active {
   background: rgba(229,169,60,0.12);
@@ -365,7 +365,7 @@ function toggleSubdir(type, key) {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--kura-text-muted, #94a3b8);
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .parallel-btn.active {
   background: rgba(229,169,60,0.15);
@@ -423,7 +423,7 @@ function toggleSubdir(type, key) {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--kura-text-muted, #94a3b8);
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .preset-chip.active {
   background: rgba(229,169,60,0.12);
@@ -462,7 +462,7 @@ function toggleSubdir(type, key) {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--kura-text-muted, #94a3b8);
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .quality-btn.active {
   background: rgba(229,169,60,0.15);

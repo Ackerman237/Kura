@@ -107,7 +107,7 @@ defineExpose({ focus, inputRef });
   border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.1));
   border-radius: var(--radius-pill, 9999px);
   padding: 0 10px 0 6px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -129,7 +129,7 @@ defineExpose({ focus, inputRef });
   border: none;
   color: var(--kura-text-muted, #888888);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   flex-shrink: 0;
   padding: 0;
 }
@@ -167,7 +167,7 @@ defineExpose({ focus, inputRef });
   border: none;
   color: var(--kura-text-muted, #aaaaaa);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   flex-shrink: 0;
   padding: 0;
 }

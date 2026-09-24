@@ -102,7 +102,7 @@ const emit = defineEmits(['set-reader-mode', 'set-video-provider']);
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--kura-border-subtle, rgba(255,255,255,0.1));
   color: var(--kura-text-secondary, #cbd5e1);
-  font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;
+  font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 .chip-btn:hover { border-color: #fff; }
 .chip-btn.active { background: var(--kura-accent, #e5a93c); color: #000; border-color: var(--kura-accent, #e5a93c); }

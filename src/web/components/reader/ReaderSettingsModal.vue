@@ -419,7 +419,7 @@ function resetDefaults() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .close-btn:hover {
@@ -491,7 +491,7 @@ function resetDefaults() {
   padding: 0.35rem 0.5rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
   white-space: nowrap;
 }
 
@@ -554,7 +554,7 @@ function resetDefaults() {
   padding: 0.25rem 0.6rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .chip-option:hover {
@@ -585,7 +585,7 @@ function resetDefaults() {
   border-radius: var(--radius-md);
   padding: 0.65rem 0.85rem;
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .comfort-card:hover {
@@ -659,7 +659,7 @@ function resetDefaults() {
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 10px rgba(255, 107, 0, 0.35);
-  transition: all var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), opacity var(--duration-fast);
 }
 
 .done-btn:hover {

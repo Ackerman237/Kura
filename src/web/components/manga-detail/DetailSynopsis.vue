@@ -44,10 +44,10 @@ const isExpanded = ref(false);
 }
 
 .synopsis-card {
-  background: var(--kura-surface, #14151a);
-  border: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: var(--radius-md, 8px);
-  padding: 20px 24px;
+  background: transparent;
+  border-top: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--kura-border-subtle, rgba(255, 255, 255, 0.08));
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -79,7 +79,7 @@ const isExpanded = ref(false);
 
 .synopsis-body {
   position: relative;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .synopsis-body.collapsed {

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { fetchHtvList, fetchNekoList, fetchTubeList, fetchHtvGenres, fetchTubeCategories } from '../services/api.js';
 import CinemaHeroBillboard from '../components/cinema/CinemaHeroBillboard.vue';
 import CinemaTrendingRail from '../components/cinema/CinemaTrendingRail.vue';
@@ -13,6 +13,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  initialSearchQuery: {
+    type: String,
+    default: '',
+  },
 });
 
 const emit = defineEmits(['select-video']);
@@ -25,6 +29,7 @@ const videoPage = ref(1);
 const videoTotalPages = ref(50);
 const videoLoading = ref(false);
 const videoError = ref(null);
+const searchQuery = ref(props.initialSearchQuery || '');
 
 const loadGenres = async () => {
   try {
@@ -51,9 +56,9 @@ const loadVideos = async (page = 1) => {
     let data;
     if (currentProvider.value === 'all') {
       const merged = await mergeUnifiedFeed([
-        { provider: 'htv', fetcher: () => fetchHtvList({ page }) },
-        { provider: 'neko', fetcher: () => fetchNekoList(page) },
-        { provider: 'tube', fetcher: () => fetchTubeList({ page }) },
+        { provider: 'htv', fetcher: () => fetchHtvList({ page, q: searchQuery.value }) },
+        { provider: 'neko', fetcher: () => fetchNekoList(page, { q: searchQuery.value }) },
+        { provider: 'tube', fetcher: () => fetchTubeList({ page, q: searchQuery.value }) },
       ]);
       videoList.value = merged;
       videoTotalPages.value = 1;
@@ -61,9 +66,9 @@ const loadVideos = async (page = 1) => {
     } else if (currentProvider.value === 'neko') {
       data = await fetchNekoList(page);
     } else if (currentProvider.value === 'htv') {
-      data = await fetchHtvList({ page, genre: selectedGenre.value || undefined });
+      data = await fetchHtvList({ page, q: searchQuery.value, genre: selectedGenre.value || undefined });
     } else if (currentProvider.value === 'tube') {
-      data = await fetchTubeList({ page, category: selectedGenre.value || undefined });
+      data = await fetchTubeList({ page, q: searchQuery.value, category: selectedGenre.value || undefined });
     }
 
     const items = data.results || data.videos || data.data || (Array.isArray(data) ? data : []);
@@ -92,6 +97,16 @@ const handleChangePage = (p) => {
   loadVideos(p);
   window.scrollTo({ top: 400, behavior: 'smooth' });
 };
+
+watch(
+  () => props.initialSearchQuery,
+  (nextQuery) => {
+    const normalizedQuery = nextQuery || '';
+    if (normalizedQuery === searchQuery.value) return;
+    searchQuery.value = normalizedQuery;
+    loadVideos(1);
+  }
+);
 
 onMounted(() => {
   loadGenres();
